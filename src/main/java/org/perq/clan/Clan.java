@@ -20,7 +20,6 @@ public final class Clan extends JavaPlugin {
 
         getCommand("clan").setExecutor(new ClanCommand(this));
         getCommand("clan").setTabCompleter(new ClanCommand(this));
-        getCommand("c").setExecutor(new ClanChatCommand(this));
 
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
         

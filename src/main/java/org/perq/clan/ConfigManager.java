@@ -21,7 +21,7 @@ public class ConfigManager {
     }
 
     public String getPrefix() {
-        return config.getString("prefix");
+        return translateColors(config.getString("prefix"));
     }
 
     private static String translateHexColorCodes(String message) {
@@ -64,7 +64,7 @@ public class ConfigManager {
     }
 
     public String getClanChatFormat() {
-        return config.getString("clan-chat-format");
+        return config.getString("messages.clan-chat-format");
     }
 
     public int getTagLength() {
