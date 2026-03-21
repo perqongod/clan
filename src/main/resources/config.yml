@@ -15,7 +15,7 @@ clan-tag-settings:
 messages:
   toggle-off: "%prefix%&cDu nimmst nun keine Clan-Anfragen mehr an."
   toggle-on: "%prefix%&aDu nimmst nun wieder Clan-Anfragen an."
-  clan-chat-format: "&#808080[&#00FFFFClan&#808080] &#FFFF00%player%: &#FFFFFF%message%"
+  clan-chat-format: "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &f%player%&7: &f%message%"
   clan-info-header: "&#FFFF00Clan-Informationen"
   no-clan: "%prefix%&cDu bist in keinem Clan."
   clan-created: "%prefix%&aClan %tag% wurde erstellt."

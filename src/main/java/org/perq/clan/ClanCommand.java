@@ -13,8 +13,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class ClanCommand implements CommandExecutor, TabCompleter {
@@ -26,6 +28,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     public ClanCommand(Clan plugin) {
         this.plugin = plugin;
     }
+
+    private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
+            "create", "delete", "invite", "accept", "deny", "leave", "kick",
+            "promote", "demote", "rename", "info", "toggle", "stats", "ranking",
+            "chest", "spawn", "setspawn"
+    ));
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -40,6 +48,29 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         // Check for basic clan permission
         if (!player.hasPermission("clan.default")) {
             player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
+            return true;
+        }
+
+        // When using /c with args that are not a known subcommand, treat as clan chat
+        if (label.equalsIgnoreCase("c") && args.length > 0 && !SUBCOMMANDS.contains(args[0].toLowerCase())) {
+            ClanData chatClan = getPlayerClan(playerUUID);
+            if (chatClan == null) {
+                player.sendMessage(plugin.getConfigManager().getMessage("no-clan"));
+                return true;
+            }
+            String chatMessage = String.join(" ", args);
+            ConfigManager cm = plugin.getConfigManager();
+            String format = cm.translateColors(
+                    cm.getClanChatFormat()
+                            .replace("%player%", player.getName())
+                            .replace("%message%", chatMessage)
+            );
+            for (UUID mem : chatClan.getMembers()) {
+                Player p = plugin.getServer().getPlayer(mem);
+                if (p != null) {
+                    p.sendMessage(format);
+                }
+            }
             return true;
         }
 
@@ -441,23 +472,23 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 StringBuilder sb = new StringBuilder();
                 sb.append(plugin.getConfigManager().getMessage("clan-info-header")).append("\n");
-                sb.append("Tag: ").append(cli.getTag()).append("\n");
-                sb.append("Punkte: ").append(cli.getPoints()).append("\n");
-                sb.append("Rang: ").append(cli.getRank()).append("\n");
-                sb.append("Erstelldatum: ").append(cli.getCreated()).append("\n");
-                sb.append("Online-Zeit: ").append(String.format("%.1f", cli.getOnlineTime())).append("h\n");
-                sb.append("Leader: ").append(Bukkit.getOfflinePlayer(cli.getLeader()).getName()).append("\n");
+                sb.append(plugin.getConfigManager().getPrefix()).append("Tag: ").append(cli.getTag()).append("\n");
+                sb.append(plugin.getConfigManager().getPrefix()).append("Punkte: ").append(cli.getPoints()).append("\n");
+                sb.append(plugin.getConfigManager().getPrefix()).append("Rang: ").append(cli.getRank()).append("\n");
+                sb.append(plugin.getConfigManager().getPrefix()).append("Erstelldatum: ").append(cli.getCreated()).append("\n");
+                sb.append(plugin.getConfigManager().getPrefix()).append("Online-Zeit: ").append(String.format("%.1f", cli.getOnlineTime())).append("h\n");
+                sb.append(plugin.getConfigManager().getPrefix()).append("Leader: ").append(Bukkit.getOfflinePlayer(cli.getLeader()).getName()).append("\n");
                 String mods = cli.getModerators().isEmpty() ? "Keine" : cli.getModerators().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).reduce((a,b) -> a + ", " + b).orElse("Keine");
-                sb.append("Moderatoren: ").append(mods).append("\n");
-                sb.append("Mitglieder:\n");
+                sb.append(plugin.getConfigManager().getPrefix()).append("Moderatoren: ").append(mods).append("\n");
+                sb.append(plugin.getConfigManager().getPrefix()).append("Mitglieder:\n");
                 for (UUID mem : cli.getMembers()) {
                     String name = Bukkit.getOfflinePlayer(mem).getName();
                     PlayerData md = plugin.getFileManager().loadPlayer(mem);
                     double time = md != null ? md.getOnlineTime() : 0.0;
                     String online = plugin.getServer().getPlayer(mem) != null ? "online" : "offline";
-                    sb.append("- ").append(name).append(" (").append(md != null ? md.getRole() : "MEMBER").append(") ").append(online).append(" (").append(String.format("%.1f", time)).append("h)\n");
+                    sb.append("  - ").append(name).append(" (").append(md != null ? md.getRole() : "MEMBER").append(") ").append(online).append(" (").append(String.format("%.1f", time)).append("h)\n");
                 }
-                player.sendMessage(sb.toString());
+                player.sendMessage(plugin.getConfigManager().translateColors(sb.toString()));
                 break;
 
             case "toggle":
