@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/src/main/java/org/perq/clan/MemberData.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/main/java/org/perq/clan/MemberData.java" />
+              <option name="updatedContent" value="package org.perq.clan;&#10;&#10;import java.time.LocalDateTime;&#10;import java.util.UUID;&#10;&#10;public class MemberData {&#10;    private int clanId;&#10;    private UUID player;&#10;    private String role; // Leader, Mod, Member&#10;    private double onlineTime; // in hours&#10;    private LocalDateTime joinedDate;&#10;&#10;    // Constructors, getters, setters&#10;    public MemberData() {}&#10;&#10;    public MemberData(int clanId, UUID player, String role, double onlineTime, LocalDateTime joinedDate) {&#10;        this.clanId = clanId;&#10;        this.player = player;&#10;        this.role = role;&#10;        this.onlineTime = onlineTime;&#10;        this.joinedDate = joinedDate;&#10;    }&#10;&#10;    // Getters and setters&#10;    public int getClanId() { return clanId; }&#10;    public void setClanId(int clanId) { this.clanId = clanId; }&#10;&#10;    public UUID getPlayer() { return player; }&#10;    public void setPlayer(UUID player) { this.player = player; }&#10;&#10;    public String getRole() { return role; }&#10;    public void setRole(String role) { this.role = role; }&#10;&#10;    public double getOnlineTime() { return onlineTime; }&#10;    public void setOnlineTime(double onlineTime) { this.onlineTime = onlineTime; }&#10;&#10;    public LocalDateTime getJoinedDate() { return joinedDate; }&#10;    public void setJoinedDate(LocalDateTime joinedDate) { this.joinedDate = joinedDate; }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

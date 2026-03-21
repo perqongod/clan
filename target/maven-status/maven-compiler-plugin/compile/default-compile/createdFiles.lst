@@ -1,0 +1,14 @@
+org\perq\clan\ClanCommand.class
+org\perq\clan\ClanChatCommand.class
+org\perq\clan\InvitationData.class
+org\perq\clan\Clan.class
+org\perq\clan\InviteData.class
+org\perq\clan\TagValidator.class
+org\perq\clan\TagValidator$ValidationResult.class
+org\perq\clan\ClanCommand$1.class
+org\perq\clan\EventListener.class
+org\perq\clan\ConfigManager.class
+org\perq\clan\ClanData.class
+org\perq\clan\PlayerData.class
+org\perq\clan\ClanPlaceholder.class
+org\perq\clan\FileManager.class

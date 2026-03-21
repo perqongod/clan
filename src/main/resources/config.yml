@@ -1,0 +1,48 @@
+prefix: "&6&lxyntrix &7| "
+kill-points: 1
+online-save-interval: 60
+
+# Clan-Tag Validierung
+clan-tag-settings:
+  length: 4
+  only-letters: true
+  blacklist:
+    - "ADMIN"
+    - "MODS"
+    - "TEST"
+    - "BANNED"
+
+messages:
+  toggle-off: "%prefix%&cDu nimmst nun keine Clan-Anfragen mehr an."
+  toggle-on: "%prefix%&aDu nimmst nun wieder Clan-Anfragen an."
+  clan-chat-format: "&#808080[&#00FFFFClan&#808080] &#FFFF00%player%: &#FFFFFF%message%"
+  clan-info-header: "&#FFFF00Clan-Informationen"
+  no-clan: "%prefix%&cDu bist in keinem Clan."
+  clan-created: "%prefix%&aClan %tag% wurde erstellt."
+  clan-deleted: "%prefix%&aClan wurde gelöscht."
+  invitation-sent: "%prefix%&aEinladung an %player% gesendet."
+  invitation-received: "%prefix%&eDu wurdest in den Clan %tag% eingeladen. Verwende /clan accept %tag% oder /clan deny %tag%."
+  invitation-accepted: "%prefix%&aDu bist dem Clan %tag% beigetreten."
+  invitation-denied: "%prefix%&cEinladung abgelehnt."
+  left-clan: "%prefix%&aDu hast den Clan verlassen."
+  kicked: "%prefix%&cDu wurdest aus dem Clan gekickt."
+  promoted: "%prefix%&a%player% wurde befördert."
+  demoted: "%prefix%&a%player% wurde degradiert."
+  renamed: "%prefix%&aClan wurde zu %tag% umbenannt."
+  no-permission: "%prefix%&cDu hast keine Berechtigung dafür."
+  player-not-found: "%prefix%&cSpieler nicht gefunden."
+  clan-not-found: "%prefix%&cClan nicht gefunden."
+  already-in-clan: "%prefix%&cDu bist bereits in einem Clan."
+  clan-full: "%prefix%&cClan ist voll."
+  clan-exists: "%prefix%&cClan mit diesem Tag existiert bereits."
+  invitations-disabled: "%prefix%&cDieser Spieler hat Einladungen deaktiviert."
+  tag-invalid-length: "%prefix%&cDer Clan-Tag muss genau %length% Zeichen lang sein."
+  tag-invalid-chars: "%prefix%&cDer Clan-Tag darf nur Buchstaben enthalten (keine Zahlen oder Sonderzeichen)."
+  tag-blacklisted: "%prefix%&cDieser Clan-Tag ist nicht erlaubt."
+  tag-no-colors: "%prefix%&cDu darfst keine Farbcodes verwenden. Kaufe VIP für farbige Tags!"
+ranks:
+  Bronze: 0
+  Silber: 5
+  Gold: 10
+  Platin: 11
+  Diamant: 12
