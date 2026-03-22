@@ -41,8 +41,9 @@ messages:
   tag-blacklisted: "%prefix%&cDieser Clan-Tag ist nicht erlaubt."
   tag-no-colors: "%prefix%&cDu darfst keine Farbcodes verwenden. Kaufe VIP für farbige Tags!"
   tag-vip-only-gold: "%prefix%&cAls VIP darfst du nur den Farbcode &6&6 &cverwenden."
+  tag-vip-invalid-codes: "%prefix%&cUngültige Farbcodes im Tag. Verwende nur gültige Minecraft-Farbcodes (z.B. &a&a, &6&6, &c&c)."
   tag-vip-max-length: "%prefix%&cDer Clan-Tag darf maximal %length% Buchstaben haben."
-  delete-confirm: "%prefix%&cBist du sicher dass du den Clan löschen willst?"
+  delete-confirm: "%prefix%&cBist du sicher das du den clan löschen willst?"
   delete-denied: "%prefix%&cClan-Löschung abgebrochen."
   clan-deleted-cancelled: "%prefix%&cClan-Löschung abgebrochen (Zeit abgelaufen)."
   clan-dissolved: "Der [%tag%] Clan wurde aufgelöst."
@@ -55,6 +56,9 @@ messages:
   request-sent: "%prefix%&aDeine Anfrage wurde an den Clan %tag% gesendet."
   request-received: "%prefix%&e%player% möchte deinen Clan beitreten."
   requests-header: "%prefix%Deine Clan-Einladungen:"
+  leader-request-confirm: "%prefix%&cWillst du wirklich deinen Clan aufgeben für einen anderen Clan?"
+  force-kick-confirm: "%prefix%&cBist du sicher, dass du %player% aus seinem Clan entfernen willst?"
+  force-delete-confirm: "%prefix%&cBist du sicher, dass du den Clan %tag% auflösen willst?"
 ranks:
   Bronze: 0
   Silber: 5
