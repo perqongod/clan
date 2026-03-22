@@ -5,6 +5,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -69,7 +70,13 @@ public class FileManager {
     public InviteData loadInvite(UUID uuid) {
         File file = new File(invitesDir, uuid.toString() + ".yml");
         if (!file.exists()) return null;
-        return new InviteData(file);
+        List<InviteData> all = InviteData.loadAllFromFile(file);
+        return all.isEmpty() ? null : all.get(0);
+    }
+
+    public List<InviteData> loadAllInvites(UUID uuid) {
+        File file = new File(invitesDir, uuid.toString() + ".yml");
+        return InviteData.loadAllFromFile(file);
     }
 
     public void saveInvite(UUID uuid, InviteData invite) throws IOException {
@@ -80,5 +87,16 @@ public class FileManager {
     public void deleteInvite(UUID uuid) {
         File file = new File(invitesDir, uuid.toString() + ".yml");
         if (file.exists()) file.delete();
+    }
+
+    public void deleteSpecificInvite(UUID uuid, String clanTag) throws IOException {
+        File file = new File(invitesDir, uuid.toString() + ".yml");
+        List<InviteData> all = InviteData.loadAllFromFile(file);
+        all.removeIf(inv -> clanTag.equals(inv.getFromClan()));
+        if (all.isEmpty()) {
+            if (file.exists()) file.delete();
+        } else {
+            InviteData.saveAllToFile(file, all);
+        }
     }
 }
