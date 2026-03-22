@@ -42,13 +42,19 @@ messages:
   tag-no-colors: "%prefix%&cDu darfst keine Farbcodes verwenden. Kaufe VIP für farbige Tags!"
   tag-vip-only-gold: "%prefix%&cAls VIP darfst du nur den Farbcode &6&6 &cverwenden."
   tag-vip-max-length: "%prefix%&cDer Clan-Tag darf maximal %length% Buchstaben haben."
-  delete-confirm: "%prefix%&cBist du sicher dass du den clan löschen willst?"
+  delete-confirm: "%prefix%&cBist du sicher dass du den Clan löschen willst?"
+  delete-denied: "%prefix%&cClan-Löschung abgebrochen."
   clan-deleted-cancelled: "%prefix%&cClan-Löschung abgebrochen (Zeit abgelaufen)."
+  clan-dissolved: "Der [%tag%] Clan wurde aufgelöst."
+  not-clan-leader: "%prefix%&cDu bist nicht der Clan Leader."
   leader-cannot-join: "%prefix%&cAls Leader kannst du keinem anderen Clan beitreten. Übertrage zuerst die Führung oder lösche den Clan."
   force-leave-success: "%prefix%&a%player% wurde aus dem Clan entfernt."
   force-leave-no-clan: "%prefix%&cDieser Spieler ist in keinem Clan."
   no-requests: "%prefix%&cDu hast keine ausstehenden Clan-Einladungen."
   join-not-invited: "%prefix%&cDu wurdest nicht in diesen Clan eingeladen."
+  request-sent: "%prefix%&aDeine Anfrage wurde an den Clan %tag% gesendet."
+  request-received: "%prefix%&e%player% möchte deinen Clan beitreten."
+  requests-header: "%prefix%Deine Clan-Einladungen:"
 ranks:
   Bronze: 0
   Silber: 5
