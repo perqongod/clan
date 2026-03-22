@@ -678,7 +678,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (args[1].equalsIgnoreCase("kick") || args[1].equalsIgnoreCase("leave")) {
                     if (args.length >= 3 && args[2].equalsIgnoreCase("confirm")) {
                         PendingForceKick pending = pendingForceKicks.get(playerUUID);
-                        if (pending == null || System.currentTimeMillis() - pending.timestamp() > DELETE_CONFIRM_TIMEOUT_MS) {
+                        if (pending == null) {
+                            player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
+                            return true;
+                        }
+                        if (System.currentTimeMillis() - pending.timestamp() > DELETE_CONFIRM_TIMEOUT_MS) {
                             pendingForceKicks.remove(playerUUID);
                             player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
                             return true;
@@ -739,7 +743,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 } else if (args[1].equalsIgnoreCase("delete")) {
                     if (args.length >= 3 && args[2].equalsIgnoreCase("confirm")) {
                         PendingTagAction pending = pendingForceDeletes.get(playerUUID);
-                        if (pending == null || System.currentTimeMillis() - pending.timestamp() > DELETE_CONFIRM_TIMEOUT_MS) {
+                        if (pending == null) {
+                            player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
+                            return true;
+                        }
+                        if (System.currentTimeMillis() - pending.timestamp() > DELETE_CONFIRM_TIMEOUT_MS) {
                             pendingForceDeletes.remove(playerUUID);
                             player.sendMessage(plugin.getConfigManager().getMessage("clan-deleted-cancelled"));
                             return true;
@@ -882,7 +890,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 if (args[1].equalsIgnoreCase("confirm")) {
                     PendingTagAction pending = pendingLeaderRequests.get(playerUUID);
-                    if (pending == null || System.currentTimeMillis() - pending.timestamp() > DELETE_CONFIRM_TIMEOUT_MS) {
+                    if (pending == null) {
+                        player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
+                        return true;
+                    }
+                    if (System.currentTimeMillis() - pending.timestamp() > DELETE_CONFIRM_TIMEOUT_MS) {
                         pendingLeaderRequests.remove(playerUUID);
                         player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
                         return true;
