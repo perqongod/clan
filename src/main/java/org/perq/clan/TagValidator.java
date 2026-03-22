@@ -21,8 +21,13 @@ public class TagValidator {
         // For VIP players, allow &6 color code but check letter count after stripping
         if (isVip) {
             // Only &6 is permitted – reject any other color/format codes
-            if (tag.contains("&") && !tag.matches("(&6|[a-zA-Z])+")) {
-                return new ValidationResult(false, configManager.getMessage("tag-vip-only-gold"));
+            if (tag.contains("&")) {
+                if (tag.matches("(?i).*&(?![0-9a-fk-or]).*")) {
+                    return new ValidationResult(false, configManager.getMessage("tag-vip-invalid-codes"));
+                }
+                if (!tag.matches("(&6|[a-zA-Z])+")) {
+                    return new ValidationResult(false, configManager.getMessage("tag-vip-only-gold"));
+                }
             }
             String strippedTag = stripColorCodes(tag);
             int maxLength = configManager.getTagLength();
