@@ -2,15 +2,10 @@ package org.perq.clan;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 public final class Clan extends JavaPlugin {
 
     private ConfigManager configManager;
     private FileManager fileManager;
-    private Map<UUID, Boolean> invitationToggles = new HashMap<>(); // true = disabled
 
     @Override
     public void onEnable() {
@@ -40,15 +35,5 @@ public final class Clan extends JavaPlugin {
 
     public FileManager getFileManager() {
         return fileManager;
-    }
-
-    public boolean toggleInvitation(UUID player) {
-        boolean current = invitationToggles.getOrDefault(player, false);
-        invitationToggles.put(player, !current);
-        return !current; // true if now disabled
-    }
-
-    public Map<UUID, Boolean> getInvitationToggles() {
-        return invitationToggles;
     }
 }

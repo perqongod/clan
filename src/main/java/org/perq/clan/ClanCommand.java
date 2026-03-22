@@ -41,7 +41,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "leave", "kick",
             "promote", "demote", "rename", "info", "toggle", "stats", "ranking",
-            "chest", "spawn", "setspawn", "force", "requests", "join"
+            "chest", "spawn", "setspawn", "force", "requests", "join", "request", "admin"
     ));
 
     @Override
@@ -60,8 +60,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // When using /c with args that are not a known subcommand, treat as clan chat
-        if (label.equalsIgnoreCase("c") && args.length > 0 && !SUBCOMMANDS.contains(args[0].toLowerCase())) {
+        // When using /clan or /c with args that are not a known subcommand, treat as clan chat
+        if (args.length > 0 && !SUBCOMMANDS.contains(args[0].toLowerCase())) {
             ClanData chatClan = getPlayerClan(playerUUID);
             if (chatClan == null) {
                 player.sendMessage(plugin.getConfigManager().getMessage("no-clan"));
@@ -89,6 +89,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan invite <spieler> &7- um einen Spieler einzuladen"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan accept <tag> &7- um eine Einladung anzunehmen"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan deny <tag> &7- um eine Einladung abzulehnen"));
+            player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan request <tag> &7- um eine Beitrittsanfrage zu senden"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan leave &7- um deinen Clan zu verlassen"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan kick <spieler> &7- um einen Spieler zu kicken"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan promote <spieler> &7- um einen Spieler zu befördern"));
@@ -103,9 +104,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan setspawn &7- um den Clan-Spawn zu setzen"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan requests &7- um deine Clan-Einladungen zu sehen"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan join <tag> &7- um einer Einladung beizutreten"));
-            if (player.hasPermission("clan.admin")) {
-                player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan force leave <spieler> &7- Spieler aus Clan werfen (Admin)"));
-            }
             return true;
         }
 
@@ -161,7 +159,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!c.getLeader().equals(playerUUID)) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
+                    player.sendMessage(plugin.getConfigManager().getMessage("not-clan-leader"));
+                    return true;
+                }
+                if (args.length >= 2 && (args[1].equalsIgnoreCase("deny") || args[1].equalsIgnoreCase("cancel"))) {
+                    pendingDeletes.remove(playerUUID);
+                    player.sendMessage(plugin.getConfigManager().getMessage("clan-deleted-denied"));
                     return true;
                 }
                 // Check for "confirm" sub-argument
@@ -187,15 +190,31 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                     plugin.getFileManager().deleteClan(c.getTag());
                     player.sendMessage(plugin.getConfigManager().getMessage("clan-deleted"));
+                    plugin.getServer().broadcastMessage(plugin.getConfigManager().getMessage("clan-disbanded").replace("%tag%", c.getTag()));
                 } else {
                     // First invocation – ask for confirmation
                     pendingDeletes.put(playerUUID, System.currentTimeMillis());
                     Component confirmMsg = Component.text(plugin.getConfigManager().getMessage("delete-confirm") + " ")
-                            .append(Component.text("[Accept]")
+                            .append(Component.text("["))
+                            .append(Component.text("accept")
                                     .color(TextColor.color(0x55FF55))
-                                    .clickEvent(ClickEvent.runCommand("/clan delete confirm")));
+                                    .clickEvent(ClickEvent.runCommand("/clan delete confirm")))
+                            .append(Component.text(" / "))
+                            .append(Component.text("Deny")
+                                    .color(TextColor.color(0xFF5555))
+                                    .clickEvent(ClickEvent.runCommand("/clan delete deny")))
+                            .append(Component.text("]"));
                     player.sendMessage(confirmMsg);
                 }
+                break;
+
+            case "admin":
+                if (!player.hasPermission("clan.admin")) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
+                    return true;
+                }
+                player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan force leave <spieler> &7- Spieler aus Clan werfen (Admin)"));
+                player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan force delete <tag> &7- Clan löschen (Admin)"));
                 break;
 
             case "invite":
@@ -244,7 +263,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 List<InviteData> acceptInvites = plugin.getFileManager().loadAllInvites(playerUUID);
                 InviteData acceptInv = null;
                 for (InviteData i : acceptInvites) {
-                    if (tag.equals(i.getFromClan())) { acceptInv = i; break; }
+                    if (tag.equals(i.getFromClan()) && i.getRequester() == null) { acceptInv = i; break; }
                 }
                 if (acceptInv == null) {
                     player.sendMessage(plugin.getConfigManager().getPrefix() + "Keine Einladung gefunden.");
@@ -285,7 +304,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 List<InviteData> denyInvites = plugin.getFileManager().loadAllInvites(playerUUID);
                 boolean foundDeny = false;
                 for (InviteData i : denyInvites) {
-                    if (denyTag.equals(i.getFromClan())) { foundDeny = true; break; }
+                    if (denyTag.equals(i.getFromClan()) && i.getRequester() == null) { foundDeny = true; break; }
                 }
                 if (!foundDeny) {
                     player.sendMessage(plugin.getConfigManager().getPrefix() + "Keine Einladung gefunden.");
@@ -297,6 +316,46 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     // ignore
                 }
                 player.sendMessage(plugin.getConfigManager().getMessage("invitation-denied"));
+                break;
+
+            case "request":
+                if (args.length < 2) {
+                    player.sendMessage(plugin.getConfigManager().getPrefix() + "Verwendung: /clan request <tag>");
+                    return true;
+                }
+                String requestTag = args[1];
+                ClanData requestClan = plugin.getFileManager().loadClan(requestTag);
+                if (requestClan == null) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("clan-not-found"));
+                    return true;
+                }
+                PlayerData requestPlayerData = plugin.getFileManager().loadPlayer(playerUUID);
+                if (requestPlayerData == null) {
+                    requestPlayerData = new PlayerData(player.getName());
+                }
+                if (requestPlayerData.getClanTag() != null) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("already-in-clan"));
+                    return true;
+                }
+                UUID leaderId = requestClan.getLeader();
+                InviteData requestInvite = new InviteData(requestTag, player.getName());
+                try {
+                    plugin.getFileManager().saveInvite(leaderId, requestInvite);
+                    player.sendMessage(plugin.getConfigManager().getMessage("request-sent").replace("%tag%", requestTag));
+                } catch (IOException e) {
+                    player.sendMessage(plugin.getConfigManager().getPrefix() + "Fehler beim Speichern.");
+                    return true;
+                }
+                PlayerData leaderData = plugin.getFileManager().loadPlayer(leaderId);
+                boolean leaderInvitesEnabled = leaderData == null || leaderData.isInvitesEnabled();
+                if (leaderInvitesEnabled) {
+                    Player leaderPlayer = plugin.getServer().getPlayer(leaderId);
+                    if (leaderPlayer != null) {
+                        leaderPlayer.sendMessage(plugin.getConfigManager().getMessage("request-received")
+                                .replace("%player%", player.getName())
+                                .replace("%tag%", requestTag));
+                    }
+                }
                 break;
 
             case "leave":
@@ -540,19 +599,20 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 break;
 
             case "toggle":
-                boolean toggled = plugin.toggleInvitation(playerUUID);
-                if (toggled) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("toggle-off"));
-                } else {
-                    player.sendMessage(plugin.getConfigManager().getMessage("toggle-on"));
-                }
                 PlayerData ptData = plugin.getFileManager().loadPlayer(playerUUID);
-                if (ptData != null) {
-                    ptData.setInvitesEnabled(!toggled);
-                    try {
-                        plugin.getFileManager().savePlayer(playerUUID, ptData);
-                    } catch (IOException e) {}
+                if (ptData == null) {
+                    ptData = new PlayerData(player.getName());
                 }
+                boolean invitesEnabled = !ptData.isInvitesEnabled();
+                ptData.setInvitesEnabled(invitesEnabled);
+                if (invitesEnabled) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("toggle-on"));
+                } else {
+                    player.sendMessage(plugin.getConfigManager().getMessage("toggle-off"));
+                }
+                try {
+                    plugin.getFileManager().savePlayer(playerUUID, ptData);
+                } catch (IOException e) {}
                 break;
 
             case "stats":
@@ -651,35 +711,72 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
                     return true;
                 }
-                if (args.length < 3 || !args[1].equalsIgnoreCase("leave")) {
-                    player.sendMessage(plugin.getConfigManager().getPrefix() + "Verwendung: /clan force leave <spieler>");
+                if (args.length < 2) {
+                    player.sendMessage(plugin.getConfigManager().getPrefix() + "Verwendung: /clan force <leave|delete> <spieler|tag>");
                     return true;
                 }
-                Player forceTarget = plugin.getServer().getPlayer(args[2]);
-                if (forceTarget == null) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("player-not-found"));
-                    return true;
+                String forceAction = args[1].toLowerCase();
+                if (forceAction.equals("leave")) {
+                    if (args.length < 3) {
+                        player.sendMessage(plugin.getConfigManager().getPrefix() + "Verwendung: /clan force leave <spieler>");
+                        return true;
+                    }
+                    Player forceTarget = plugin.getServer().getPlayer(args[2]);
+                    if (forceTarget == null) {
+                        player.sendMessage(plugin.getConfigManager().getMessage("player-not-found"));
+                        return true;
+                    }
+                    ClanData forceTargetClan = getPlayerClan(forceTarget.getUniqueId());
+                    if (forceTargetClan == null) {
+                        player.sendMessage(plugin.getConfigManager().getMessage("force-leave-no-clan"));
+                        return true;
+                    }
+                    forceTargetClan.getMembers().remove(forceTarget.getUniqueId());
+                    if (forceTargetClan.getModerators().contains(forceTarget.getUniqueId())) {
+                        forceTargetClan.getModerators().remove(forceTarget.getUniqueId());
+                    }
+                    PlayerData forceTargetData = plugin.getFileManager().loadPlayer(forceTarget.getUniqueId());
+                    if (forceTargetData != null) {
+                        forceTargetData.setClanTag(null);
+                        forceTargetData.setRole("MEMBER");
+                        try {
+                            plugin.getFileManager().savePlayer(forceTarget.getUniqueId(), forceTargetData);
+                            plugin.getFileManager().saveClan(forceTargetClan);
+                        } catch (IOException e) { /* ignore */ }
+                    }
+                    player.sendMessage(plugin.getConfigManager().getMessage("force-leave-success").replace("%player%", forceTarget.getName()));
+                    forceTarget.sendMessage(plugin.getConfigManager().getMessage("left-clan"));
+                    break;
                 }
-                ClanData forceTargetClan = getPlayerClan(forceTarget.getUniqueId());
-                if (forceTargetClan == null) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("force-leave-no-clan"));
-                    return true;
+                if (forceAction.equals("delete")) {
+                    if (args.length < 3) {
+                        player.sendMessage(plugin.getConfigManager().getPrefix() + "Verwendung: /clan force delete <tag>");
+                        return true;
+                    }
+                    String deleteTag = args[2];
+                    ClanData forceClan = plugin.getFileManager().loadClan(deleteTag);
+                    if (forceClan == null) {
+                        player.sendMessage(plugin.getConfigManager().getMessage("clan-not-found"));
+                        return true;
+                    }
+                    for (UUID mem : forceClan.getMembers()) {
+                        PlayerData pd = plugin.getFileManager().loadPlayer(mem);
+                        if (pd != null) {
+                            pd.setClanTag(null);
+                            pd.setRole("MEMBER");
+                            try {
+                                plugin.getFileManager().savePlayer(mem, pd);
+                            } catch (IOException e) {
+                                // ignore
+                            }
+                        }
+                    }
+                    plugin.getFileManager().deleteClan(forceClan.getTag());
+                    player.sendMessage(plugin.getConfigManager().getMessage("clan-deleted"));
+                    plugin.getServer().broadcastMessage(plugin.getConfigManager().getMessage("clan-disbanded").replace("%tag%", forceClan.getTag()));
+                    break;
                 }
-                forceTargetClan.getMembers().remove(forceTarget.getUniqueId());
-                if (forceTargetClan.getModerators().contains(forceTarget.getUniqueId())) {
-                    forceTargetClan.getModerators().remove(forceTarget.getUniqueId());
-                }
-                PlayerData forceTargetData = plugin.getFileManager().loadPlayer(forceTarget.getUniqueId());
-                if (forceTargetData != null) {
-                    forceTargetData.setClanTag(null);
-                    forceTargetData.setRole("MEMBER");
-                    try {
-                        plugin.getFileManager().savePlayer(forceTarget.getUniqueId(), forceTargetData);
-                        plugin.getFileManager().saveClan(forceTargetClan);
-                    } catch (IOException e) { /* ignore */ }
-                }
-                player.sendMessage(plugin.getConfigManager().getMessage("force-leave-success").replace("%player%", forceTarget.getName()));
-                forceTarget.sendMessage(plugin.getConfigManager().getMessage("left-clan"));
+                player.sendMessage(plugin.getConfigManager().getPrefix() + "Verwendung: /clan force <leave|delete> <spieler|tag>");
                 break;
 
             case "requests":
@@ -692,7 +789,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
                 for (InviteData req : requests) {
                     String date = sdf.format(new Date(req.getTimestamp()));
-                    player.sendMessage("  " + req.getFromClan() + " - " + date);
+                    if (req.isRequest()) {
+                        player.sendMessage("  " + req.getRequester() + " - " + date);
+                    } else {
+                        player.sendMessage("  " + req.getFromClan() + " - " + date);
+                    }
                 }
                 break;
 
@@ -705,7 +806,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 List<InviteData> joinInvites = plugin.getFileManager().loadAllInvites(playerUUID);
                 InviteData joinInv = null;
                 for (InviteData i : joinInvites) {
-                    if (joinTag.equals(i.getFromClan())) { joinInv = i; break; }
+                    if (joinTag.equals(i.getFromClan()) && i.getRequester() == null) { joinInv = i; break; }
                 }
                 if (joinInv == null) {
                     player.sendMessage(plugin.getConfigManager().getMessage("join-not-invited"));
@@ -791,8 +892,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             List<String> subs = new ArrayList<>(Arrays.asList(
                     "create", "delete", "invite", "accept", "deny", "leave", "kick",
                     "promote", "demote", "rename", "info", "toggle", "stats", "ranking",
-                    "chest", "spawn", "setspawn", "requests", "join"));
-            if (player.hasPermission("clan.admin")) subs.add("force");
+                    "chest", "spawn", "setspawn", "requests", "request", "join"));
+            if (player.hasPermission("clan.admin")) {
+                subs.add("force");
+                subs.add("admin");
+            }
             return subs;
         }
 
@@ -805,10 +909,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 case "accept":
                 case "deny":
                 case "join":
+                case "request":
                     return null; // Spieler-Namen automatisch vervollständigen lassen
 
                 case "force":
-                    return Arrays.asList("leave");
+                    return Arrays.asList("leave", "delete");
 
                 case "kick":
                 case "promote":
@@ -830,8 +935,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        if (args.length == 3 && args[0].equalsIgnoreCase("force") && args[1].equalsIgnoreCase("leave")) {
-            return null; // let Bukkit complete online player names
+        if (args.length == 3 && args[0].equalsIgnoreCase("force")
+                && (args[1].equalsIgnoreCase("leave") || args[1].equalsIgnoreCase("delete"))) {
+            return null; // let Bukkit handle completions
         }
 
         return null;
