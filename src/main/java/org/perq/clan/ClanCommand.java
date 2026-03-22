@@ -3,6 +3,7 @@ package org.perq.clan;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -109,9 +110,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan setspawn &7- um den Clan-Spawn zu setzen"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan request <tag> &7- um eine Beitrittsanfrage zu senden"));
             player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "/clan requests &7- um deine Clan-Einladungen zu sehen"));
-            if (player.hasPermission("clan.admin")) {
-                player.sendMessage(plugin.getConfigManager().translateColors(plugin.getConfigManager().getPrefix() + "&7Tipp: &f/clan admin &7für Admin-Befehle"));
-            }
             return true;
         }
 
@@ -205,15 +203,17 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 } else {
                     // First invocation – ask for confirmation with [accept] and [Deny] buttons
                     pendingDeletes.put(playerUUID, System.currentTimeMillis());
-                    String confirmText = plugin.getConfigManager().getMessage("delete-confirm") + " ";
-                    Component confirmMsg = Component.text(confirmText)
-                            .append(Component.text("[accept]")
+                    String confirmText = plugin.getConfigManager().getMessage("delete-confirm");
+                    Component confirmMsg = LegacyComponentSerializer.legacySection().deserialize(confirmText)
+                            .append(Component.text(" [").color(TextColor.color(0xFF5555)))
+                            .append(Component.text("Accept")
                                     .color(TextColor.color(0x55FF55))
                                     .clickEvent(ClickEvent.runCommand("/clan delete confirm")))
-                            .append(Component.text(" / ").color(TextColor.color(0xAAAAAA)))
-                            .append(Component.text("[Deny]")
+                            .append(Component.text(" / ").color(TextColor.color(0x55FF55)))
+                            .append(Component.text("Deny")
                                     .color(TextColor.color(0xFF5555))
-                                    .clickEvent(ClickEvent.runCommand("/clan delete deny")));
+                                    .clickEvent(ClickEvent.runCommand("/clan delete deny")))
+                            .append(Component.text("]").color(TextColor.color(0xFF5555)));
                     player.sendMessage(confirmMsg);
                 }
                 break;
