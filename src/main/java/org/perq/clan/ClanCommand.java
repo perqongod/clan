@@ -680,7 +680,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         PendingForceKick pending = pendingForceKicks.get(playerUUID);
                         if (pending == null || System.currentTimeMillis() - pending.timestamp() > DELETE_CONFIRM_TIMEOUT_MS) {
                             pendingForceKicks.remove(playerUUID);
-                            player.sendMessage(plugin.getConfigManager().getPrefix() + "Aktion abgebrochen.");
+                            player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
                             return true;
                         }
                         pendingForceKicks.remove(playerUUID);
@@ -712,7 +712,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         return true;
                     } else if (args.length >= 3 && args[2].equalsIgnoreCase("deny")) {
                         pendingForceKicks.remove(playerUUID);
-                        player.sendMessage(plugin.getConfigManager().getPrefix() + "Aktion abgebrochen.");
+                        player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
                         return true;
                     }
                     if (args.length < 3) {
@@ -751,7 +751,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             player.sendMessage(plugin.getConfigManager().getMessage("clan-not-found"));
                             return true;
                         }
-                        // Remove all members from the clan
                         for (UUID mem : forceDeleteClan.getMembers()) {
                             PlayerData pd = plugin.getFileManager().loadPlayer(mem);
                             if (pd != null) {

@@ -47,6 +47,7 @@ messages:
   leader-request-confirm: "%prefix%&cAls Leader wird dein Clan aufgelöst. Fortfahren?"
   force-kick-confirm: "%prefix%&cBist du sicher, dass du %player% aus dem Clan entfernen willst?"
   force-delete-confirm: "%prefix%&cBist du sicher, dass du den Clan %tag% löschen willst?"
+  action-cancelled: "%prefix%&cAktion abgebrochen."
   delete-denied: "%prefix%&cClan-Löschung abgebrochen."
   clan-deleted-cancelled: "%prefix%&cClan-Löschung abgebrochen (Zeit abgelaufen)."
   clan-dissolved: "Der [%tag%] Clan wurde aufgelöst."
