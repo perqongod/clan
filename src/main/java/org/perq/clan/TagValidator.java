@@ -22,7 +22,7 @@ public class TagValidator {
         if (isVip) {
             // Only &6 is permitted – reject any other color/format codes
             if (tag.contains("&")) {
-                if (tag.matches("(?i).*&(?![0-9a-fklmnor]).*")) {
+                if (tag.matches(".*&(?![0-9a-fA-FklmnorKLMNOR]).*")) {
                     return new ValidationResult(false, configManager.getMessage("tag-vip-invalid-codes"));
                 }
                 if (!tag.matches("(&6|[a-zA-Z])+")) {
@@ -75,7 +75,7 @@ public class TagValidator {
      * @return Text without color codes
      */
     private String stripColorCodes(String text) {
-        return text.replaceAll("&[0-9a-fklmnor]", "");
+        return text.replaceAll("&[0-9a-fA-FklmnorKLMNOR]", "");
     }
 
     /**

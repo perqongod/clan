@@ -884,7 +884,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     PendingTagAction pending = pendingLeaderRequests.get(playerUUID);
                     if (pending == null || System.currentTimeMillis() - pending.timestamp() > DELETE_CONFIRM_TIMEOUT_MS) {
                         pendingLeaderRequests.remove(playerUUID);
-                        player.sendMessage(plugin.getConfigManager().getMessage("clan-deleted-cancelled"));
+                        player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
                         return true;
                     }
                     pendingLeaderRequests.remove(playerUUID);
@@ -925,7 +925,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 } else if (args[1].equalsIgnoreCase("deny")) {
                     pendingLeaderRequests.remove(playerUUID);
-                    player.sendMessage(plugin.getConfigManager().getMessage("delete-denied"));
+                    player.sendMessage(plugin.getConfigManager().getMessage("action-cancelled"));
                     return true;
                 }
                 String reqTag = args[1];
