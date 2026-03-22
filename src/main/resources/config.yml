@@ -15,7 +15,7 @@ clan-tag-settings:
 messages:
   toggle-off: "%prefix%&cDu nimmst nun keine Clan-Anfragen mehr an."
   toggle-on: "%prefix%&aDu nimmst nun wieder Clan-Anfragen an."
-  clan-chat-format: "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &f%player%&7: &f%message%"
+  clan-chat-format: "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7%player%: &f%message%"
   clan-info-header: "&#FFFF00Clan-Informationen"
   no-clan: "%prefix%&cDu bist in keinem Clan."
   clan-created: "%prefix%&aClan %tag% wurde erstellt."
@@ -40,6 +40,15 @@ messages:
   tag-invalid-chars: "%prefix%&cDer Clan-Tag darf nur Buchstaben enthalten (keine Zahlen oder Sonderzeichen)."
   tag-blacklisted: "%prefix%&cDieser Clan-Tag ist nicht erlaubt."
   tag-no-colors: "%prefix%&cDu darfst keine Farbcodes verwenden. Kaufe VIP für farbige Tags!"
+  tag-vip-only-gold: "%prefix%&cAls VIP darfst du nur den Farbcode &6&6 &cverwenden."
+  tag-vip-max-length: "%prefix%&cDer Clan-Tag darf maximal %length% Buchstaben haben."
+  delete-confirm: "%prefix%&cBist du sicher dass du den clan löschen willst?"
+  clan-deleted-cancelled: "%prefix%&cClan-Löschung abgebrochen (Zeit abgelaufen)."
+  leader-cannot-join: "%prefix%&cAls Leader kannst du keinem anderen Clan beitreten. Übertrage zuerst die Führung oder lösche den Clan."
+  force-leave-success: "%prefix%&a%player% wurde aus dem Clan entfernt."
+  force-leave-no-clan: "%prefix%&cDieser Spieler ist in keinem Clan."
+  no-requests: "%prefix%&cDu hast keine ausstehenden Clan-Einladungen."
+  join-not-invited: "%prefix%&cDu wurdest nicht in diesen Clan eingeladen."
 ranks:
   Bronze: 0
   Silber: 5

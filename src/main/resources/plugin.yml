@@ -10,4 +10,13 @@ commands:
     usage: "/clan <subcommand>"
     aliases: [clans, c]
 
-
+permissions:
+  clan.default:
+    description: "Allows basic clan commands"
+    default: true
+  clan.vip:
+    description: "Allows creating clan tags with &6 color code"
+    default: false
+  clan.admin:
+    description: "Allows admin clan commands (force leave, delete clans)"
+    default: op

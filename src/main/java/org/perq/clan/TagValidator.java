@@ -18,16 +18,20 @@ public class TagValidator {
     public ValidationResult validate(String tag, boolean isVip) {
         ConfigManager configManager = plugin.getConfigManager();
 
-        // For VIP players, allow color codes but check letter count after stripping
+        // For VIP players, allow &6 color code but check letter count after stripping
         if (isVip) {
+            // Only &6 is permitted – reject any other color/format codes
+            if (tag.contains("&") && !tag.matches("(&6|[a-zA-Z])+")) {
+                return new ValidationResult(false, configManager.getMessage("tag-vip-only-gold"));
+            }
             String strippedTag = stripColorCodes(tag);
-            int requiredLength = configManager.getTagLength();
-            if (strippedTag.length() != requiredLength) {
-                String message = configManager.getMessage("tag-invalid-length")
-                        .replace("%length%", String.valueOf(requiredLength));
+            int maxLength = configManager.getTagLength();
+            if (strippedTag.length() > maxLength) {
+                String message = configManager.getMessage("tag-vip-max-length")
+                        .replace("%length%", String.valueOf(maxLength));
                 return new ValidationResult(false, message);
             }
-            if (!strippedTag.matches("[a-zA-Z]+")) {
+            if (strippedTag.isEmpty() || !strippedTag.matches("[a-zA-Z]+")) {
                 return new ValidationResult(false, configManager.getMessage("tag-invalid-chars"));
             }
         } else {
