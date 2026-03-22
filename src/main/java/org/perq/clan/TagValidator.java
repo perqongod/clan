@@ -18,11 +18,11 @@ public class TagValidator {
     public ValidationResult validate(String tag, boolean isVip) {
         ConfigManager configManager = plugin.getConfigManager();
 
-        // For VIP players, allow &6 color code but check letter count after stripping
+        // For VIP players, allow all standard Minecraft color codes but check letter count after stripping
         if (isVip) {
-            // Only &6 is permitted – reject any other color/format codes
-            if (tag.contains("&") && !tag.matches("(&6|[a-zA-Z])+")) {
-                return new ValidationResult(false, configManager.getMessage("tag-vip-only-gold"));
+            // Reject anything after & that is not a valid Minecraft color/format code (lowercase only)
+            if (tag.contains("&") && !tag.matches("(&[0-9a-fklmnor]|[a-zA-Z])+")) {
+                return new ValidationResult(false, configManager.getMessage("tag-vip-invalid-codes"));
             }
             String strippedTag = stripColorCodes(tag);
             int maxLength = configManager.getTagLength();
@@ -70,7 +70,7 @@ public class TagValidator {
      * @return Text without color codes
      */
     private String stripColorCodes(String text) {
-        return text.replaceAll("&[0-9a-fk-or]", "");
+        return text.replaceAll("&[0-9a-fklmnor]", "");
     }
 
     /**
