@@ -17,6 +17,7 @@ public class TagValidator {
      */
     public ValidationResult validate(String tag, boolean isVip) {
         ConfigManager configManager = plugin.getConfigManager();
+        int maxLength = getMaxAllowedLength(configManager);
 
         // For VIP players, allow all standard Minecraft color codes but check letter count after stripping
         if (isVip) {
@@ -25,7 +26,6 @@ public class TagValidator {
                 return new ValidationResult(false, configManager.getMessage("tag-vip-invalid-codes"));
             }
             String strippedTag = stripColorCodes(tag);
-            int maxLength = configManager.getTagMaxLength();
             if (strippedTag.length() > maxLength) {
                 String message = configManager.getMessage("tag-vip-max-length")
                         .replace("%length%", String.valueOf(maxLength));
@@ -40,8 +40,7 @@ public class TagValidator {
                 return new ValidationResult(false, configManager.getMessage("tag-no-colors"));
             }
             // Check length (min–max)
-            int minLength = configManager.getTagMinLength();
-            int maxLength = configManager.getTagMaxLength();
+            int minLength = Math.min(configManager.getTagMinLength(), maxLength);
             if (tag.length() < minLength || tag.length() > maxLength) {
                 String message = configManager.getMessage("tag-invalid-length")
                         .replace("%min%", String.valueOf(minLength))
@@ -70,6 +69,10 @@ public class TagValidator {
         }
 
         return new ValidationResult(true, null);
+    }
+
+    private int getMaxAllowedLength(ConfigManager configManager) {
+        return Math.min(4, configManager.getTagMaxLength());
     }
 
     /**

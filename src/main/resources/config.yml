@@ -6,7 +6,7 @@ online-save-interval: 60
 # Clan-Tag Validierung
 clan-tag-settings:
   min-length: 3
-  max-length: 8
+  max-length: 4
   only-letters: false
   blacklist:
     - "ADMIN"

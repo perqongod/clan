@@ -22,9 +22,13 @@ import java.util.UUID;
 
 public class ClanSettingsListener implements Listener {
 
-    private static final String TITLE = "Clan Settings";
-    private static final int INVENTORY_SIZE = 54;
+    private static final String MAIN_TITLE = "Clan Settings";
+    private static final String CHEST_TITLE = "Clan Chest Settings";
+    private static final int MAIN_INVENTORY_SIZE = 27;
+    private static final int CHEST_INVENTORY_SIZE = 54;
     private static final int CHEST_SLOT = 4;
+    private static final int MAIN_CHEST_SLOT = 10;
+    private static final int MAIN_HEAD_SLOT = 11;
 
     private final Clan plugin;
     private final Map<UUID, SettingsSession> sessions = new HashMap<>();
@@ -34,10 +38,10 @@ public class ClanSettingsListener implements Listener {
     }
 
     public void openGui(Player leader, ClanData clan) {
-        Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE, TITLE);
+        Inventory inv = Bukkit.createInventory(null, MAIN_INVENTORY_SIZE, MAIN_TITLE);
         SettingsSession session = new SettingsSession(clan.getTag(), new ArrayList<>(clan.getMembers()));
         sessions.put(leader.getUniqueId(), session);
-        populateInventory(inv, clan, session);
+        populateMainMenu(inv);
         leader.openInventory(inv);
     }
 
@@ -48,7 +52,9 @@ public class ClanSettingsListener implements Listener {
 
         SettingsSession session = sessions.get(player.getUniqueId());
         if (session == null) return;
-        if (!event.getView().title().equals(Component.text(TITLE))) return;
+        Component title = event.getView().title();
+        boolean mainMenu = title.equals(Component.text(MAIN_TITLE));
+        if (!mainMenu && !title.equals(Component.text(CHEST_TITLE))) return;
 
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
@@ -62,10 +68,21 @@ public class ClanSettingsListener implements Listener {
             return;
         }
 
+        if (mainMenu) {
+            if (rawSlot == MAIN_CHEST_SLOT) {
+                session.members = new ArrayList<>(clan.getMembers());
+                if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
+                    session.selectedMember = null;
+                }
+                openChestSettings(player, clan, session);
+            }
+            return;
+        }
+
         if (rawSlot == CHEST_SLOT) {
             if (session.selectedMember != null) {
                 togglePermission(player, clan, session.selectedMember);
-                refresh(event.getView().getTopInventory(), clan, session);
+                refreshChestSettings(event.getView().getTopInventory(), clan, session);
             }
             return;
         }
@@ -78,21 +95,42 @@ public class ClanSettingsListener implements Listener {
         UUID member = session.members.get(memberIndex);
         session.selectedMember = member;
         togglePermission(player, clan, member);
-        refresh(event.getView().getTopInventory(), clan, session);
+        refreshChestSettings(event.getView().getTopInventory(), clan, session);
     }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!event.getView().title().equals(Component.text(TITLE))) return;
+        Component title = event.getView().title();
+        if (!title.equals(Component.text(MAIN_TITLE)) && !title.equals(Component.text(CHEST_TITLE))) return;
+        SettingsSession session = sessions.get(event.getPlayer().getUniqueId());
+        if (session == null) return;
+        if (session.switching) {
+            session.switching = false;
+            return;
+        }
         sessions.remove(event.getPlayer().getUniqueId());
     }
 
-    private void refresh(Inventory inv, ClanData clan, SettingsSession session) {
+    private void refreshChestSettings(Inventory inv, ClanData clan, SettingsSession session) {
         inv.clear();
-        populateInventory(inv, clan, session);
+        populateChestSettings(inv, clan, session);
     }
 
-    private void populateInventory(Inventory inv, ClanData clan, SettingsSession session) {
+    private void populateMainMenu(Inventory inv) {
+        ItemStack orangePane = namedItem(Material.ORANGE_STAINED_GLASS_PANE, " ");
+        ItemStack grayPane = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
+        for (int i = 0; i < 9; i++) {
+            inv.setItem(i, orangePane);
+            inv.setItem(18 + i, orangePane);
+        }
+        for (int i = 9; i < 18; i++) {
+            inv.setItem(i, grayPane);
+        }
+        inv.setItem(MAIN_CHEST_SLOT, clanChestItem(null));
+        inv.setItem(MAIN_HEAD_SLOT, futureSettingsItem());
+    }
+
+    private void populateChestSettings(Inventory inv, ClanData clan, SettingsSession session) {
         ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 9; i++) {
             inv.setItem(i, filler);
@@ -111,6 +149,13 @@ public class ClanSettingsListener implements Listener {
                 inv.setItem(9 + i, namedItem(Material.BLACK_STAINED_GLASS_PANE, " "));
             }
         }
+    }
+
+    private void openChestSettings(Player player, ClanData clan, SettingsSession session) {
+        session.switching = true;
+        Inventory inv = Bukkit.createInventory(null, CHEST_INVENTORY_SIZE, CHEST_TITLE);
+        populateChestSettings(inv, clan, session);
+        player.openInventory(inv);
     }
 
     private void togglePermission(Player player, ClanData clan, UUID member) {
@@ -140,6 +185,20 @@ public class ClanSettingsListener implements Listener {
             lore.add(cm.translateColors("&7✅ &aAccess granted"));
             lore.add(cm.translateColors("&7👁 &eView only"));
             lore.add(cm.translateColors("&7❌ &cNo access"));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    private ItemStack futureSettingsItem() {
+        ConfigManager cm = plugin.getConfigManager();
+        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(cm.translateColors("&6More Settings"));
+            List<String> lore = new ArrayList<>();
+            lore.add(cm.translateColors("&7Coming soon"));
             meta.setLore(lore);
             item.setItemMeta(meta);
         }
@@ -190,8 +249,9 @@ public class ClanSettingsListener implements Listener {
 
     private static class SettingsSession {
         final String clanTag;
-        final List<UUID> members;
+        List<UUID> members;
         UUID selectedMember;
+        boolean switching;
 
         SettingsSession(String clanTag, List<UUID> members) {
             this.clanTag = clanTag;
