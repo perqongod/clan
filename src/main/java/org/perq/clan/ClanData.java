@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ClanData {
@@ -26,6 +28,8 @@ public class ClanData {
     private List<String> logs;
     /** UUIDs of players who requested to join this clan */
     private List<UUID> pendingRequests;
+    /** Per-member permission for the clan chest GUI/command */
+    private Map<UUID, ClanChestPermission> chestPermissions;
 
     private static final DateTimeFormatter LOG_FMT = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 
@@ -42,6 +46,7 @@ public class ClanData {
         this.spawn = null;
         this.logs = new ArrayList<>();
         this.pendingRequests = new ArrayList<>();
+        this.chestPermissions = new HashMap<>();
     }
 
     public ClanData(File file) {
@@ -71,6 +76,18 @@ public class ClanData {
         this.pendingRequests = new ArrayList<>();
         for (String req : config.getStringList("pending-requests")) {
             try { pendingRequests.add(UUID.fromString(req)); } catch (IllegalArgumentException ignored) {}
+        }
+        this.chestPermissions = new HashMap<>();
+        if (config.isConfigurationSection("chest-permissions")) {
+            for (String key : config.getConfigurationSection("chest-permissions").getKeys(false)) {
+                try {
+                    UUID memberId = UUID.fromString(key);
+                    String value = config.getString("chest-permissions." + key);
+                    chestPermissions.put(memberId, ClanChestPermission.fromString(value));
+                } catch (IllegalArgumentException ignored) {
+                    // skip invalid UUIDs
+                }
+            }
         }
     }
 
@@ -104,6 +121,14 @@ public class ClanData {
             reqStrings.add(req.toString());
         }
         config.set("pending-requests", reqStrings);
+        Map<String, String> perms = new HashMap<>();
+        for (UUID mem : members) {
+            ClanChestPermission permission = getChestPermission(mem);
+            if (permission != ClanChestPermission.VIEW) {
+                perms.put(mem.toString(), permission.name());
+            }
+        }
+        config.set("chest-permissions", perms);
         config.save(file);
     }
 
@@ -150,4 +175,16 @@ public class ClanData {
 
     public List<UUID> getPendingRequests() { return pendingRequests; }
     public void setPendingRequests(List<UUID> pendingRequests) { this.pendingRequests = pendingRequests; }
+
+    public ClanChestPermission getChestPermission(UUID member) {
+        return chestPermissions.getOrDefault(member, ClanChestPermission.VIEW);
+    }
+
+    public void setChestPermission(UUID member, ClanChestPermission permission) {
+        if (permission == null || permission == ClanChestPermission.VIEW) {
+            chestPermissions.remove(member);
+        } else {
+            chestPermissions.put(member, permission);
+        }
+    }
 }

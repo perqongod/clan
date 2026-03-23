@@ -39,6 +39,7 @@ messages:
   demoted: "%prefix%&a%player% wurde degradiert."
   renamed: "%prefix%&aClan wurde zu %tag% umbenannt."
   no-permission: "%prefix%&cDu hast keine Berechtigung dafür."
+  leader-disallow: "%prefix%&cDer Leader möchte das nicht!"
   player-not-found: "%prefix%&cSpieler nicht gefunden."
   clan-not-found: "%prefix%&cClan nicht gefunden."
   already-in-clan: "%prefix%&cDu bist bereits in einem Clan."
