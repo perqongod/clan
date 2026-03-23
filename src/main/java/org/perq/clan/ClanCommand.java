@@ -370,25 +370,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getPrefix() + "Verwendung: /clan demote <spieler>");
                     return true;
                 }
-                String targetName = args[1];
-                if (targetName.equalsIgnoreCase(player.getName()) && "MOD".equals(actorData.getRole())) {
-                    actorData.setRole("MEMBER");
-                    demoteClan.getModerators().remove(playerUUID);
-                    demoteClan.addLog(player.getName() + " hat sich selbst zum MEMBER degradiert.");
-                    try {
-                        plugin.getFileManager().savePlayer(playerUUID, actorData);
-                        plugin.getFileManager().saveClan(demoteClan);
-                        player.sendMessage(cm.getMessage("demoted").replace("%player%", player.getName()));
-                    } catch (IOException e) {
-                        player.sendMessage(cm.getPrefix() + "Fehler beim Speichern.");
-                    }
-                    return true;
-                }
                 if (!demoteClan.getLeader().equals(playerUUID)) {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
                 }
-                Player demoteTarget = Bukkit.getPlayer(targetName);
+                Player demoteTarget = Bukkit.getPlayer(args[1]);
                 if (demoteTarget == null) {
                     player.sendMessage(cm.getMessage("player-not-found"));
                     return true;
