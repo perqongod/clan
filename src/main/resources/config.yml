@@ -1,6 +1,21 @@
 prefix: "&6&lxyntrix &7| "
+clansystem-prefix: "&4[ClanSystem]&r "
 kill-points: 1
 online-save-interval: 60
+
+clan:
+  max-members: 10
+
+war:
+  cost-points: 200
+  cooldown-minutes: 30
+  duration-minutes: 10
+  winner-points: 100
+  loser-points: 100
+
+cooldowns:
+  invite-seconds: 10
+  request-seconds: 5
 
 # Clan-Tag Validierung
 clan-tag-settings:
@@ -59,6 +74,41 @@ messages:
   leader-request-confirm: "%prefix%&cWillst du wirklich deinen Clan aufgeben für einen anderen Clan?"
   force-kick-confirm: "%prefix%&cBist du sicher, dass du %player% aus seinem Clan entfernen willst?"
   force-delete-confirm: "%prefix%&cBist du sicher, dass du den Clan %tag% auflösen willst?"
+  # War messages
+  war-info: "%prefix%&eKrieg-Regeln: Kosten 200 Punkte, Cooldown 30min, Dauer 10min"
+  war-not-enough-points: "%prefix%&4Du hast zu wenig Punkte für einen Clan - Krieg, du brauchst 200 Punkte."
+  war-request-sent: "%prefix%&aDu hast %tag% zu einem &4Clan - Krieg angefragt."
+  war-request-received: "[ClanSystem] &aDu wurdest von %tag% zu einem &4Clan - Krieg angefragt. [Accept] / [Deny]"
+  war-accepted: "%prefix%&cDu hast den &4Clan - Krieg angenommen. Du wirst in 10 Minuten zur Arena teleportiert."
+  war-denied: "%prefix%&cDu hast den &4Clan - Krieg abgelehnt."
+  war-cooldown: "%prefix%&cBitte warte noch bevor du wieder einen Krieg anfordern kannst."
+  war-already-at-war: "%prefix%&cDein Clan befindet sich bereits in einem Krieg."
+  war-target-at-war: "%prefix%&cDieser Clan befindet sich bereits in einem Krieg."
+  war-won: "&aDein Clan hat gewonnen"
+  war-lost: "&4Dein Clan hat verloren"
+  war-broadcast: "[ClanSystem] &4Der Clan Krieg zwischen %clan1% und %clan2% wurde von %winner% gewonnen."
+  war-ranking-reset: "[ClanSystem] &4Dein Clan wurde im Ranking zurückgesetzt."
+  # Request system
+  request-leader-notification: "[ClanSystem] &aDu hast eine Clan-Request erhalten"
+  request-no-permission: "%prefix%&cNur der Clan-Leader kann Anfragen sehen."
+  request-accepted-notify: "%prefix%&aDeine Clan-Anfrage wurde angenommen."
+  request-denied-notify: "%prefix%&cDeine Clan-Anfrage wurde abgelehnt."
+  # Logs
+  no-logs: "%prefix%&cKeine Logs vorhanden."
+  # Skills
+  skills-title: "Clan Skills"
+  # Leader transfer
+  leader-transferred: "%prefix%&aFührerschaft wurde an %player% übertragen."
+  leader-transfer-confirm: "%prefix%&cBist du sicher, dass du die Führerschaft an %player% übergeben willst?"
+  # Chat
+  clan-chat-enabled: "%prefix%&aClan-Chat aktiviert."
+  clan-chat-disabled: "%prefix%&cClan-Chat deaktiviert."
+  invite-cooldown: "%prefix%&cBitte warte noch bevor du wieder eine Einladung senden kannst."
+  request-cooldown: "%prefix%&cBitte warte noch bevor du wieder eine Anfrage senden kannst."
+  invalid-uuid: "%prefix%&cUngültige UUID."
+  request-not-found: "%prefix%&cAnfrage nicht gefunden."
+  not-in-clan: "%prefix%&cSpieler ist nicht im Clan."
+  no-pending-war: "%prefix%&cKein ausstehender Krieg."
 ranks:
   Bronze: 0
   Silber: 5

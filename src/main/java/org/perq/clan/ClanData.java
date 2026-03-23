@@ -22,6 +22,7 @@ public class ClanData {
     private String created;
     private double onlineTime;
     private Location spawn;
+    private List<String> pendingRequesters;
 
     public ClanData(String tag, UUID leader) {
         this.tag = tag;
@@ -34,6 +35,7 @@ public class ClanData {
         this.created = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         this.onlineTime = 0.0;
         this.spawn = null;
+        this.pendingRequesters = new ArrayList<>();
     }
 
     public ClanData(File file) {
@@ -52,6 +54,8 @@ public class ClanData {
         this.rank = config.getString("rank");
         this.created = config.getString("created");
         this.onlineTime = config.getDouble("online-time");
+        this.pendingRequesters = config.getStringList("pending-requesters");
+        if (this.pendingRequesters == null) this.pendingRequesters = new ArrayList<>();
         if (config.contains("spawn")) {
             String world = config.getString("spawn.world");
             double x = config.getDouble("spawn.x");
@@ -79,6 +83,7 @@ public class ClanData {
         config.set("rank", rank);
         config.set("created", created);
         config.set("online-time", onlineTime);
+        config.set("pending-requesters", pendingRequesters);
         if (spawn != null) {
             config.set("spawn.world", spawn.getWorld().getName());
             config.set("spawn.x", spawn.getX());
@@ -115,4 +120,7 @@ public class ClanData {
 
     public Location getSpawn() { return spawn; }
     public void setSpawn(Location spawn) { this.spawn = spawn; }
+
+    public List<String> getPendingRequesters() { return pendingRequesters; }
+    public void setPendingRequesters(List<String> pendingRequesters) { this.pendingRequesters = pendingRequesters; }
 }
