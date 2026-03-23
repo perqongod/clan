@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -858,12 +859,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         try {
                             requesterUUID = UUID.fromString(requesterUuidStr);
                         } catch (IllegalArgumentException e) {
-                            player.sendMessage(plugin.getConfigManager().getPrefix() + "Ungültige UUID.");
+                            player.sendMessage(plugin.getConfigManager().getMessage("invalid-uuid"));
                             return true;
                         }
                         boolean wasPresent = reqClanCheck.getPendingRequesters().remove(requesterUuidStr);
                         if (!wasPresent) {
-                            player.sendMessage(plugin.getConfigManager().getPrefix() + "Anfrage nicht gefunden.");
+                            player.sendMessage(plugin.getConfigManager().getMessage("request-not-found"));
                             return true;
                         }
                         if (action.equals("accept")) {
@@ -1225,10 +1226,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             return true;
                         }
                         if (!leaderClan.getMembers().contains(leaderTarget.getUniqueId())) {
-                            player.sendMessage(plugin.getConfigManager().getPrefix() + "Spieler ist nicht im Clan.");
+                            player.sendMessage(plugin.getConfigManager().getMessage("not-in-clan"));
                             return true;
                         }
-                        // Transfer leadership
                         UUID newLeaderId = leaderTarget.getUniqueId();
                         leaderClan.setLeader(newLeaderId);
                         leaderClan.getModerators().remove(newLeaderId);
@@ -1261,7 +1261,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             return true;
                         }
                         if (!leaderClan.getMembers().contains(ltTarget.getUniqueId())) {
-                            player.sendMessage(plugin.getConfigManager().getPrefix() + "Spieler ist nicht im Clan.");
+                            player.sendMessage(plugin.getConfigManager().getMessage("not-in-clan"));
                             return true;
                         }
                         pendingLeaderTransfers.put(playerUUID, ltTargetName);
@@ -1384,7 +1384,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         }
                         WarData pending = wm.getPendingWar(warClan.getTag());
                         if (pending == null) {
-                            player.sendMessage(plugin.getConfigManager().getPrefix() + "Kein ausstehender Krieg.");
+                            player.sendMessage(plugin.getConfigManager().getMessage("no-pending-war"));
                             return true;
                         }
                         wm.removePendingWar(warClan.getTag());
@@ -1408,11 +1408,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                                 if (p != null) p.sendMessage(acceptMsg);
                             }
                         }
-                        // Schedule war end after duration
+                        // Schedule war end after duration; verify both clans still have this exact war active
                         final WarData warFinal = pending;
                         long durationTicks = plugin.getConfigManager().getWarDurationMinutes() * 60L * 20L;
                         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                            if (wm.hasActiveWar(warFinal.getClan1())) {
+                            WarData activeForClan1 = wm.getActiveWar(warFinal.getClan1());
+                            WarData activeForClan2 = wm.getActiveWar(warFinal.getClan2());
+                            if (activeForClan1 != null && activeForClan1.getId().equals(warFinal.getId())
+                                    && activeForClan2 != null && activeForClan2.getId().equals(warFinal.getId())) {
                                 endWar(warFinal);
                             }
                         }, durationTicks);
@@ -1425,7 +1428,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         }
                         WarData pending = wm.getPendingWar(warClan.getTag());
                         if (pending == null) {
-                            player.sendMessage(plugin.getConfigManager().getPrefix() + "Kein ausstehender Krieg.");
+                            player.sendMessage(plugin.getConfigManager().getMessage("no-pending-war"));
                             return true;
                         }
                         wm.removePendingWar(warClan.getTag());
@@ -1527,7 +1530,18 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         String winnerTag;
         String loserTag;
         if (clan1Data != null && clan2Data != null) {
-            if (clan1Data.getPoints() >= clan2Data.getPoints()) {
+            int p1 = clan1Data.getPoints();
+            int p2 = clan2Data.getPoints();
+            if (p1 == p2) {
+                // Tie – pick randomly to be fair
+                if (new Random().nextBoolean()) {
+                    winnerTag = war.getClan1();
+                    loserTag = war.getClan2();
+                } else {
+                    winnerTag = war.getClan2();
+                    loserTag = war.getClan1();
+                }
+            } else if (p1 > p2) {
                 winnerTag = war.getClan1();
                 loserTag = war.getClan2();
             } else {

@@ -86,7 +86,7 @@ messages:
   war-target-at-war: "%prefix%&cDieser Clan befindet sich bereits in einem Krieg."
   war-won: "&aDein Clan hat gewonnen"
   war-lost: "&4Dein Clan hat verloren"
-  war-broadcast: "[ClanSystem] &4Der Clan Krieg zwischen %clan1% und %clan2% hat %winner% gewonnen."
+  war-broadcast: "[ClanSystem] &4Der Clan Krieg zwischen %clan1% und %clan2% wurde von %winner% gewonnen."
   war-ranking-reset: "[ClanSystem] &4Dein Clan wurde im Ranking zurückgesetzt."
   # Request system
   request-leader-notification: "[ClanSystem] &aDu hast eine Clan-Request erhalten"
@@ -105,6 +105,10 @@ messages:
   clan-chat-disabled: "%prefix%&cClan-Chat deaktiviert."
   invite-cooldown: "%prefix%&cBitte warte noch bevor du wieder eine Einladung senden kannst."
   request-cooldown: "%prefix%&cBitte warte noch bevor du wieder eine Anfrage senden kannst."
+  invalid-uuid: "%prefix%&cUngültige UUID."
+  request-not-found: "%prefix%&cAnfrage nicht gefunden."
+  not-in-clan: "%prefix%&cSpieler ist nicht im Clan."
+  no-pending-war: "%prefix%&cKein ausstehender Krieg."
 ranks:
   Bronze: 0
   Silber: 5
