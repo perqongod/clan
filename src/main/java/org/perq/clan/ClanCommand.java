@@ -343,13 +343,31 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             case "demote": {
-                if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Verwendung: /clan demote <spieler>");
-                    return true;
-                }
                 ClanData demoteClan = getPlayerClan(playerUUID);
                 if (demoteClan == null) {
                     player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
+                }
+                PlayerData actorData = plugin.getFileManager().loadPlayer(playerUUID);
+                if (actorData == null) {
+                    player.sendMessage(cm.getPrefix() + "Spielerdaten nicht gefunden.");
+                    return true;
+                }
+                if (args.length < 2) {
+                    if ("MOD".equals(actorData.getRole())) {
+                        actorData.setRole("MEMBER");
+                        demoteClan.getModerators().remove(playerUUID);
+                        demoteClan.addLog(player.getName() + " hat sich selbst zum MEMBER degradiert.");
+                        try {
+                            plugin.getFileManager().savePlayer(playerUUID, actorData);
+                            plugin.getFileManager().saveClan(demoteClan);
+                            player.sendMessage(cm.getMessage("demoted").replace("%player%", player.getName()));
+                        } catch (IOException e) {
+                            player.sendMessage(cm.getPrefix() + "Fehler beim Speichern.");
+                        }
+                        return true;
+                    }
+                    player.sendMessage(cm.getPrefix() + "Verwendung: /clan demote <spieler>");
                     return true;
                 }
                 if (!demoteClan.getLeader().equals(playerUUID)) {
@@ -1493,7 +1511,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         ClanData clan = getPlayerClan(player.getUniqueId());
         UUID playerUUID = player.getUniqueId();
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan create <tag> &7- Clan erstellen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan disband &7- Clan aufl\u00f6sen"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delete &7- Clan aufl\u00f6sen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan invite <spieler> &7- Spieler einladen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan accept <tag> &7- Einladung annehmen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan deny <tag> &7- Einladung ablehnen"));
@@ -1501,7 +1519,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leave &7- Clan verlassen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan kick <spieler> &7- Spieler kicken"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan promote <spieler> &7- Spieler bef\u00f6rdern"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan demote <spieler> &7- Spieler degradieren"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan demote [spieler] &7- Spieler degradieren"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leader <spieler> &7- F\u00fchrung \u00fcbergeben"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rename <neuerTag> &7- Clan umbenennen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan info &7- Clan-Info"));
