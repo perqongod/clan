@@ -120,7 +120,7 @@ public class ClanSettingsListener implements Listener {
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "Fehler beim Speichern.");
+            player.sendMessage(plugin.getConfigManager().getPrefix() + "Error saving.");
         }
     }
 
@@ -131,15 +131,15 @@ public class ClanSettingsListener implements Listener {
         if (meta != null) {
             meta.setDisplayName(cm.translateColors("&6Clan Chest"));
             List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Klick um einzustellen"));
+            lore.add(cm.translateColors("&7Click to configure"));
             if (selectedMember != null) {
                 String name = Bukkit.getOfflinePlayer(selectedMember).getName();
                 if (name == null) name = selectedMember.toString().substring(0, 8);
-                lore.add(cm.translateColors("&7Ausgewählt: &f" + name));
+                lore.add(cm.translateColors("&7Selected: &f" + name));
             }
-            lore.add(cm.translateColors("&7✅ &aZugriff erlaubt"));
-            lore.add(cm.translateColors("&7👁 &eNur sehen"));
-            lore.add(cm.translateColors("&7❌ &cKein Zugriff"));
+            lore.add(cm.translateColors("&7✅ &aAccess granted"));
+            lore.add(cm.translateColors("&7👁 &eView only"));
+            lore.add(cm.translateColors("&7❌ &cNo access"));
             meta.setLore(lore);
             item.setItemMeta(meta);
         }
@@ -166,10 +166,10 @@ public class ClanSettingsListener implements Listener {
             String name = op.getName() != null ? op.getName() : member.toString().substring(0, 8);
             meta.setDisplayName("§f" + name);
             List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Klick um Berechtigung zu ändern"));
-            lore.add(cm.translateColors("&7Aktuell: " + permissionLabel(permission)));
+            lore.add(cm.translateColors("&7Click to change permission"));
+            lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
             if (selected) {
-                lore.add(cm.translateColors("&bAusgewählt"));
+                lore.add(cm.translateColors("&bSelected"));
             }
             meta.setLore(lore);
             skull.setItemMeta(meta);
@@ -180,11 +180,11 @@ public class ClanSettingsListener implements Listener {
     private String permissionLabel(ClanChestPermission permission) {
         switch (permission) {
             case EXECUTE:
-                return "&a✅ Zugriff erlaubt";
+                return "&a✅ Access granted";
             case DENY:
-                return "&c❌ Kein Zugriff";
+                return "&c❌ No access";
             default:
-                return "&e👁 Nur sehen";
+                return "&e👁 View only";
         }
     }
 
