@@ -21,7 +21,11 @@ public class ConfigManager {
     }
 
     public String getPrefix() {
-        return translateColors(config.getString("prefix"));
+        return translateColors(config.getString("prefix", "&b[Xyntrix]&r "));
+    }
+
+    public String getClanSystemPrefix() {
+        return translateColors(config.getString("clansystem-prefix", "&4[ClanSystem]&r "));
     }
 
     private static String translateHexColorCodes(String message) {
@@ -40,16 +44,18 @@ public class ConfigManager {
 
     public String getMessage(String key) {
         String msg = config.getString("messages." + key);
+        if (msg == null) return getPrefix() + "§cMissing message: " + key;
         msg = msg.replace("%prefix%", getPrefix());
+        msg = msg.replace("%csprefix%", getClanSystemPrefix());
         return translateColors(msg);
     }
 
     public int getKillPoints() {
-        return config.getInt("kill-points");
+        return config.getInt("kill-points", 1);
     }
 
     public int getOnlineSaveInterval() {
-        return config.getInt("online-save-interval");
+        return config.getInt("online-save-interval", 60);
     }
 
     public Map<String, Integer> getRanks() {
@@ -64,19 +70,45 @@ public class ConfigManager {
     }
 
     public String getClanChatFormat() {
-        return config.getString("messages.clan-chat-format");
+        return config.getString("messages.clan-chat-format", "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &f%player%&7: &f%message%");
     }
 
+    /** @deprecated Use getTagMinLength() / getTagMaxLength() */
+    @Deprecated
     public int getTagLength() {
-        return config.getInt("clan-tag-settings.length", 4);
+        return config.getInt("clan-tag-settings.max-length", config.getInt("clan-tag-settings.length", 4));
+    }
+
+    public int getTagMinLength() {
+        return config.getInt("clan-tag-settings.min-length", 3);
+    }
+
+    public int getTagMaxLength() {
+        return config.getInt("clan-tag-settings.max-length", config.getInt("clan-tag-settings.length", 8));
     }
 
     public boolean isOnlyLettersAllowed() {
-        return config.getBoolean("clan-tag-settings.only-letters", true);
+        return config.getBoolean("clan-tag-settings.only-letters", false);
     }
 
     public java.util.List<String> getTagBlacklist() {
         return config.getStringList("clan-tag-settings.blacklist");
+    }
+
+    public int getMaxMembers() {
+        return config.getInt("max-members", 10);
+    }
+
+    public int getWarCost() {
+        return config.getInt("war.cost", 200);
+    }
+
+    public int getWarCooldownMinutes() {
+        return config.getInt("war.cooldown-minutes", 30);
+    }
+
+    public int getWarArenaCountdownSeconds() {
+        return config.getInt("war.arena-countdown-seconds", 600);
     }
 
     public String getMySQLHost() {

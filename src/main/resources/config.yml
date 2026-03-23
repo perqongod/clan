@@ -1,67 +1,113 @@
-prefix: "&6&lxyntrix &7| "
+prefix: "&b[Xyntrix]&r "
+clansystem-prefix: "&4[ClanSystem]&r "
 kill-points: 1
 online-save-interval: 60
 
 # Clan-Tag Validierung
 clan-tag-settings:
-  length: 4
-  only-letters: true
+  min-length: 3
+  max-length: 8
+  only-letters: false
   blacklist:
     - "ADMIN"
     - "MODS"
     - "TEST"
     - "BANNED"
 
+max-members: 10
+
+war:
+  cost: 200
+  cooldown-minutes: 30
+  arena-countdown-seconds: 600
+
 messages:
   toggle-off: "%prefix%&cDu nimmst nun keine Clan-Anfragen mehr an."
   toggle-on: "%prefix%&aDu nimmst nun wieder Clan-Anfragen an."
-  clan-chat-format: "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7%player%: &f%message%"
+  clan-chat-format: "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &f%player%&7: &f%message%"
   clan-info-header: "&#FFFF00Clan-Informationen"
   no-clan: "%prefix%&cDu bist in keinem Clan."
   clan-created: "%prefix%&aClan %tag% wurde erstellt."
   clan-deleted: "%prefix%&aClan wurde gelöscht."
   invitation-sent: "%prefix%&aEinladung an %player% gesendet."
-  invitation-received: "%prefix%&eDu wurdest in den Clan %tag% eingeladen. Verwende /clan accept %tag% oder /clan deny %tag%."
+  invitation-received: "%prefix%&aDu wurdest von %inviter% in den %tag% Clan eingeladen"
   invitation-accepted: "%prefix%&aDu bist dem Clan %tag% beigetreten."
   invitation-denied: "%prefix%&cEinladung abgelehnt."
   left-clan: "%prefix%&aDu hast den Clan verlassen."
   kicked: "%prefix%&cDu wurdest aus dem Clan gekickt."
-  promoted: "%prefix%&a%player% wurde befördert."
+  promoted: "%prefix%&a%player% wurde zum MOD befördert."
   demoted: "%prefix%&a%player% wurde degradiert."
   renamed: "%prefix%&aClan wurde zu %tag% umbenannt."
   no-permission: "%prefix%&cDu hast keine Berechtigung dafür."
   player-not-found: "%prefix%&cSpieler nicht gefunden."
   clan-not-found: "%prefix%&cClan nicht gefunden."
   already-in-clan: "%prefix%&cDu bist bereits in einem Clan."
-  clan-full: "%prefix%&cClan ist voll."
+  clan-full: "%prefix%&cDer Clan ist voll (max. %max% Mitglieder)."
   clan-exists: "%prefix%&cClan mit diesem Tag existiert bereits."
   invitations-disabled: "%prefix%&cDieser Spieler hat Einladungen deaktiviert."
-  tag-invalid-length: "%prefix%&cDer Clan-Tag muss genau %length% Zeichen lang sein."
-  tag-invalid-chars: "%prefix%&cDer Clan-Tag darf nur Buchstaben enthalten (keine Zahlen oder Sonderzeichen)."
+  tag-invalid-length: "%prefix%&cDer Clan-Tag muss zwischen %min% und %max% Zeichen lang sein."
+  tag-invalid-chars: "%prefix%&cDer Clan-Tag darf nur Buchstaben und Zahlen enthalten."
   tag-blacklisted: "%prefix%&cDieser Clan-Tag ist nicht erlaubt."
   tag-no-colors: "%prefix%&cDu darfst keine Farbcodes verwenden. Kaufe VIP für farbige Tags!"
   tag-vip-only-gold: "%prefix%&cAls VIP darfst du nur den Farbcode &6&6 &cverwenden."
   tag-vip-invalid-codes: "%prefix%&cUngültige Farbcodes im Tag. Verwende nur gültige Minecraft-Farbcodes (z.B. &a&a, &6&6, &c&c)."
   tag-vip-max-length: "%prefix%&cDer Clan-Tag darf maximal %length% Buchstaben haben."
-  delete-confirm: "%prefix%&cBist du sicher das du den clan löschen willst?"
+  disband-confirm: "&cBist du sicher das du den Clan löschen willst?"
+  disband-denied: "%prefix%&cClan-Löschung abgebrochen."
+  disband-cancelled: "%prefix%&cClan-Löschung abgebrochen (Zeit abgelaufen)."
+  clan-dissolved: "%prefix%Der [%tag%] Clan wurde aufgelöst."
+  # kept for backward compat
+  delete-confirm: "&cBist du sicher das du den Clan löschen willst?"
   delete-denied: "%prefix%&cClan-Löschung abgebrochen."
   clan-deleted-cancelled: "%prefix%&cClan-Löschung abgebrochen (Zeit abgelaufen)."
-  clan-dissolved: "Der [%tag%] Clan wurde aufgelöst."
   not-clan-leader: "%prefix%&cDu bist nicht der Clan Leader."
   leader-cannot-join: "%prefix%&cAls Leader kannst du keinem anderen Clan beitreten. Übertrage zuerst die Führung oder lösche den Clan."
   force-leave-success: "%prefix%&a%player% wurde aus dem Clan entfernt."
   force-leave-no-clan: "%prefix%&cDieser Spieler ist in keinem Clan."
-  no-requests: "%prefix%&cDu hast keine ausstehenden Clan-Einladungen."
+  no-requests: "%prefix%&cDu hast keine ausstehenden Clan-Anfragen."
   join-not-invited: "%prefix%&cDu wurdest nicht in diesen Clan eingeladen."
   request-sent: "%prefix%&aDeine Anfrage wurde an den Clan %tag% gesendet."
-  request-received: "%prefix%&e%player% möchte deinen Clan beitreten."
-  requests-header: "%prefix%Deine Clan-Einladungen:"
+  request-received: "%csprefix%&aDu hast eine Clan-Request erhalten"
+  requests-header: "%prefix%Eingehende Clan-Anfragen:"
+  requests-only-leader: "%prefix%&cNur der Clan-Leader kann eingehende Anfragen sehen."
+  requests-empty: "%prefix%&cKeine offenen Anfragen."
+  request-already-sent: "%prefix%&cDu hast bereits eine Anfrage an diesen Clan gesendet."
   leader-request-confirm: "%prefix%&cWillst du wirklich deinen Clan aufgeben für einen anderen Clan?"
   force-kick-confirm: "%prefix%&cBist du sicher, dass du %player% aus seinem Clan entfernen willst?"
   force-delete-confirm: "%prefix%&cBist du sicher, dass du den Clan %tag% auflösen willst?"
+  promote-only-mod: "%prefix%&cDu kannst Spieler nur bis zum MOD befördern. Nutze /clan leader <spieler> zum Übertragen der Führung."
+  leader-transferred: "%prefix%&aDie Clan-Führung wurde auf %player% übertragen."
+  leader-received: "%prefix%&aDu bist jetzt der Leader des Clans %tag%."
+  invite-cooldown: "%prefix%&cDu kannst erst in %seconds% Sekunden wieder einladen."
+  invite-max-open: "%prefix%&cDieser Spieler hat bereits eine offene Einladung."
+  target-in-clan-inviter: "%prefix%&c%player% ist bereits in einem Clan [Notification gesendet]"
+  target-in-clan-notify: "%csprefix%&aDu hast eine neue Notification erhalten."
+  war-info-header: "%prefix%Clan - Krieg"
+  war-info-body: "&eDu kämpfst mit deinem Clan gegen einen anderen Clan.\n&eDer Gewinner bekommt +100 Punkte.\n&eDer Verlierer bekommt -100 Punkte."
+  war-not-enough-points: "%prefix%&4Du hast zu wenig Punkte für einen Clan - Krieg, du brauchst %cost% Punkte."
+  war-already-at-war: "%prefix%&cDein Clan ist bereits im Krieg."
+  war-target-at-war: "%prefix%&cDer Ziel-Clan ist bereits im Krieg."
+  war-self: "%prefix%&cDu kannst nicht deinen eigenen Clan herausfordern."
+  war-cooldown: "%prefix%&cDu kannst erst in %minutes% Minuten wieder einen Clan-Krieg starten."
+  war-request-sent: "%prefix%&aDu hast den [%tag%] Clan zum &4Clan - Krieg &aherausgefordert."
+  war-request-received: "%csprefix%&aDu wurdest von %player% zu einem &4Clan - Krieg &aangefragt. Interesse?"
+  war-denied-self: "%prefix%&cDu hast den &4Clan - Krieg &cabgelehnt."
+  war-denied-challenger: "%prefix%&cDein Clan - Krieg wurde abgelehnt."
+  war-accepted-notice: "%prefix%&aDu hast den &4Clan - Krieg &aangenommen."
+  war-teleport-notice: "%prefix%&aDu wirst in 10 min zur Arena teleportiert, wähle aus wer mit dir kämpft."
+  war-player-invite: "%csprefix%&aDu wurdest in einen &4Clan Krieg &aeingeladen."
+  war-friendly-fire: "%prefix%&cDu kannst kein Teammate angreifen!"
+  war-won: "%prefix%&aDein Clan hat den &4Clan - Krieg &agewonnen! +100 Punkte."
+  war-lost: "%prefix%&cDein Clan hat den &4Clan - Krieg &cverloren. -100 Punkte."
+  war-no-arena: "%prefix%&cKeine freie Arena verfügbar."
+  war-no-pending: "%prefix%&cDu hast keine ausstehende Kriegs-Anfrage."
+
 ranks:
   Bronze: 0
   Silber: 5
   Gold: 10
   Platin: 11
   Diamant: 12
+
+# War arenas (set via /clan war setarena a/b)
+arenas: []

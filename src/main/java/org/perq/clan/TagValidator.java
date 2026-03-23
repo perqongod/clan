@@ -21,17 +21,17 @@ public class TagValidator {
         // For VIP players, allow all standard Minecraft color codes but check letter count after stripping
         if (isVip) {
             // Reject anything after & that is not a valid Minecraft color/format code (lowercase only)
-            if (tag.contains("&") && !tag.matches("(&[0-9a-fklmnor]|[a-zA-Z])+")) {
+            if (tag.contains("&") && !tag.matches("(&[0-9a-fklmnor]|[a-zA-Z0-9])+")) {
                 return new ValidationResult(false, configManager.getMessage("tag-vip-invalid-codes"));
             }
             String strippedTag = stripColorCodes(tag);
-            int maxLength = configManager.getTagLength();
+            int maxLength = configManager.getTagMaxLength();
             if (strippedTag.length() > maxLength) {
                 String message = configManager.getMessage("tag-vip-max-length")
                         .replace("%length%", String.valueOf(maxLength));
                 return new ValidationResult(false, message);
             }
-            if (strippedTag.isEmpty() || !strippedTag.matches("[a-zA-Z]+")) {
+            if (strippedTag.isEmpty() || !strippedTag.matches("[a-zA-Z0-9]+")) {
                 return new ValidationResult(false, configManager.getMessage("tag-invalid-chars"));
             }
         } else {
@@ -39,16 +39,24 @@ public class TagValidator {
             if (tag.contains("&")) {
                 return new ValidationResult(false, configManager.getMessage("tag-no-colors"));
             }
-            // Check length
-            int requiredLength = configManager.getTagLength();
-            if (tag.length() != requiredLength) {
+            // Check length (min–max)
+            int minLength = configManager.getTagMinLength();
+            int maxLength = configManager.getTagMaxLength();
+            if (tag.length() < minLength || tag.length() > maxLength) {
                 String message = configManager.getMessage("tag-invalid-length")
-                        .replace("%length%", String.valueOf(requiredLength));
+                        .replace("%min%", String.valueOf(minLength))
+                        .replace("%max%", String.valueOf(maxLength))
+                        .replace("%length%", String.valueOf(maxLength));
                 return new ValidationResult(false, message);
             }
-            // Check if only letters allowed
+            // Check if only letters allowed (no numbers)
             if (configManager.isOnlyLettersAllowed()) {
                 if (!tag.matches("[a-zA-Z]+")) {
+                    return new ValidationResult(false, configManager.getMessage("tag-invalid-chars"));
+                }
+            } else {
+                // Allow letters and numbers
+                if (!tag.matches("[a-zA-Z0-9]+")) {
                     return new ValidationResult(false, configManager.getMessage("tag-invalid-chars"));
                 }
             }

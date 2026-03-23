@@ -3,6 +3,7 @@ package org.perq.clan;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -21,9 +22,56 @@ public class EventListener implements Listener {
     }
 
     @EventHandler
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof Player)) return;
+        Player attacker = (Player) event.getDamager();
+        Player victim = (Player) event.getEntity();
+
+        WarManager warManager = plugin.getWarManager();
+        WarManager.ActiveWar war = warManager.getActiveWar(getPlayerClanTag(attacker.getUniqueId()));
+        if (war == null) return;
+
+        // Check if both are in the same team (friendly fire)
+        boolean sameTeam = (war.isInTeamA(attacker.getUniqueId()) && war.isInTeamA(victim.getUniqueId()))
+                || (war.isInTeamB(attacker.getUniqueId()) && war.isInTeamB(victim.getUniqueId()));
+
+        if (sameTeam) {
+            event.setCancelled(true);
+            attacker.sendMessage(plugin.getConfigManager().getMessage("war-friendly-fire"));
+        }
+    }
+
+    @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player victim = event.getEntity();
         Player killer = victim.getKiller();
+
+        // War death handling
+        WarManager warManager = plugin.getWarManager();
+        if (killer != null) {
+            WarManager.ActiveWar war = warManager.getActiveWar(getPlayerClanTag(killer.getUniqueId()));
+            if (war != null) {
+                // Check killer and victim are on opposing teams
+                boolean validKill = (war.isInTeamA(killer.getUniqueId()) && war.isInTeamB(victim.getUniqueId()))
+                        || (war.isInTeamB(killer.getUniqueId()) && war.isInTeamA(victim.getUniqueId()));
+                if (validKill) {
+                    // Check if all members of one team are dead → end war
+                    // (simplified: we just let the war run its timer; scoring is by kills not elimination)
+                    // Notify teams
+                    String killerTeamTag = war.isInTeamA(killer.getUniqueId()) ? war.getClanTagA() : war.getClanTagB();
+                    String victimTeamTag = war.isInTeamA(victim.getUniqueId()) ? war.getClanTagA() : war.getClanTagB();
+                    // Log the war kill in the clan log
+                    ClanData killerClan = plugin.getFileManager().loadClan(killerTeamTag);
+                    if (killerClan != null) {
+                        killerClan.addLog(killer.getName() + " hat " + victim.getName() + " im Clan-Krieg besiegt.");
+                        try { plugin.getFileManager().saveClan(killerClan); } catch (IOException ignored) {}
+                    }
+                }
+                return; // Don't award regular kill points during war
+            }
+        }
+
+        // Regular kill points (not in war)
         if (killer != null) {
             ClanData clan = getPlayerClan(killer.getUniqueId());
             if (clan != null) {
@@ -64,6 +112,11 @@ public class EventListener implements Listener {
                 } catch (IOException e) {}
             }
         }
+    }
+
+    private String getPlayerClanTag(UUID player) {
+        PlayerData p = plugin.getFileManager().loadPlayer(player);
+        return (p == null) ? null : p.getClanTag();
     }
 
     private ClanData getPlayerClan(UUID player) {
