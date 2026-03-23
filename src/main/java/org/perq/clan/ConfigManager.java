@@ -102,4 +102,40 @@ public class ConfigManager {
     public boolean getEnableDatabase() {
         return config.getBoolean("enable-database");
     }
+
+    public String getClanSystemPrefix() {
+        return translateColors(config.getString("clansystem-prefix", "&4[ClanSystem]&r "));
+    }
+
+    public int getWarCostPoints() {
+        return config.getInt("war.cost-points", 200);
+    }
+
+    public int getWarCooldownMinutes() {
+        return config.getInt("war.cooldown-minutes", 30);
+    }
+
+    public int getWarDurationMinutes() {
+        return config.getInt("war.duration-minutes", 10);
+    }
+
+    public int getWarWinnerPoints() {
+        return config.getInt("war.winner-points", 100);
+    }
+
+    public int getWarLoserPoints() {
+        return config.getInt("war.loser-points", 100);
+    }
+
+    public int getInviteCooldownSeconds() {
+        return config.getInt("cooldowns.invite-seconds", 10);
+    }
+
+    public int getRequestCooldownSeconds() {
+        return config.getInt("cooldowns.request-seconds", 5);
+    }
+
+    public int getMaxMembers() {
+        return config.getInt("clan.max-members", 10);
+    }
 }

@@ -2,8 +2,10 @@ package org.perq.clan;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -18,6 +20,30 @@ public class EventListener implements Listener {
 
     public EventListener(Clan plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerChat(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        if (!plugin.getClanChatMode().contains(player.getUniqueId())) return;
+        ClanData clan = getPlayerClan(player.getUniqueId());
+        if (clan == null) {
+            plugin.getClanChatMode().remove(player.getUniqueId());
+            return;
+        }
+        event.setCancelled(true);
+        ConfigManager cm = plugin.getConfigManager();
+        String format = cm.translateColors(
+                cm.getClanChatFormat()
+                        .replace("%player%", player.getName())
+                        .replace("%message%", event.getMessage())
+        );
+        for (UUID mem : clan.getMembers()) {
+            Player p = plugin.getServer().getPlayer(mem);
+            if (p != null) {
+                p.sendMessage(format);
+            }
+        }
     }
 
     @EventHandler
@@ -46,6 +72,8 @@ public class EventListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         UUID player = event.getPlayer().getUniqueId();
+        // Remove from clan chat mode on quit
+        plugin.getClanChatMode().remove(player);
         Long joinTime = joinTimes.remove(player);
         if (joinTime != null) {
             double hours = (System.currentTimeMillis() - joinTime) / 3600000.0;

@@ -14,15 +14,18 @@ public class FileManager {
     private final File clansDir;
     private final File playersDir;
     private final File invitesDir;
+    private final File logsDir;
 
     public FileManager(Plugin plugin) {
         this.plugin = plugin;
         this.clansDir = new File(plugin.getDataFolder(), "clans");
         this.playersDir = new File(plugin.getDataFolder(), "players");
         this.invitesDir = new File(plugin.getDataFolder(), "invites");
+        this.logsDir = new File(plugin.getDataFolder(), "logs");
         if (!clansDir.exists()) clansDir.mkdirs();
         if (!playersDir.exists()) playersDir.mkdirs();
         if (!invitesDir.exists()) invitesDir.mkdirs();
+        if (!logsDir.exists()) logsDir.mkdirs();
     }
 
     // Clan methods
@@ -97,6 +100,27 @@ public class FileManager {
             if (file.exists()) file.delete();
         } else {
             InviteData.saveAllToFile(file, all);
+        }
+    }
+
+    // Log methods
+    public List<ClanLog> loadLogs(String clanTag) {
+        File file = new File(logsDir, clanTag + ".yml");
+        return ClanLog.loadFromFile(file);
+    }
+
+    public void saveLogs(String clanTag, List<ClanLog> logs) throws IOException {
+        File file = new File(logsDir, clanTag + ".yml");
+        ClanLog.saveToFile(file, logs);
+    }
+
+    public void addLog(String clanTag, ClanLog log) {
+        List<ClanLog> logs = loadLogs(clanTag);
+        logs.add(log);
+        try {
+            saveLogs(clanTag, logs);
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to save clan log for " + clanTag + ": " + e.getMessage());
         }
     }
 }
