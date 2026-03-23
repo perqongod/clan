@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -19,6 +20,38 @@ public class EventListener implements Listener {
 
     public EventListener(Clan plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onClanChestClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        Player player = (Player) event.getWhoClicked();
+
+        @SuppressWarnings("deprecation")
+        String title = event.getView().getTitle();
+        if (!title.startsWith("Clan-Kiste: ")) return;
+
+        String clanTag = title.substring("Clan-Kiste: ".length());
+        ClanData clan = plugin.getFileManager().loadClan(clanTag);
+        if (clan == null) return;
+
+        UUID playerUUID = player.getUniqueId();
+
+        // Leaders always have full access
+        if (clan.getLeader().equals(playerUUID)) return;
+
+        // Determine if this interaction affects the clan chest contents
+        int topSize = event.getView().getTopInventory().getSize();
+        boolean clickedInChest = event.getRawSlot() >= 0 && event.getRawSlot() < topSize;
+        boolean shiftClickFromInventory = event.isShiftClick() && !clickedInChest;
+
+        if (clickedInChest || shiftClickFromInventory) {
+            ClanChestPermission permission = clan.getChestPermission(playerUUID);
+            if (permission != ClanChestPermission.EXECUTE) {
+                event.setCancelled(true);
+                player.sendMessage(plugin.getConfigManager().getMessage("leader-disallow"));
+            }
+        }
     }
 
     @EventHandler
