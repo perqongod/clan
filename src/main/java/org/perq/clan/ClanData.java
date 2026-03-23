@@ -22,6 +22,12 @@ public class ClanData {
     private String created;
     private double onlineTime;
     private Location spawn;
+    /** Log entries in format "[HH:MM DD.MM.YYYY] message" */
+    private List<String> logs;
+    /** UUIDs of players who requested to join this clan */
+    private List<UUID> pendingRequests;
+
+    private static final DateTimeFormatter LOG_FMT = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 
     public ClanData(String tag, UUID leader) {
         this.tag = tag;
@@ -34,6 +40,8 @@ public class ClanData {
         this.created = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         this.onlineTime = 0.0;
         this.spawn = null;
+        this.logs = new ArrayList<>();
+        this.pendingRequests = new ArrayList<>();
     }
 
     public ClanData(File file) {
@@ -58,6 +66,11 @@ public class ClanData {
             double y = config.getDouble("spawn.y");
             double z = config.getDouble("spawn.z");
             this.spawn = new Location(Bukkit.getWorld(world), x, y, z);
+        }
+        this.logs = new ArrayList<>(config.getStringList("logs"));
+        this.pendingRequests = new ArrayList<>();
+        for (String req : config.getStringList("pending-requests")) {
+            try { pendingRequests.add(UUID.fromString(req)); } catch (IllegalArgumentException ignored) {}
         }
     }
 
@@ -85,7 +98,23 @@ public class ClanData {
             config.set("spawn.y", spawn.getY());
             config.set("spawn.z", spawn.getZ());
         }
+        config.set("logs", logs);
+        List<String> reqStrings = new ArrayList<>();
+        for (UUID req : pendingRequests) {
+            reqStrings.add(req.toString());
+        }
+        config.set("pending-requests", reqStrings);
         config.save(file);
+    }
+
+    /** Adds a log entry with the current timestamp. */
+    public void addLog(String message) {
+        String entry = "[" + LocalDateTime.now().format(LOG_FMT) + "] " + message;
+        logs.add(entry);
+        // Keep only the last 200 entries to avoid file bloat
+        if (logs.size() > 200) {
+            logs = new ArrayList<>(logs.subList(logs.size() - 200, logs.size()));
+        }
     }
 
     // Getters and setters
@@ -115,4 +144,10 @@ public class ClanData {
 
     public Location getSpawn() { return spawn; }
     public void setSpawn(Location spawn) { this.spawn = spawn; }
+
+    public List<String> getLogs() { return logs; }
+    public void setLogs(List<String> logs) { this.logs = logs; }
+
+    public List<UUID> getPendingRequests() { return pendingRequests; }
+    public void setPendingRequests(List<UUID> pendingRequests) { this.pendingRequests = pendingRequests; }
 }
