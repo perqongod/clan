@@ -57,7 +57,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "create", "disband", "delete", "invite", "accept", "deny", "join", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "request", "requests",
-            "accept-request", "deny-request", "logs", "skills", "war", "force", "admin"
+            "accept-request", "deny-request", "logs", "skills", "settings", "war", "force", "admin"
     ));
 
     public ClanCommand(Clan plugin) {
@@ -1018,12 +1018,33 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
+                if (!chestClan.getLeader().equals(playerUUID)) {
+                    ClanChestPermission permission = chestClan.getChestPermission(playerUUID);
+                    if (permission != ClanChestPermission.EXECUTE) {
+                        player.sendMessage(cm.getMessage("leader-disallow"));
+                        return true;
+                    }
+                }
                 Inventory chest = clanChests.get(chestClan.getTag());
                 if (chest == null) {
                     chest = Bukkit.createInventory(null, 27, "Clan-Kiste: " + chestClan.getTag());
                     clanChests.put(chestClan.getTag(), chest);
                 }
                 player.openInventory(chest);
+                break;
+            }
+
+            case "settings": {
+                ClanData settingsClan = getPlayerClan(playerUUID);
+                if (settingsClan == null) {
+                    player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
+                }
+                if (!settingsClan.getLeader().equals(playerUUID)) {
+                    player.sendMessage(cm.getMessage("not-clan-leader"));
+                    return true;
+                }
+                plugin.getClanSettingsListener().openGui(player, settingsClan);
                 break;
             }
 
@@ -1469,6 +1490,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(Player player, ConfigManager cm) {
+        ClanData clan = getPlayerClan(player.getUniqueId());
+        UUID playerUUID = player.getUniqueId();
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan create <tag> &7- Clan erstellen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan disband &7- Clan aufl\u00f6sen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan invite <spieler> &7- Spieler einladen"));
@@ -1485,13 +1508,18 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Einladungen ein-/ausschalten"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats &7- Clan-Stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan-Ranking"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Clan-Kiste \u00f6ffnen"));
+        if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Clan-Kiste \u00f6ffnen"));
+        }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Zum Clan-Spawn teleportieren"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Clan-Spawn setzen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Beitrittsanfrage senden"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- Beitrittsanfragen einsehen (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- Clan-Logs anzeigen"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Clan-Skills \u00f6ffnen"));
+        if (clan != null && clan.getLeader().equals(playerUUID)) {
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Clan-Einstellungen \u00f6ffnen"));
+        }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan war <tag> &7- Clan zum Krieg herausfordern"));
         if (player.hasPermission("clan.admin")) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "&7Admin: &f/clan admin &7f\u00fcr Admin-Befehle"));
@@ -1517,8 +1545,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     "create", "disband", "delete", "invite", "accept", "deny", "join", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "request", "requests",
-                    "accept-request", "deny-request", "logs", "skills", "war"
+                    "accept-request", "deny-request", "logs", "skills", "settings", "war"
             ));
+            ClanData clan = getPlayerClan(playerUUID);
+            if (clan == null || !clan.getLeader().equals(playerUUID)) {
+                subs.remove("settings");
+            }
+            if (clan != null && !clan.getLeader().equals(playerUUID)
+                    && clan.getChestPermission(playerUUID) == ClanChestPermission.DENY) {
+                subs.remove("chest");
+            }
             if (player.hasPermission("clan.admin")) {
                 subs.add("force");
                 subs.add("admin");

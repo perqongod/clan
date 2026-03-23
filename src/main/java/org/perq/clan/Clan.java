@@ -12,6 +12,7 @@ public final class Clan extends JavaPlugin {
     private FileManager fileManager;
     private WarManager warManager;
     private WarTeamSelectionListener warTeamSelectionListener;
+    private ClanSettingsListener clanSettingsListener;
     private Map<UUID, Boolean> invitationToggles = new HashMap<>(); // true = disabled
 
     @Override
@@ -21,6 +22,7 @@ public final class Clan extends JavaPlugin {
         fileManager = new FileManager(this);
         warManager = new WarManager(this);
         warTeamSelectionListener = new WarTeamSelectionListener(this);
+        clanSettingsListener = new ClanSettingsListener(this);
 
         ClanCommand clanCommand = new ClanCommand(this);
         getCommand("clan").setExecutor(clanCommand);
@@ -28,6 +30,7 @@ public final class Clan extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
         getServer().getPluginManager().registerEvents(warTeamSelectionListener, this);
+        getServer().getPluginManager().registerEvents(clanSettingsListener, this);
 
         // Register PlaceholderAPI expansion if available
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -54,6 +57,10 @@ public final class Clan extends JavaPlugin {
 
     public WarTeamSelectionListener getWarTeamSelectionListener() {
         return warTeamSelectionListener;
+    }
+
+    public ClanSettingsListener getClanSettingsListener() {
+        return clanSettingsListener;
     }
 
     public boolean toggleInvitation(UUID player) {
