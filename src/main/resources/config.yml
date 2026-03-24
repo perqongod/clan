@@ -15,6 +15,8 @@ clan-tag-settings:
     - "BANNED"
 
 max-members: 10
+min-points: 0
+max-points: 10000
 
 war:
   cost: 200
@@ -107,6 +109,11 @@ messages:
   war-lost: "%prefix%&cYour clan lost the &4ᴄʟᴀɴ ᴡᴀʀ&c. -100 points."
   war-no-arena: "%prefix%&cNo arena available."
   war-no-pending: "%prefix%&cYou have no pending war request."
+  admin-points-no-op: "%prefix%&cDu brauchst OP-Rechte für diesen Befehl."
+  admin-points-not-found: "%prefix%&cSpieler/Clan nicht gefunden."
+  admin-points-add: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte hinzugefügt. Neuer Stand: %total%."
+  admin-points-remove: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte entfernt. Neuer Stand: %total%."
+  admin-points-set: "%prefix%Du hast die Punkte des [%tag%] Clans auf %amount% gesetzt."
 
 ranks:
   Bronze: 0
