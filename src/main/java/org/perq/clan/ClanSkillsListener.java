@@ -11,17 +11,17 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class ClanSkillsListener implements Listener {
-    private static final String TITLE = "Clan Battle Pass";
-    private static final int UPGRADE_SLOT = 13;
-    private static final int CHEST_SLOT = 11;
-    private static final int SPAWN_SLOT = 15;
-    private static final int MEMBERS_SLOT = 22;
+    private static final String TITLE = "Clan Progress";
+    private static final int OVERVIEW_SLOT = 13;
+    private static final int CHEST_SLOT = 10;
+    private static final int SPAWN_SLOT = 12;
+    private static final int BANK_SLOT = 14;
+    private static final int MEMBERS_SLOT = 16;
 
     private final Clan plugin;
 
@@ -45,7 +45,7 @@ public class ClanSkillsListener implements Listener {
 
         event.setCancelled(true);
 
-        if (rawSlot != UPGRADE_SLOT) return;
+        if (rawSlot != OVERVIEW_SLOT) return;
 
         Player player = (Player) event.getWhoClicked();
         ClanData clan = getPlayerClan(player.getUniqueId());
@@ -54,33 +54,7 @@ public class ClanSkillsListener implements Listener {
             return;
         }
         ConfigManager cm = plugin.getConfigManager();
-        if (!clan.getLeader().equals(player.getUniqueId())) {
-            player.sendMessage(cm.getMessage("not-clan-leader"));
-            return;
-        }
-
-        int level = clan.getSkillLevel();
-        int cost = ClanSkillProgress.getNextLevelCost(level);
-        if (clan.getPoints() < cost) {
-            player.sendMessage(cm.getMessage("skills-not-enough-points")
-                    .replace("%cost%", String.valueOf(cost))
-                    .replace("%points%", String.valueOf(clan.getPoints())));
-            return;
-        }
-
-        clan.setPoints(clan.getPoints() - cost);
-        clan.setSkillLevel(level + 1);
-        clan.setRank(cm.getRankForPoints(clan.getPoints()));
-        clan.addLog(player.getName() + " upgraded the clan battle pass to level " + clan.getSkillLevel() + ".");
-        try {
-            plugin.getFileManager().saveClan(clan);
-            player.sendMessage(cm.getMessage("skills-upgraded")
-                    .replace("%level%", String.valueOf(clan.getSkillLevel()))
-                    .replace("%cost%", String.valueOf(cost)));
-            populateInventory(event.getView().getTopInventory(), clan);
-        } catch (IOException e) {
-            player.sendMessage(cm.getPrefix() + "Error saving.");
-        }
+        player.sendMessage(cm.getMessage("skills-auto-progress"));
     }
 
     private void populateInventory(Inventory inv, ClanData clan) {
@@ -92,31 +66,36 @@ public class ClanSkillsListener implements Listener {
             inv.setItem(i, filler);
         }
 
-        int level = clan.getSkillLevel();
-        int cost = ClanSkillProgress.getNextLevelCost(level);
-        int bonusSlots = ClanSkillProgress.getBonusMemberSlots(level);
+        int points = clan.getPoints();
+        int nextUnlock = ClanSkillProgress.getNextUnlockPoints(points);
+        int bonusSlots = ClanSkillProgress.getBonusMemberSlots(points);
 
-        List<String> upgradeLore = new ArrayList<>();
-        upgradeLore.add(cm.translateColors("&7Level: &f" + level));
-        upgradeLore.add(cm.translateColors("&7Clan Points: &f" + clan.getPoints()));
-        upgradeLore.add(cm.translateColors("&7Next level cost: &f" + cost));
-        upgradeLore.add(cm.translateColors("&7Next reward: &f" + ClanSkillProgress.getRewardLabel(level + 1)));
-        upgradeLore.add(cm.translateColors("&eClick to upgrade"));
-        inv.setItem(UPGRADE_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Upgrade Battle Pass"), upgradeLore));
+        List<String> overviewLore = new ArrayList<>();
+        overviewLore.add(cm.translateColors("&7Clan Points: &f" + points));
+        overviewLore.add(cm.translateColors("&7Next unlock at: &f" + nextUnlock));
+        overviewLore.add(cm.translateColors("&7Next reward: &f" + ClanSkillProgress.getRewardLabel(points)));
+        overviewLore.add(cm.translateColors("&eProgress is automatic"));
+        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Progress"), overviewLore));
 
         List<String> chestLore = new ArrayList<>();
-        chestLore.add(cm.translateColors("&7Unlock level: &f" + ClanSkillProgress.getChestUnlockLevel()));
-        chestLore.add(cm.translateColors(ClanSkillProgress.hasChest(level) ? "&aUnlocked" : "&cLocked"));
+        chestLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getChestUnlockPoints()));
+        chestLore.add(cm.translateColors(ClanSkillProgress.hasChest(points) ? "&aUnlocked" : "&cLocked"));
         inv.setItem(CHEST_SLOT, namedItem(Material.CHEST, cm.translateColors("&6Clan Chest"), chestLore));
 
         List<String> spawnLore = new ArrayList<>();
-        spawnLore.add(cm.translateColors("&7Unlock level: &f" + ClanSkillProgress.getSpawnUnlockLevel()));
-        spawnLore.add(cm.translateColors(ClanSkillProgress.hasSpawn(level) ? "&aUnlocked" : "&cLocked"));
+        spawnLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getSpawnUnlockPoints()));
+        spawnLore.add(cm.translateColors(ClanSkillProgress.hasSpawn(points) ? "&aUnlocked" : "&cLocked"));
         inv.setItem(SPAWN_SLOT, namedItem(Material.ENDER_EYE, cm.translateColors("&6Clan Spawn"), spawnLore));
+
+        List<String> bankLore = new ArrayList<>();
+        bankLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getBankUnlockPoints()));
+        bankLore.add(cm.translateColors(ClanSkillProgress.hasBank(points) ? "&aUnlocked" : "&cLocked"));
+        inv.setItem(BANK_SLOT, namedItem(Material.GOLD_INGOT, cm.translateColors("&6Clan Bank"), bankLore));
 
         List<String> memberLore = new ArrayList<>();
         memberLore.add(cm.translateColors("&7Bonus slots: &f+" + bonusSlots));
-        memberLore.add(cm.translateColors("&7Gain +1 member slot each level after " + ClanSkillProgress.getSpawnUnlockLevel()));
+        memberLore.add(cm.translateColors("&7Gain +1 member slot every " + ClanSkillProgress.getBonusSlotStep()
+                + " points after " + ClanSkillProgress.getBankUnlockPoints()));
         inv.setItem(MEMBERS_SLOT, namedItem(Material.PAPER, cm.translateColors("&6Member Slots"), memberLore));
     }
 

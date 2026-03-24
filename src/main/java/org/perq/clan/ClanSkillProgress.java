@@ -1,44 +1,62 @@
 package org.perq.clan;
 
 public final class ClanSkillProgress {
-    private static final int CHEST_UNLOCK_LEVEL = 1;
-    private static final int SPAWN_UNLOCK_LEVEL = 2;
-    private static final int BASE_COST = 100;
-    private static final int COST_INCREMENT = 50;
+    private static final int CHEST_UNLOCK_POINTS = 100;
+    private static final int SPAWN_UNLOCK_POINTS = 100;
+    private static final int BANK_UNLOCK_POINTS = 200;
+    private static final int BONUS_SLOT_STEP = 100;
 
     private ClanSkillProgress() {
     }
 
-    public static int getChestUnlockLevel() {
-        return CHEST_UNLOCK_LEVEL;
+    public static int getChestUnlockPoints() {
+        return CHEST_UNLOCK_POINTS;
     }
 
-    public static int getSpawnUnlockLevel() {
-        return SPAWN_UNLOCK_LEVEL;
+    public static int getSpawnUnlockPoints() {
+        return SPAWN_UNLOCK_POINTS;
     }
 
-    public static int getNextLevelCost(int currentLevel) {
-        return BASE_COST + (currentLevel * COST_INCREMENT);
+    public static int getBankUnlockPoints() {
+        return BANK_UNLOCK_POINTS;
     }
 
-    public static boolean hasChest(int level) {
-        return level >= CHEST_UNLOCK_LEVEL;
+    public static boolean hasChest(int points) {
+        return points >= CHEST_UNLOCK_POINTS;
     }
 
-    public static boolean hasSpawn(int level) {
-        return level >= SPAWN_UNLOCK_LEVEL;
+    public static boolean hasSpawn(int points) {
+        return points >= SPAWN_UNLOCK_POINTS;
     }
 
-    public static int getBonusMemberSlots(int level) {
-        return Math.max(0, level - SPAWN_UNLOCK_LEVEL);
+    public static boolean hasBank(int points) {
+        return points >= BANK_UNLOCK_POINTS;
     }
 
-    public static String getRewardLabel(int nextLevel) {
-        if (nextLevel == CHEST_UNLOCK_LEVEL) {
-            return "Unlock clan chest";
+    public static int getBonusMemberSlots(int points) {
+        if (points < BANK_UNLOCK_POINTS) return 0;
+        return (points - BANK_UNLOCK_POINTS) / BONUS_SLOT_STEP;
+    }
+
+    public static int getBonusSlotStep() {
+        return BONUS_SLOT_STEP;
+    }
+
+    public static int getNextUnlockPoints(int points) {
+        int firstUnlock = Math.min(CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS);
+        int secondUnlock = Math.max(CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS);
+        if (points < firstUnlock) return firstUnlock;
+        if (secondUnlock > firstUnlock && points < secondUnlock) return secondUnlock;
+        if (points < BANK_UNLOCK_POINTS) return BANK_UNLOCK_POINTS;
+        return ((points / BONUS_SLOT_STEP) + 1) * BONUS_SLOT_STEP;
+    }
+
+    public static String getRewardLabel(int points) {
+        if (points < CHEST_UNLOCK_POINTS) {
+            return "Unlock clan chest & spawn";
         }
-        if (nextLevel == SPAWN_UNLOCK_LEVEL) {
-            return "Unlock clan spawn";
+        if (points < BANK_UNLOCK_POINTS) {
+            return "Unlock clan bank";
         }
         return "Bonus member slot +1";
     }
