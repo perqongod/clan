@@ -71,7 +71,7 @@ public class ClanPlaceholder extends PlaceholderExpansion {
             case "suffix":
                 // %clan_suffix% - clan tag with colors
                 return plugin.getConfigManager().translateColors(
-                    "&8[&b" + playerData.getClanTag() + "&8]"
+                    "&7[&b" + playerData.getClanTag() + "&7]"
                 );
             
             case "points":
