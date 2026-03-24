@@ -92,7 +92,7 @@ public class ClanQuestListener implements Listener {
             inv.setItem(i, filler);
         }
 
-        int zombieKills = clan.getQuestZombieKills();
+        int zombieKills = clan.getQuestZombieKillCount();
         int questLevel = ClanQuestProgress.getQuestLevel(zombieKills);
         int questPoints = clan.getQuestSkillPoints();
 
@@ -126,7 +126,7 @@ public class ClanQuestListener implements Listener {
     }
 
     private int getTotalPages(ClanData clan) {
-        int questCount = buildQuestEntries(clan.getQuestZombieKills(), plugin.getConfigManager()).size();
+        int questCount = buildQuestEntries(clan.getQuestZombieKillCount(), plugin.getConfigManager()).size();
         return Math.max(1, (questCount + QUEST_ROW_SIZE - 1) / QUEST_ROW_SIZE);
     }
 

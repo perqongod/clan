@@ -16,7 +16,7 @@ public final class ClanQuestProgress {
     }
 
     public static int getQuestSkillPoints(int zombieKills) {
-        return Math.max(0, zombieKills) * ZOMBIE_KILL_SKILL_POINTS;
+        return zombieKills * ZOMBIE_KILL_SKILL_POINTS;
     }
 
     public static int getQuestLevel(int zombieKills) {

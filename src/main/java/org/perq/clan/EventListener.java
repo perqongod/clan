@@ -115,7 +115,7 @@ public class EventListener implements Listener {
         if (killer == null) return;
         ClanData clan = getPlayerClan(killer.getUniqueId());
         if (clan == null) return;
-        clan.setQuestZombieKills(clan.getQuestZombieKills() + 1);
+        clan.setQuestZombieKillCount(clan.getQuestZombieKillCount() + 1);
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {

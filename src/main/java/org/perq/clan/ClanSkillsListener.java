@@ -99,7 +99,7 @@ public class ClanSkillsListener implements Listener {
         int bonusSlots = ClanSkillProgress.getBonusMemberSlots(points);
 
         List<String> overviewLore = new ArrayList<>();
-        overviewLore.add(cm.translateColors("&7Skill points: &f" + points));
+        overviewLore.add(cm.translateColors("&7Total skill points: &f" + points));
         overviewLore.add(cm.translateColors("&7Ranking points: &f" + clan.getPoints()));
         overviewLore.add(cm.translateColors("&7Next unlock at: &f" + nextUnlock));
         overviewLore.add(cm.translateColors("&7Next reward: &f" + ClanSkillProgress.getRewardLabel(points)));
