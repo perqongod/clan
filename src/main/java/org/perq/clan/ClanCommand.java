@@ -1617,14 +1617,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest (Clan Pass lvl " + ClanSkillProgress.getChestUnlockLevel() + "+)"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest (Battle Pass lvl " + ClanSkillProgress.getChestUnlockLevel() + "+)"));
         }
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (Clan Pass lvl " + ClanSkillProgress.getSpawnUnlockLevel() + "+)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (Clan Pass lvl " + ClanSkillProgress.getSpawnUnlockLevel() + "+)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (Battle Pass lvl " + ClanSkillProgress.getSpawnUnlockLevel() + "+)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (Battle Pass lvl " + ClanSkillProgress.getSpawnUnlockLevel() + "+)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan battle pass"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan skills (battle pass)"));
         if (clan != null && clan.getLeader().equals(playerUUID)) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Open clan settings"));
         }

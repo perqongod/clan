@@ -34,7 +34,7 @@ public final class ClanSkillProgress {
     }
 
     public static String getRewardLabel(int nextLevel) {
-        if (nextLevel <= CHEST_UNLOCK_LEVEL) {
+        if (nextLevel == CHEST_UNLOCK_LEVEL) {
             return "Unlock clan chest";
         }
         if (nextLevel == SPAWN_UNLOCK_LEVEL) {
