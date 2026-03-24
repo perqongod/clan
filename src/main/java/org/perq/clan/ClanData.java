@@ -45,6 +45,8 @@ public class ClanData {
     private List<UUID> pendingRequests;
     /** Per-member permission for the clan chest GUI/command */
     private Map<UUID, ClanChestPermission> chestPermissions;
+    /** Per-member permission for friendly fire toggles */
+    private Map<UUID, ClanFriendlyFirePermission> friendlyFirePermissions;
 
     private static final DateTimeFormatter LOG_FMT = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
     private static final Gson GSON = new GsonBuilder().serializeNulls().create();
@@ -67,6 +69,7 @@ public class ClanData {
         this.logs = new ArrayList<>();
         this.pendingRequests = new ArrayList<>();
         this.chestPermissions = new HashMap<>();
+        this.friendlyFirePermissions = new HashMap<>();
     }
 
     public ClanData(File file) {
@@ -117,6 +120,18 @@ public class ClanData {
                     UUID memberId = UUID.fromString(key);
                     String value = config.getString("chest-permissions." + key);
                     chestPermissions.put(memberId, ClanChestPermission.fromString(value));
+                } catch (IllegalArgumentException ignored) {
+                    // skip invalid UUIDs
+                }
+            }
+        }
+        this.friendlyFirePermissions = new HashMap<>();
+        if (config.isConfigurationSection("friendly-fire-permissions")) {
+            for (String key : config.getConfigurationSection("friendly-fire-permissions").getKeys(false)) {
+                try {
+                    UUID memberId = UUID.fromString(key);
+                    String value = config.getString("friendly-fire-permissions." + key);
+                    friendlyFirePermissions.put(memberId, ClanFriendlyFirePermission.fromString(value));
                 } catch (IllegalArgumentException ignored) {
                     // skip invalid UUIDs
                 }
@@ -174,6 +189,14 @@ public class ClanData {
             }
         }
         config.set("chest-permissions", perms);
+        Map<String, String> friendlyPerms = new HashMap<>();
+        for (UUID mem : members) {
+            ClanFriendlyFirePermission permission = getFriendlyFirePermission(mem);
+            if (permission != ClanFriendlyFirePermission.ALLOW) {
+                friendlyPerms.put(mem.toString(), permission.name());
+            }
+        }
+        config.set("friendly-fire-permissions", friendlyPerms);
         config.save(file);
     }
 
@@ -259,6 +282,18 @@ public class ClanData {
             chestPermissions.remove(member);
         } else {
             chestPermissions.put(member, permission);
+        }
+    }
+
+    public ClanFriendlyFirePermission getFriendlyFirePermission(UUID member) {
+        return friendlyFirePermissions.getOrDefault(member, ClanFriendlyFirePermission.ALLOW);
+    }
+
+    public void setFriendlyFirePermission(UUID member, ClanFriendlyFirePermission permission) {
+        if (permission == null || permission == ClanFriendlyFirePermission.ALLOW) {
+            friendlyFirePermissions.remove(member);
+        } else {
+            friendlyFirePermissions.put(member, permission);
         }
     }
 

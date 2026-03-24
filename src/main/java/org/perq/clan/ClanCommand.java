@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ClanCommand implements CommandExecutor, TabCompleter {
 
@@ -39,6 +40,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private final Map<UUID, Integer> spawnTaskIds = new HashMap<>();
     /** Stores UUIDs of players who initiated /clan disband|delete but not yet confirmed. */
     private final Map<UUID, Long> pendingDeletes = new HashMap<>();
+    /** Admin UUIDs who initiated /clan leave but not yet confirmed. */
+    private final Map<UUID, Long> pendingAdminLeaves = new HashMap<>();
     /** Admin UUID -> target player name for /clan force kick confirmations. */
     private final Map<UUID, String> pendingForceKicks = new HashMap<>();
     /** Admin UUID -> clan tag for /clan force delete confirmations. */
@@ -61,7 +64,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "join", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
-            "ranking", "chest", "spawn", "setspawn", "request", "requests",
+            "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "accept-request", "deny-request", "logs", "skills", "settings", "war", "force", "admin",
             "points"
     ));
@@ -189,8 +192,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("delete-denied"));
                 } else {
                     pendingDeletes.put(playerUUID, System.currentTimeMillis());
-                    player.sendMessage(cm.getPrefix() + "The [" + disbandClan.getTag() + "] clan will be disbanded upon confirmation.");
-                    player.sendMessage(cm.translateColors("&cAre you sure you want to delete the clan?"));
+                    player.sendMessage(cm.getMessage("delete-pending").replace("%tag%", disbandClan.getTag()));
+                    player.sendMessage(cm.getMessage("delete-confirm"));
                     player.sendMessage(
                             Component.text("[Accept]")
                                     .color(TextColor.color(0x55FF55))
@@ -210,6 +213,37 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (leaveClan == null) {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
+                }
+                if (player.hasPermission("clan.admin")) {
+                    String confirmCmd = "/clan leave confirm";
+                    String denyCmd = "/clan leave deny";
+                    if (args.length >= 2 && args[1].equalsIgnoreCase("confirm")) {
+                        Long pending = pendingAdminLeaves.get(playerUUID);
+                        if (pending == null || System.currentTimeMillis() - pending > DELETE_CONFIRM_TIMEOUT_MS) {
+                            player.sendMessage(cm.getMessage("clan-deleted-cancelled"));
+                            return true;
+                        }
+                        pendingAdminLeaves.remove(playerUUID);
+                    } else if (args.length >= 2 && args[1].equalsIgnoreCase("deny")) {
+                        pendingAdminLeaves.remove(playerUUID);
+                        player.sendMessage(cm.getMessage("delete-denied"));
+                        return true;
+                    } else {
+                        pendingAdminLeaves.put(playerUUID, System.currentTimeMillis());
+                        player.sendMessage(cm.getMessage("delete-pending").replace("%tag%", leaveClan.getTag()));
+                        player.sendMessage(cm.getMessage("delete-confirm"));
+                        player.sendMessage(
+                                Component.text("[Accept]")
+                                        .color(TextColor.color(0x55FF55))
+                                        .clickEvent(ClickEvent.runCommand(confirmCmd))
+                        );
+                        player.sendMessage(
+                                Component.text("[Deny]")
+                                        .color(TextColor.color(0xFF5555))
+                                        .clickEvent(ClickEvent.runCommand(denyCmd))
+                        );
+                        return true;
+                    }
                 }
                 if (leaveClan.getLeader().equals(playerUUID)) {
                     if (leaveClan.getMembers().size() > 1) {
@@ -237,6 +271,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 leaveClan.getMembers().remove(playerUUID);
                 leaveClan.getModerators().remove(playerUUID);
                 leaveClan.setChestPermission(playerUUID, null);
+                leaveClan.setFriendlyFirePermission(playerUUID, null);
                 leaveClan.addLog(player.getName() + " left the clan.");
                 PlayerData leaveData = plugin.getFileManager().loadPlayer(playerUUID);
                 if (leaveData != null) {
@@ -286,6 +321,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 kickClan.getMembers().remove(kickTarget.getUniqueId());
                 kickClan.getModerators().remove(kickTarget.getUniqueId());
                 kickClan.setChestPermission(kickTarget.getUniqueId(), null);
+                kickClan.setFriendlyFirePermission(kickTarget.getUniqueId(), null);
                 kickClan.addLog(kickTarget.getName() + " was kicked by " + player.getName() + ".");
                 PlayerData kickTargetData = plugin.getFileManager().loadPlayer(kickTarget.getUniqueId());
                 if (kickTargetData != null) {
@@ -743,27 +779,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 PlayerData reqPd = plugin.getFileManager().loadPlayer(playerUUID);
                 if (reqPd == null) reqPd = new PlayerData(player.getName());
-                if (reqTag.equals(reqPd.getClanTag())) {
-                    player.sendMessage(cm.getMessage("already-in-clan"));
-                    return true;
-                }
-                if (reqPd.getClanTag() != null && "LEADER".equals(reqPd.getRole())) {
-                    pendingLeaderRequests.put(playerUUID, reqTag);
-                    player.sendMessage(cm.getMessage("leader-request-confirm"));
-                    player.sendMessage(
-                            Component.text("[Accept]")
-                                    .color(TextColor.color(0x55FF55))
-                                    .clickEvent(ClickEvent.runCommand("/clan request confirm"))
-                    );
-                    player.sendMessage(
-                            Component.text("[Deny]")
-                                    .color(TextColor.color(0xFF5555))
-                                    .clickEvent(ClickEvent.runCommand("/clan request deny"))
-                    );
-                    return true;
-                }
                 if (reqPd.getClanTag() != null) {
-                    player.sendMessage(cm.getMessage("already-in-clan"));
+                    if (reqTag.equals(reqPd.getClanTag())) {
+                        player.sendMessage(cm.getMessage("already-in-clan"));
+                    } else {
+                        player.sendMessage(cm.getMessage("request-betrayal"));
+                    }
                     return true;
                 }
                 if (reqClan.getPendingRequests().contains(playerUUID)) {
@@ -1183,7 +1204,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (spawnClan.getSpawn() == null) {
-                    player.sendMessage(cm.getPrefix() + "Clan spawn is not set.");
+                    player.sendMessage(cm.getMessage("spawn-not-set"));
                     return true;
                 }
                 long now = System.currentTimeMillis();
@@ -1237,7 +1258,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             if (target == null) {
                                 spawnTaskIds.remove(playerUUID);
                                 cancel();
-                                player.sendMessage(cm.getPrefix() + "Clan spawn is not set.");
+                                player.sendMessage(cm.getMessage("spawn-not-set"));
                                 return;
                             }
                             player.teleport(target);
@@ -1295,6 +1316,35 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 try {
                     plugin.getFileManager().saveClan(ssClan);
                     player.sendMessage(cm.getMessage("spawn-set"));
+                } catch (Exception e) {
+                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                }
+                break;
+            }
+
+            case "delspawn": {
+                ClanData dsClan = getPlayerClan(playerUUID);
+                if (dsClan == null) {
+                    player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
+                }
+                if (!dsClan.getLeader().equals(playerUUID)) {
+                    player.sendMessage(cm.getMessage("no-permission"));
+                    return true;
+                }
+                if (!ClanSkillProgress.hasSpawn(dsClan.getPoints())) {
+                    player.sendMessage(cm.getMessage("skills-locked-setspawn")
+                            .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
+                    return true;
+                }
+                if (dsClan.getSpawn() == null) {
+                    player.sendMessage(cm.getMessage("spawn-not-set"));
+                    return true;
+                }
+                dsClan.setSpawn(null);
+                try {
+                    plugin.getFileManager().saveClan(dsClan);
+                    player.sendMessage(cm.getMessage("spawn-deleted"));
                 } catch (Exception e) {
                     player.sendMessage(cm.getPrefix() + "Error saving.");
                 }
@@ -1382,6 +1432,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         ftClan.getMembers().remove(forceTarget.getUniqueId());
                         ftClan.getModerators().remove(forceTarget.getUniqueId());
                         ftClan.setChestPermission(forceTarget.getUniqueId(), null);
+                        ftClan.setFriendlyFirePermission(forceTarget.getUniqueId(), null);
                         PlayerData ftData = plugin.getFileManager().loadPlayer(forceTarget.getUniqueId());
                         if (ftData != null) {
                             ftData.setClanTag(null);
@@ -1627,6 +1678,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delspawn &7- Remove clan spawn"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
@@ -1686,7 +1738,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             List<String> subs = new ArrayList<>(Arrays.asList(
                     "create", "delete", "invite", "accept", "deny", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
-                    "ranking", "chest", "spawn", "setspawn", "request", "requests",
+                    "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
                     "logs", "skills", "settings"
             ));
             ClanData clan = getPlayerClan(playerUUID);
@@ -1702,6 +1754,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             if (clan == null || !ClanSkillProgress.hasSpawn(clan.getPoints())) {
                 subs.remove("spawn");
                 subs.remove("setspawn");
+                subs.remove("delspawn");
             }
             if (player.hasPermission("clan.admin")) {
                 subs.add("force");
@@ -1734,7 +1787,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return null;
                 }
                 case "request": {
-                    return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                    Map<String, ClanData> clans = plugin.getFileManager().loadAllClans();
+                    if (clan == null) {
+                        return new ArrayList<>(clans.keySet());
+                    }
+                    String clanTag = clan.getTag();
+                    return clans.keySet().stream()
+                            .filter(tag -> !tag.equals(clanTag))
+                            .collect(Collectors.toList());
                 }
                 case "stats": {
                     return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());

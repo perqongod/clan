@@ -56,6 +56,7 @@ messages:
   disband-cancelled: "%prefix%&cClan deletion cancelled (timed out)."
   clan-dissolved: "%prefix%The [%tag%] clan has been disbanded."
   # kept for backward compat
+  delete-pending: "%prefix%The [%tag%] clan will be disbanded upon confirmation."
   delete-confirm: "&cAre you sure you want to delete the clan?"
   delete-denied: "%prefix%&cClan deletion cancelled."
   clan-deleted-cancelled: "%prefix%&cClan deletion cancelled (timed out)."
@@ -71,6 +72,7 @@ messages:
   requests-only-leader: "%prefix%&cOnly the clan leader can view incoming requests."
   requests-empty: "%prefix%&cNo open requests."
   request-already-sent: "%prefix%&cYou have already sent a request to this clan."
+  request-betrayal: "%prefix%&cWhy do you want to betray your clan?"
   skills-upgraded: "%prefix%&aClan skills upgraded to level %level% (cost: %cost% points)."
   skills-not-enough-points: "%prefix%&cYou need %cost% points to upgrade. You have %points%."
   skills-auto-progress: "%prefix%&aClan Fortschritt basiert auf Punkten."
@@ -80,6 +82,8 @@ messages:
   chest-set: "%prefix%&aClan Chest gesetzt!"
   chest-not-set: "%prefix%&cClan Chest wurde noch nicht gesetzt."
   spawn-set: "%prefix%&aClan Spawn gesetzt!"
+  spawn-deleted: "%prefix%&aClan spawn removed."
+  spawn-not-set: "%prefix%&cClan spawn is not set."
   spawn-teleporting: "%prefix%&aTeleportiere..."
   spawn-teleported: "%prefix%&aTeleportiert."
   rename-too-soon: "%prefix%&cClan kann erst nach %required%h Gesamtspielzeit umbenannt werden. Aktuell: %hours%h."
@@ -91,6 +95,7 @@ messages:
   leader-transferred: "%prefix%&aLeadership has been transferred to %player%."
   leader-received: "%prefix%&aYou are now the leader of clan %tag%."
   settings-leader-chest: "%prefix%&cDer Clan-Leader hat immer Zugriff auf die Clan Chest."
+  settings-leader-friendly-fire: "%prefix%&cThe clan leader always has friendly fire enabled."
   invite-cooldown: "%prefix%&cPlease wait %seconds% more seconds before sending another invite."
   invite-max-open: "%prefix%&cThis player already has an open invitation."
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"
@@ -131,5 +136,6 @@ ranks:
       &f/clan chest (set)
       &f/clan spawn
       &f/clan setspawn
+      &f/clan delspawn
       &f/clan skills
       &f/clan logs
