@@ -142,10 +142,9 @@ public class ClanSettingsListener implements Listener {
         UUID leaderId = clan.getLeader();
         for (int i = 0; i < session.members.size() && i < 45; i++) {
             UUID member = session.members.get(i);
-            boolean isLeader = member.equals(leaderId);
-            ClanChestPermission permission = isLeader ? ClanChestPermission.leaderDefault() : clan.getChestPermission(member);
+            ClanChestPermission permission = effectivePermission(clan, member, leaderId);
             boolean selected = member.equals(session.selectedMember);
-            inv.setItem(9 + i, memberSkull(member, permission, selected, isLeader));
+            inv.setItem(9 + i, memberSkull(member, permission, selected, leaderId));
         }
 
         if (session.members.size() < 45) {
@@ -174,9 +173,17 @@ public class ClanSettingsListener implements Listener {
     }
 
     private boolean isLeaderToggle(Player player, ClanData clan, UUID member) {
-        if (member == null || !member.equals(clan.getLeader())) return false;
+        if (member == null) return true;
+        if (!member.equals(clan.getLeader())) return false;
         player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
         return true;
+    }
+
+    private ClanChestPermission effectivePermission(ClanData clan, UUID member, UUID leaderId) {
+        if (member != null && member.equals(leaderId)) {
+            return ClanChestPermission.leaderDefault();
+        }
+        return clan.getChestPermission(member);
     }
 
     private ItemStack clanChestItem(UUID selectedMember) {
@@ -225,7 +232,7 @@ public class ClanSettingsListener implements Listener {
         return item;
     }
 
-    private ItemStack memberSkull(UUID member, ClanChestPermission permission, boolean selected, boolean isLeader) {
+    private ItemStack memberSkull(UUID member, ClanChestPermission permission, boolean selected, UUID leaderId) {
         ConfigManager cm = plugin.getConfigManager();
         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
@@ -235,6 +242,7 @@ public class ClanSettingsListener implements Listener {
             String name = op.getName() != null ? op.getName() : member.toString().substring(0, 8);
             meta.setDisplayName("§f" + name);
             List<String> lore = new ArrayList<>();
+            boolean isLeader = member.equals(leaderId);
             if (isLeader) {
                 lore.add(cm.translateColors("&7Clan-Leader &f(immer Zugriff)"));
             } else {
