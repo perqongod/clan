@@ -119,7 +119,8 @@ public class EventListener implements Listener {
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {
-            // ignore
+            Bukkit.getLogger().log(Level.WARNING,
+                    "[Clan] Failed to save quest progress for " + clan.getTag(), e);
         }
     }
 

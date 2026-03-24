@@ -80,6 +80,7 @@ messages:
   skills-locked-spawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-setspawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-rename: "%prefix%&cClan Rename ist gesperrt. Benötigt %required% Punkte."
+  quest-info: "%prefix%Quest points affect clan skills only."
   chest-set: "%prefix%&aClan Chest gesetzt!"
   chest-not-set: "%prefix%&cClan Chest wurde noch nicht gesetzt."
   spawn-set: "%prefix%&aClan Spawn gesetzt!"

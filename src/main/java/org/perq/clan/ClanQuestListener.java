@@ -58,8 +58,7 @@ public class ClanQuestListener implements Listener {
             return;
         }
         if (rawSlot == OVERVIEW_SLOT) {
-            player.sendMessage(plugin.getConfigManager().getPrefix()
-                    + "Quest points affect clan skills only.");
+            player.sendMessage(plugin.getConfigManager().getMessage("quest-info"));
             return;
         }
         if (rawSlot == PREVIOUS_PAGE_SLOT || rawSlot == NEXT_PAGE_SLOT) {
