@@ -1020,15 +1020,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             case "stats": {
-                ClanData statsClan = getPlayerClan(playerUUID);
-                if (statsClan == null) {
-                    player.sendMessage(cm.getMessage("no-clan"));
+                if (args.length < 2) {
+                    player.sendMessage(cm.getPrefix() + "Usage: /clan stats <tag>");
                     return true;
                 }
-                player.sendMessage(cm.getPrefix() + "Clan: " + statsClan.getTag()
-                        + " | Points: " + statsClan.getPoints()
-                        + " | Rank: " + statsClan.getRank()
-                        + " | Members: " + statsClan.getMembers().size());
+                ClanData statsClan = plugin.getFileManager().loadClan(args[1]);
+                if (statsClan == null) {
+                    player.sendMessage(cm.getMessage("clan-not-found"));
+                    return true;
+                }
+                plugin.getClanStatsListener().openGui(player, statsClan);
                 break;
             }
 
@@ -1658,7 +1659,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan invite <player> &7- Invite a player"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan accept <tag> &7- Accept an invite"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan deny <tag> &7- Decline an invite"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan join <tag> &7- Join a clan (via invite)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leave &7- Leave your clan"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan kick <player> &7- Kick a player"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan promote <player> &7- Promote a player"));
@@ -1668,7 +1668,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan info &7- Clan info"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan help &7- Open the clan help book"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Toggle invitations"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats &7- Clan stats"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats <tag> &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Set clan chest (Leader, "
@@ -1735,7 +1735,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             List<String> subs = new ArrayList<>(Arrays.asList(
-                    "create", "delete", "invite", "accept", "deny", "join", "leave",
+                    "create", "delete", "invite", "accept", "deny", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "request", "requests",
                     "logs", "skills", "settings", "bank"
@@ -1788,6 +1788,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return null;
                 }
                 case "request": {
+                    return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                }
+                case "stats": {
                     return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
                 }
                 case "bank": {

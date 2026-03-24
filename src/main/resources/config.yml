@@ -119,7 +119,6 @@ ranks:
       &7Erste Schritte:
       &f/clan create <tag>
       &f/clan invite <spieler>
-      &f/clan join <tag>
       &f/clan leave
       &f/clan info
       &f/clan request <tag>
