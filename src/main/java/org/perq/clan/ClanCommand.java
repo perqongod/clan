@@ -744,7 +744,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 PlayerData reqPd = plugin.getFileManager().loadPlayer(playerUUID);
                 if (reqPd == null) reqPd = new PlayerData(player.getName());
                 if (reqPd.getClanTag() != null) {
-                    if (reqTag.equalsIgnoreCase(reqPd.getClanTag())) {
+                    if (reqTag.equals(reqPd.getClanTag())) {
                         player.sendMessage(cm.getMessage("already-in-clan"));
                     } else {
                         player.sendMessage(cm.getMessage("request-betrayal"));
@@ -1722,7 +1722,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     List<String> tags = new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
                     if (clan != null) {
                         String clanTag = clan.getTag();
-                        tags.removeIf(tag -> tag.equalsIgnoreCase(clanTag));
+                        tags.removeIf(tag -> tag.equals(clanTag));
                     }
                     return tags;
                 }

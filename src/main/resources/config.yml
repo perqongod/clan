@@ -71,7 +71,7 @@ messages:
   requests-only-leader: "%prefix%&cOnly the clan leader can view incoming requests."
   requests-empty: "%prefix%&cNo open requests."
   request-already-sent: "%prefix%&cYou have already sent a request to this clan."
-  request-betrayal: "%prefix%&cWieso willst du deinen Clan hintergehen?"
+  request-betrayal: "%prefix%&cWhy do you want to betray your clan?"
   skills-upgraded: "%prefix%&aClan skills upgraded to level %level% (cost: %cost% points)."
   skills-not-enough-points: "%prefix%&cYou need %cost% points to upgrade. You have %points%."
   skills-auto-progress: "%prefix%&aClan Fortschritt basiert auf Punkten."
