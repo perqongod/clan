@@ -4,6 +4,7 @@ public final class ClanSkillProgress {
     private static final int CHEST_UNLOCK_POINTS = 100;
     private static final int SPAWN_UNLOCK_POINTS = 100;
     private static final int BANK_UNLOCK_POINTS = 200;
+    private static final int CHEST_UPGRADE_POINTS = 400;
     private static final int BONUS_SLOT_STEP = 100;
 
     private ClanSkillProgress() {
@@ -21,6 +22,10 @@ public final class ClanSkillProgress {
         return BANK_UNLOCK_POINTS;
     }
 
+    public static int getChestUpgradePoints() {
+        return CHEST_UPGRADE_POINTS;
+    }
+
     public static boolean hasChest(int points) {
         return points >= CHEST_UNLOCK_POINTS;
     }
@@ -31,6 +36,10 @@ public final class ClanSkillProgress {
 
     public static boolean hasBank(int points) {
         return points >= BANK_UNLOCK_POINTS;
+    }
+
+    public static boolean hasChestUpgrade(int points) {
+        return points >= CHEST_UPGRADE_POINTS;
     }
 
     public static int getBonusMemberSlots(int points) {

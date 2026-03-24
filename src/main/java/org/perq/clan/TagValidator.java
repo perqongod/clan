@@ -26,7 +26,7 @@ public class TagValidator {
                 return new ValidationResult(false, configManager.getMessage("tag-vip-invalid-codes"));
             }
             String strippedTag = stripColorCodes(tag);
-            if (strippedTag.length() > maxLength) {
+            if (strippedTag.length() != maxLength) {
                 String message = configManager.getMessage("tag-vip-max-length")
                         .replace("%length%", String.valueOf(maxLength));
                 return new ValidationResult(false, message);
@@ -40,24 +40,13 @@ public class TagValidator {
                 return new ValidationResult(false, configManager.getMessage("tag-no-colors"));
             }
             // Check length (min–max)
-            int minLength = Math.min(configManager.getTagMinLength(), maxLength);
-            if (tag.length() < minLength || tag.length() > maxLength) {
+            if (tag.length() != maxLength) {
                 String message = configManager.getMessage("tag-invalid-length")
-                        .replace("%min%", String.valueOf(minLength))
-                        .replace("%max%", String.valueOf(maxLength))
                         .replace("%length%", String.valueOf(maxLength));
                 return new ValidationResult(false, message);
             }
-            // Check if only letters allowed (no numbers)
-            if (configManager.isOnlyLettersAllowed()) {
-                if (!tag.matches("[a-zA-Z]+")) {
-                    return new ValidationResult(false, configManager.getMessage("tag-invalid-chars"));
-                }
-            } else {
-                // Allow letters and numbers
-                if (!tag.matches("[a-zA-Z0-9]+")) {
-                    return new ValidationResult(false, configManager.getMessage("tag-invalid-chars"));
-                }
+            if (!tag.matches("[a-zA-Z0-9]+")) {
+                return new ValidationResult(false, configManager.getMessage("tag-invalid-chars"));
             }
         }
 

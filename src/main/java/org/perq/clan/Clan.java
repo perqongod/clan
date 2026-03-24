@@ -10,8 +10,6 @@ public final class Clan extends JavaPlugin {
 
     private ConfigManager configManager;
     private FileManager fileManager;
-    private WarManager warManager;
-    private WarTeamSelectionListener warTeamSelectionListener;
     private ClanSettingsListener clanSettingsListener;
     private ClanSkillsListener clanSkillsListener;
     private Map<UUID, Boolean> invitationToggles = new HashMap<>(); // true = disabled
@@ -21,21 +19,13 @@ public final class Clan extends JavaPlugin {
         // Plugin startup logic
         configManager = new ConfigManager(this);
         fileManager = new FileManager(this);
-        warManager = new WarManager(this);
-        warTeamSelectionListener = new WarTeamSelectionListener(this);
         clanSettingsListener = new ClanSettingsListener(this);
         clanSkillsListener = new ClanSkillsListener(this);
 
         ClanCommand clanCommand = new ClanCommand(this);
         getCommand("clan").setExecutor(clanCommand);
         getCommand("clan").setTabCompleter(clanCommand);
-        if (getCommand("war") != null) {
-            getCommand("war").setExecutor(clanCommand);
-            getCommand("war").setTabCompleter(clanCommand);
-        }
-
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
-        getServer().getPluginManager().registerEvents(warTeamSelectionListener, this);
         getServer().getPluginManager().registerEvents(clanSettingsListener, this);
         getServer().getPluginManager().registerEvents(clanSkillsListener, this);
 
@@ -56,14 +46,6 @@ public final class Clan extends JavaPlugin {
 
     public FileManager getFileManager() {
         return fileManager;
-    }
-
-    public WarManager getWarManager() {
-        return warManager;
-    }
-
-    public WarTeamSelectionListener getWarTeamSelectionListener() {
-        return warTeamSelectionListener;
     }
 
     public ClanSettingsListener getClanSettingsListener() {

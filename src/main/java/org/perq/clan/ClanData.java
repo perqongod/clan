@@ -49,7 +49,7 @@ public class ClanData {
 
     private static final DateTimeFormatter LOG_FMT = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
     private static final Gson GSON = new GsonBuilder().serializeNulls().create();
-    private static final int CHEST_SIZE = 27;
+    private static final int MAX_CHEST_SIZE = 54;
 
     public ClanData(String tag, UUID leader) {
         this.tag = tag;
@@ -235,7 +235,14 @@ public class ClanData {
         if (contents != null) {
             Collections.addAll(normalized, contents);
         }
-        chestItems = normalizeChestItems(normalized);
+        normalized = normalizeChestItems(normalized);
+        if (contents != null && contents.length < normalized.size() && chestItems != null
+                && chestItems.size() == normalized.size()) {
+            for (int i = contents.length; i < normalized.size(); i++) {
+                normalized.set(i, chestItems.get(i));
+            }
+        }
+        chestItems = normalized;
     }
 
     public int getBankBalance() { return bankBalance; }
@@ -263,15 +270,15 @@ public class ClanData {
     }
 
     private static List<ItemStack> createEmptyChestItems() {
-        return new ArrayList<>(Collections.nCopies(CHEST_SIZE, null));
+        return new ArrayList<>(Collections.nCopies(MAX_CHEST_SIZE, null));
     }
 
     private static List<ItemStack> normalizeChestItems(List<ItemStack> items) {
         List<ItemStack> normalized = new ArrayList<>(items == null ? Collections.emptyList() : items);
-        if (normalized.size() > CHEST_SIZE) {
-            normalized = new ArrayList<>(normalized.subList(0, CHEST_SIZE));
+        if (normalized.size() > MAX_CHEST_SIZE) {
+            normalized = new ArrayList<>(normalized.subList(0, MAX_CHEST_SIZE));
         }
-        while (normalized.size() < CHEST_SIZE) {
+        while (normalized.size() < MAX_CHEST_SIZE) {
             normalized.add(null);
         }
         return normalized;
