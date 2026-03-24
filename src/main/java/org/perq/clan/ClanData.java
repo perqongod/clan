@@ -38,7 +38,6 @@ public class ClanData {
     private Location spawn;
     private Location chestLocation;
     private List<ItemStack> chestItems;
-    private int bankBalance;
     private int skillLevel;
     /** Log entries in format "[HH:MM DD.MM.YYYY] message" */
     private List<String> logs;
@@ -64,7 +63,6 @@ public class ClanData {
         this.spawn = null;
         this.chestLocation = null;
         this.chestItems = createEmptyChestItems();
-        this.bankBalance = 0;
         this.skillLevel = 0;
         this.logs = new ArrayList<>();
         this.pendingRequests = new ArrayList<>();
@@ -107,7 +105,6 @@ public class ClanData {
             this.chestLocation = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
         }
         this.chestItems = deserializeChestItems(config.getString("chest-items-json"), this.tag);
-        this.bankBalance = Math.max(0, config.getInt("bank.balance", 0));
         this.logs = new ArrayList<>(config.getStringList("logs"));
         this.pendingRequests = new ArrayList<>();
         for (String req : config.getStringList("pending-requests")) {
@@ -163,7 +160,6 @@ public class ClanData {
             config.set("chest.pitch", chestLocation.getPitch());
         }
         config.set("chest-items-json", serializeChestItems(chestItems));
-        config.set("bank.balance", bankBalance);
         config.set("logs", logs);
         List<String> reqStrings = new ArrayList<>();
         for (UUID req : pendingRequests) {
@@ -244,9 +240,6 @@ public class ClanData {
         }
         chestItems = normalized;
     }
-
-    public int getBankBalance() { return bankBalance; }
-    public void setBankBalance(int bankBalance) { this.bankBalance = Math.max(0, bankBalance); }
 
     public int getSkillLevel() { return skillLevel; }
     public void setSkillLevel(int skillLevel) { this.skillLevel = skillLevel; }

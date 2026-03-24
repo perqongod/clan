@@ -24,4 +24,8 @@ public enum ClanChestPermission {
                 return VIEW;
         }
     }
+
+    public static ClanChestPermission leaderDefault() {
+        return EXECUTE;
+    }
 }
