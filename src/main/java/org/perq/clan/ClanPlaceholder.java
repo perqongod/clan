@@ -43,7 +43,7 @@ public class ClanPlaceholder extends PlaceholderExpansion {
                 case "tag":
                     return plugin.getConfigManager().translateColors("&cN/A");
                 case "tag2":
-                    return plugin.getConfigManager().translateColors("[&cN/A]");
+                    return plugin.getConfigManager().translateColors("&7[&cN/A&7]");
                 default:
                     return null;
             }
