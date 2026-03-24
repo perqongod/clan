@@ -97,6 +97,7 @@ public class EventListener implements Listener {
                     ClanData killerClan = plugin.getFileManager().loadClan(killerTeamTag);
                     if (killerClan != null) {
                         killerClan.addLog(killer.getName() + " defeated " + victim.getName() + " in a clan war.");
+                        applyKillPoints(killerClan);
                         try { plugin.getFileManager().saveClan(killerClan); } catch (IOException ignored) {}
                     }
                 }
@@ -108,8 +109,7 @@ public class EventListener implements Listener {
         if (killer != null) {
             ClanData clan = getPlayerClan(killer.getUniqueId());
             if (clan != null) {
-                clan.setPoints(clan.getPoints() + plugin.getConfigManager().getKillPoints());
-                clan.setRank(plugin.getConfigManager().getRankForPoints(clan.getPoints()));
+                applyKillPoints(clan);
                 try {
                     plugin.getFileManager().saveClan(clan);
                 } catch (IOException e) {
@@ -156,6 +156,14 @@ public class EventListener implements Listener {
         PlayerData p = plugin.getFileManager().loadPlayer(player);
         if (p == null || p.getClanTag() == null) return null;
         return plugin.getFileManager().loadClan(p.getClanTag());
+    }
+
+    private void applyKillPoints(ClanData clan) {
+        int killPoints = plugin.getConfigManager().getKillPoints();
+        if (killPoints <= 0) return;
+        int newPoints = clan.getPoints() + killPoints;
+        clan.setPoints(newPoints);
+        clan.setRank(plugin.getConfigManager().getRankForPoints(newPoints));
     }
 
 }

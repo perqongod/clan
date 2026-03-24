@@ -24,10 +24,10 @@ import java.util.UUID;
  * Handles the War Team Selection GUI (6×9 double-chest style inventory).
  *
  * Layout (0-indexed rows 0–5, cols 0–8):
- *   Row 0: Pink glass header blocks
- *   Row 1: Player skulls
- *   Row 2: Arrow status items
- *   Rows 3–5: Green glass footer blocks
+ *   Row 0: Red (left) / Green (right) header blocks
+ *   Row 1: Player skulls with gray placeholder panes
+ *   Rows 2–4: Gray filler blocks
+ *   Row 5: Bottom bar with arrows (col 0/8) + red/green blocks
  *   Col 4 (all rows): Blue glass separator
  *
  *   Cols 0–3  = "Fighting" side
@@ -134,31 +134,26 @@ public class WarTeamSelectionListener implements Listener {
     // ── Inventory population ─────────────────────────────────────────────────
 
     private void populateInventory(Inventory inv, TeamSelectionSession session) {
-        ItemStack pink = namedItem(Material.PINK_STAINED_GLASS_PANE, " ");
+        ItemStack red = namedItem(Material.RED_STAINED_GLASS_PANE, " ");
         ItemStack blue = namedItem(Material.BLUE_STAINED_GLASS_PANE, " ");
         ItemStack green = namedItem(Material.GREEN_STAINED_GLASS_PANE, " ");
+        ItemStack gray = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
 
-        // Row 0: header pink + blue separator in col 4
+        // Row 0: header red/green + blue separator in col 4
         for (int col = 0; col < 9; col++) {
-            inv.setItem(col, col == 4 ? blue : pink);
-        }
-
-        // Row 2: arrows / status
-        for (int col = 0; col < 9; col++) {
-            if (col == 4) { inv.setItem(18 + col, blue); continue; }
-            ItemStack arrow;
-            if (col < 4) {
-                arrow = namedItem(Material.ARROW, "§aFighting");
+            if (col == 4) {
+                inv.setItem(col, blue);
+            } else if (col < 4) {
+                inv.setItem(col, red);
             } else {
-                arrow = namedItem(Material.ARROW, "§cNot fighting");
+                inv.setItem(col, green);
             }
-            inv.setItem(18 + col, arrow);
         }
 
-        // Rows 3–5: green footer + blue separator
-        for (int row = 3; row <= 5; row++) {
+        // Rows 2–4: gray filler + blue separator
+        for (int row = 2; row <= 4; row++) {
             for (int col = 0; col < 9; col++) {
-                inv.setItem(row * 9 + col, col == 4 ? blue : green);
+                inv.setItem(row * 9 + col, col == 4 ? blue : gray);
             }
         }
 
@@ -168,7 +163,7 @@ public class WarTeamSelectionListener implements Listener {
             if (i < session.fighting.size()) {
                 inv.setItem(9 + i, playerSkull(session.fighting.get(i)));
             } else {
-                inv.setItem(9 + i, namedItem(Material.GRAY_STAINED_GLASS_PANE, "§7Empty"));
+                inv.setItem(9 + i, gray);
             }
         }
         // Separator
@@ -178,7 +173,25 @@ public class WarTeamSelectionListener implements Listener {
             if (i < session.notFighting.size()) {
                 inv.setItem(9 + 5 + i, playerSkull(session.notFighting.get(i)));
             } else {
-                inv.setItem(9 + 5 + i, namedItem(Material.GRAY_STAINED_GLASS_PANE, "§7Empty"));
+                inv.setItem(9 + 5 + i, gray);
+            }
+        }
+
+        // Row 5: bottom bar with arrows + red/green blocks
+        ItemStack leftArrow = namedItem(Material.ARROW, "§aFighting");
+        ItemStack rightArrow = namedItem(Material.ARROW, "§cNot fighting");
+        for (int col = 0; col < 9; col++) {
+            int slot = 45 + col;
+            if (col == 0) {
+                inv.setItem(slot, leftArrow);
+            } else if (col == 8) {
+                inv.setItem(slot, rightArrow);
+            } else if (col == 4) {
+                inv.setItem(slot, blue);
+            } else if (col < 4) {
+                inv.setItem(slot, red);
+            } else {
+                inv.setItem(slot, green);
             }
         }
     }
