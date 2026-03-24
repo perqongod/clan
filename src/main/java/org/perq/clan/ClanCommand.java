@@ -743,27 +743,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 PlayerData reqPd = plugin.getFileManager().loadPlayer(playerUUID);
                 if (reqPd == null) reqPd = new PlayerData(player.getName());
-                if (reqTag.equals(reqPd.getClanTag())) {
-                    player.sendMessage(cm.getMessage("already-in-clan"));
-                    return true;
-                }
-                if (reqPd.getClanTag() != null && "LEADER".equals(reqPd.getRole())) {
-                    pendingLeaderRequests.put(playerUUID, reqTag);
-                    player.sendMessage(cm.getMessage("leader-request-confirm"));
-                    player.sendMessage(
-                            Component.text("[Accept]")
-                                    .color(TextColor.color(0x55FF55))
-                                    .clickEvent(ClickEvent.runCommand("/clan request confirm"))
-                    );
-                    player.sendMessage(
-                            Component.text("[Deny]")
-                                    .color(TextColor.color(0xFF5555))
-                                    .clickEvent(ClickEvent.runCommand("/clan request deny"))
-                    );
-                    return true;
-                }
                 if (reqPd.getClanTag() != null) {
-                    player.sendMessage(cm.getMessage("already-in-clan"));
+                    if (reqTag.equalsIgnoreCase(reqPd.getClanTag())) {
+                        player.sendMessage(cm.getMessage("already-in-clan"));
+                    } else {
+                        player.sendMessage(cm.getMessage("request-betrayal"));
+                    }
                     return true;
                 }
                 if (reqClan.getPendingRequests().contains(playerUUID)) {
@@ -1734,7 +1719,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return null;
                 }
                 case "request": {
-                    return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                    List<String> tags = new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                    if (clan != null) {
+                        String clanTag = clan.getTag();
+                        tags.removeIf(tag -> tag.equalsIgnoreCase(clanTag));
+                    }
+                    return tags;
                 }
                 case "stats": {
                     return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
