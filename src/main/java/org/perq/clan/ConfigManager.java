@@ -128,7 +128,8 @@ public class ConfigManager {
                     + "&f/clan war <tag>\n"
                     + "&f/clan war info\n"
                     + "&f/clan war accept <tag>\n"
-                    + "&f/clan war deny <tag>");
+                    + "&f/clan war deny <tag>\n"
+                    + "&f/clan war team");
         }
         return new ArrayList<>(pages);
     }
@@ -169,6 +170,26 @@ public class ConfigManager {
 
     public int getWarArenaCountdownSeconds() {
         return config.getInt("war.arena-countdown-seconds", 600);
+    }
+
+    public int getWarStartCountdownSeconds() {
+        return config.getInt("war.start-countdown-seconds", 10);
+    }
+
+    public int getWarRequestTimeoutSeconds() {
+        return config.getInt("war.request-timeout-seconds", 30);
+    }
+
+    public int getWarInviteTimeoutSeconds() {
+        return config.getInt("war.invite-timeout-seconds", 30);
+    }
+
+    public int getWarReadyTimeoutSeconds() {
+        return config.getInt("war.ready-timeout-seconds", 30);
+    }
+
+    public int getWarTeleportTimeoutSeconds() {
+        return config.getInt("war.teleport-timeout-seconds", 30);
     }
 
     public String getMySQLHost() {
