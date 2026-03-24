@@ -24,7 +24,7 @@ public class ConfigManager {
     }
 
     public String getPrefix() {
-        return translateColors(config.getString("prefix", "&b[Xyntrix]&r "));
+        return translateColors(config.getString("prefix", "&6&lxyntrix &7| "));
     }
 
     public String getClanSystemPrefix() {
