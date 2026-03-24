@@ -162,6 +162,12 @@ public class EventListener implements Listener {
         WarManager.ActiveWar war = plugin.getWarManager().getActiveWarByPlayer(event.getPlayer().getUniqueId());
         if (war == null) return;
         if (war.getState() == WarManager.WarState.ACTIVE || war.getState() == WarManager.WarState.COUNTDOWN) {
+            String message = event.getMessage().toLowerCase();
+            String base = message.split(" ")[0];
+            if (base.equals("/help") || base.equals("/logout") || base.equals("/quit")
+                    || base.equals("/clan") || base.equals("/war")) {
+                return;
+            }
             event.setCancelled(true);
             event.getPlayer().sendMessage(plugin.getConfigManager().getMessage("war-commands-blocked"));
         }

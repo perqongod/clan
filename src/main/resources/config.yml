@@ -104,7 +104,7 @@ messages:
   war-self: "%prefix%&cYou cannot challenge your own clan."
   war-cooldown: "%prefix%&cYou can start another clan war in %minutes% minutes."
   war-request-sent: "%prefix%&aYou have challenged the [%tag%] clan to a &4ᴄʟᴀɴ ᴡᴀʀ&a."
-  war-request-received: "%csprefix%&aClan %player% hat euch zu einem War herausgefordert."
+  war-request-received: "%csprefix%&aDer Clan %player% hat euch zu einem Clan-War herausgefordert."
   war-request-timeout-challenger: "%prefix%&cDeine War-Anfrage wurde automatisch abgelehnt (Timeout)."
   war-request-timeout-target: "%prefix%&cDie War-Anfrage ist abgelaufen."
   war-denied-self: "%prefix%&cYou have declined the &4ᴄʟᴀɴ ᴡᴀʀ&c."
