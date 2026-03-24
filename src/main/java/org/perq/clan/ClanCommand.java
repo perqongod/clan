@@ -1020,14 +1020,19 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             case "stats": {
+                ClanData statsClan;
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan stats <tag>");
-                    return true;
-                }
-                ClanData statsClan = plugin.getFileManager().loadClan(args[1]);
-                if (statsClan == null) {
-                    player.sendMessage(cm.getMessage("clan-not-found"));
-                    return true;
+                    statsClan = getPlayerClan(playerUUID);
+                    if (statsClan == null) {
+                        player.sendMessage(cm.getMessage("no-clan"));
+                        return true;
+                    }
+                } else {
+                    statsClan = plugin.getFileManager().loadClan(args[1]);
+                    if (statsClan == null) {
+                        player.sendMessage(cm.getMessage("clan-not-found"));
+                        return true;
+                    }
                 }
                 plugin.getClanStatsListener().openGui(player, statsClan);
                 break;
@@ -1668,7 +1673,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan info &7- Clan info"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan help &7- Open the clan help book"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Toggle invitations"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats <tag> &7- Clan stats"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats [tag] &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Set clan chest (Leader, "

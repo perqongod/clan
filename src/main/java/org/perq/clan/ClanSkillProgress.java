@@ -1,8 +1,11 @@
 package org.perq.clan;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class ClanSkillProgress {
     private static final int CHEST_UNLOCK_POINTS = 100;
-    private static final int SPAWN_UNLOCK_POINTS = 100;
+    private static final int SPAWN_UNLOCK_POINTS = 200;
     private static final int BANK_UNLOCK_POINTS = 200;
     private static final int CHEST_UPGRADE_POINTS = 400;
     private static final int BONUS_SLOT_STEP = 100;
@@ -61,12 +64,20 @@ public final class ClanSkillProgress {
     }
 
     public static String getRewardLabel(int points) {
-        if (points < CHEST_UNLOCK_POINTS) {
-            return "Unlock clan chest & spawn";
+        int nextUnlock = getNextUnlockPoints(points);
+        List<String> rewards = new ArrayList<>();
+        if (nextUnlock == CHEST_UNLOCK_POINTS) {
+            rewards.add("clan chest");
         }
-        if (points < BANK_UNLOCK_POINTS) {
-            return "Unlock clan bank";
+        if (nextUnlock == SPAWN_UNLOCK_POINTS) {
+            rewards.add("clan spawn");
         }
-        return "Bonus member slot +1";
+        if (nextUnlock == BANK_UNLOCK_POINTS) {
+            rewards.add("clan bank");
+        }
+        if (rewards.isEmpty()) {
+            return "Bonus member slot +1";
+        }
+        return "Unlock " + String.join(" & ", rewards);
     }
 }
