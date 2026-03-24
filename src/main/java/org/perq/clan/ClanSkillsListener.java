@@ -20,7 +20,6 @@ public class ClanSkillsListener implements Listener {
     private static final int OVERVIEW_SLOT = 13;
     private static final int CHEST_SLOT = 10;
     private static final int SPAWN_SLOT = 12;
-    private static final int BANK_SLOT = 14;
     private static final int EC_UPGRADE_SLOT = 15;
     private static final int MEMBERS_SLOT = 16;
 
@@ -88,11 +87,6 @@ public class ClanSkillsListener implements Listener {
         spawnLore.add(cm.translateColors(ClanSkillProgress.hasSpawn(points) ? "&aUnlocked" : "&cLocked"));
         inv.setItem(SPAWN_SLOT, namedItem(Material.ENDER_EYE, cm.translateColors("&6Clan Spawn"), spawnLore));
 
-        List<String> bankLore = new ArrayList<>();
-        bankLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getBankUnlockPoints()));
-        bankLore.add(cm.translateColors(ClanSkillProgress.hasBank(points) ? "&aUnlocked" : "&cLocked"));
-        inv.setItem(BANK_SLOT, namedItem(Material.GOLD_INGOT, cm.translateColors("&6Clan Bank"), bankLore));
-
         List<String> ecLore = new ArrayList<>();
         ecLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getChestUpgradePoints()));
         ecLore.add(cm.translateColors(ClanSkillProgress.hasChestUpgrade(points) ? "&aUnlocked" : "&cLocked"));
@@ -102,7 +96,7 @@ public class ClanSkillsListener implements Listener {
         List<String> memberLore = new ArrayList<>();
         memberLore.add(cm.translateColors("&7Bonus slots: &f+" + bonusSlots));
         memberLore.add(cm.translateColors("&7Gain +1 member slot every " + ClanSkillProgress.getBonusSlotStep()
-                + " points after " + ClanSkillProgress.getBankUnlockPoints()));
+                + " points after " + ClanSkillProgress.getSpawnUnlockPoints()));
         inv.setItem(MEMBERS_SLOT, namedItem(Material.PAPER, cm.translateColors("&6Member Slots"), memberLore));
     }
 

@@ -17,7 +17,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
@@ -63,7 +62,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "create", "delete", "invite", "accept", "deny", "join", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "request", "requests",
-            "accept-request", "deny-request", "logs", "skills", "settings", "bank", "war", "force", "admin",
+            "accept-request", "deny-request", "logs", "skills", "settings", "war", "force", "admin",
             "points"
     ));
 
@@ -1302,59 +1301,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 break;
             }
 
-            case "bank": {
-                ClanData bankClan = getPlayerClan(playerUUID);
-                if (bankClan == null) {
-                    player.sendMessage(cm.getMessage("no-clan"));
-                    return true;
-                }
-                if (!ClanSkillProgress.hasBank(bankClan.getPoints())) {
-                    player.sendMessage(cm.getMessage("skills-locked-bank")
-                            .replace("%required%", String.valueOf(ClanSkillProgress.getBankUnlockPoints())));
-                    return true;
-                }
-                if (args.length >= 2 && args[1].equalsIgnoreCase("add")) {
-                    int amount = 1;
-                    if (args.length >= 3) {
-                        try {
-                            amount = Integer.parseInt(args[2]);
-                        } catch (NumberFormatException e) {
-                            player.sendMessage(cm.getMessage("bank-add-usage"));
-                            return true;
-                        }
-                    }
-                    if (amount <= 0) {
-                        player.sendMessage(cm.getMessage("bank-add-usage"));
-                        return true;
-                    }
-                    bankClan.setBankBalance(bankClan.getBankBalance() + amount);
-                    bankClan.addLog(player.getName() + " added " + amount + " to the clan bank.");
-                    try {
-                        plugin.getFileManager().saveClan(bankClan);
-                        player.sendMessage(cm.getMessage("bank-added")
-                                .replace("%amount%", String.valueOf(amount))
-                                .replace("%total%", String.valueOf(bankClan.getBankBalance())));
-                    } catch (Exception e) {
-                        player.sendMessage(cm.getPrefix() + "Error saving.");
-                    }
-                    return true;
-                }
-                Inventory bankInv = Bukkit.createInventory(null, 27, "Clan Bank: " + bankClan.getTag());
-                ItemStack balanceItem = new ItemStack(Material.GOLD_INGOT);
-                ItemMeta meta = balanceItem.getItemMeta();
-                if (meta != null) {
-                    meta.setDisplayName(cm.translateColors("&6Clan-Bank"));
-                    List<String> lore = new ArrayList<>();
-                    lore.add(cm.translateColors("&7Balance: &f" + bankClan.getBankBalance()));
-                    lore.add(cm.translateColors("&7Nutze /clan bank add [betrag]"));
-                    meta.setLore(lore);
-                    balanceItem.setItemMeta(meta);
-                }
-                bankInv.setItem(13, balanceItem);
-                player.openInventory(bankInv);
-                break;
-            }
-
             case "logs": {
                 ClanData logClan = getPlayerClan(playerUUID);
                 if (logClan == null) {
@@ -1681,8 +1627,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan bank &7- Open clan bank (" + ClanSkillProgress.getBankUnlockPoints() + "+ Punkte)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan bank add [betrag] &7- Add to clan bank"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
@@ -1743,7 +1687,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     "create", "delete", "invite", "accept", "deny", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "request", "requests",
-                    "logs", "skills", "settings", "bank"
+                    "logs", "skills", "settings"
             ));
             ClanData clan = getPlayerClan(playerUUID);
             if (clan == null || !clan.getLeader().equals(playerUUID)) {
@@ -1758,9 +1702,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             if (clan == null || !ClanSkillProgress.hasSpawn(clan.getPoints())) {
                 subs.remove("spawn");
                 subs.remove("setspawn");
-            }
-            if (clan == null || !ClanSkillProgress.hasBank(clan.getPoints())) {
-                subs.remove("bank");
             }
             if (player.hasPermission("clan.admin")) {
                 subs.add("force");
@@ -1797,9 +1738,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 case "stats": {
                     return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
-                }
-                case "bank": {
-                    return Arrays.asList("add");
                 }
                 case "force":
                     return Arrays.asList("kick", "delete");

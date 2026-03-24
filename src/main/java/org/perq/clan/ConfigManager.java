@@ -120,8 +120,6 @@ public class ConfigManager {
                     + "&f/clan leader <spieler>\n"
                     + "&f/clan rename <tag>\n"
                     + "&f/clan chest (set)\n"
-                    + "&f/clan bank\n"
-                    + "&f/clan bank add [betrag]\n"
                     + "&f/clan spawn\n"
                     + "&f/clan setspawn\n"
                     + "&f/clan skills\n"

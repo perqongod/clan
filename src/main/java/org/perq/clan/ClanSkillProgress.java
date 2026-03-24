@@ -6,7 +6,6 @@ import java.util.List;
 public final class ClanSkillProgress {
     private static final int CHEST_UNLOCK_POINTS = 100;
     private static final int SPAWN_UNLOCK_POINTS = 200;
-    private static final int BANK_UNLOCK_POINTS = 200;
     private static final int CHEST_UPGRADE_POINTS = 400;
     private static final int BONUS_SLOT_STEP = 100;
 
@@ -21,10 +20,6 @@ public final class ClanSkillProgress {
         return SPAWN_UNLOCK_POINTS;
     }
 
-    public static int getBankUnlockPoints() {
-        return BANK_UNLOCK_POINTS;
-    }
-
     public static int getChestUpgradePoints() {
         return CHEST_UPGRADE_POINTS;
     }
@@ -37,17 +32,13 @@ public final class ClanSkillProgress {
         return points >= SPAWN_UNLOCK_POINTS;
     }
 
-    public static boolean hasBank(int points) {
-        return points >= BANK_UNLOCK_POINTS;
-    }
-
     public static boolean hasChestUpgrade(int points) {
         return points >= CHEST_UPGRADE_POINTS;
     }
 
     public static int getBonusMemberSlots(int points) {
-        if (points < BANK_UNLOCK_POINTS) return 0;
-        return (points - BANK_UNLOCK_POINTS) / BONUS_SLOT_STEP;
+        if (points < SPAWN_UNLOCK_POINTS) return 0;
+        return (points - SPAWN_UNLOCK_POINTS) / BONUS_SLOT_STEP;
     }
 
     public static int getBonusSlotStep() {
@@ -59,7 +50,6 @@ public final class ClanSkillProgress {
         int secondUnlock = Math.max(CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS);
         if (points < firstUnlock) return firstUnlock;
         if (secondUnlock > firstUnlock && points < secondUnlock) return secondUnlock;
-        if (points < BANK_UNLOCK_POINTS) return BANK_UNLOCK_POINTS;
         return ((points / BONUS_SLOT_STEP) + 1) * BONUS_SLOT_STEP;
     }
 
@@ -71,9 +61,6 @@ public final class ClanSkillProgress {
         }
         if (nextUnlock == SPAWN_UNLOCK_POINTS) {
             rewards.add("clan spawn");
-        }
-        if (nextUnlock == BANK_UNLOCK_POINTS) {
-            rewards.add("clan bank");
         }
         if (rewards.isEmpty()) {
             return "Bonus member slot +1";

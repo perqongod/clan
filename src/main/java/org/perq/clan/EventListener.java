@@ -64,14 +64,6 @@ public class EventListener implements Listener {
     }
 
     @EventHandler
-    public void onClanBankClick(InventoryClickEvent event) {
-        @SuppressWarnings("deprecation")
-        String title = event.getView().getTitle();
-        if (!title.startsWith("Clan Bank: ")) return;
-        event.setCancelled(true);
-    }
-
-    @EventHandler
     public void onClanChestClose(InventoryCloseEvent event) {
         @SuppressWarnings("deprecation")
         String title = event.getView().getTitle();

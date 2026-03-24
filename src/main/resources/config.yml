@@ -77,14 +77,11 @@ messages:
   skills-locked-chest: "%prefix%&cClan Chest ist gesperrt. Benötigt %required% Punkte."
   skills-locked-spawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-setspawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
-  skills-locked-bank: "%prefix%&cClan Bank ist gesperrt. Benötigt %required% Punkte."
   chest-set: "%prefix%&aClan Chest gesetzt!"
   chest-not-set: "%prefix%&cClan Chest wurde noch nicht gesetzt."
   spawn-set: "%prefix%&aClan Spawn gesetzt!"
   spawn-teleporting: "%prefix%&aTeleportiere..."
   spawn-teleported: "%prefix%&aTeleportiert."
-  bank-add-usage: "%prefix%&cBetrag muss eine positive Ganzzahl sein. Nutzung: /clan bank add [betrag]"
-  bank-added: "%prefix%&aClan Bank: +%amount% (Neu: %total%)."
   rename-too-soon: "%prefix%&cClan kann erst nach %required%h Gesamtspielzeit umbenannt werden. Aktuell: %hours%h."
   clan-info-playtime: "%prefix%Gesamtspielzeit: %hours%h"
   leader-request-confirm: "%prefix%&cDo you really want to leave your clan to join another?"
@@ -131,8 +128,6 @@ ranks:
       &f/clan leader <spieler>
       &f/clan rename <tag>
       &f/clan chest (set)
-      &f/clan bank
-      &f/clan bank add [betrag]
       &f/clan spawn
       &f/clan setspawn
       &f/clan skills
