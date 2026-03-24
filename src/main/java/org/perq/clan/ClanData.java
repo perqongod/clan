@@ -327,7 +327,9 @@ public class ClanData {
             if (obj instanceof ItemStack) {
                 return (ItemStack) obj;
             }
-        } catch (IOException | ClassNotFoundException ignored) {
+        } catch (IOException | ClassNotFoundException e) {
+            Bukkit.getLogger().log(Level.WARNING,
+                    "[Clan] Failed to deserialize clan chest item for clan: " + clanTag, e);
         }
         return null;
     }

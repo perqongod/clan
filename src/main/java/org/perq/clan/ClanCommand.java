@@ -1343,7 +1343,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 ItemStack balanceItem = new ItemStack(Material.GOLD_INGOT);
                 ItemMeta meta = balanceItem.getItemMeta();
                 if (meta != null) {
-                    meta.setDisplayName(cm.translateColors("&6Clan Bank"));
+                    meta.setDisplayName(cm.translateColors("&6Clan-Bank"));
                     List<String> lore = new ArrayList<>();
                     lore.add(cm.translateColors("&7Balance: &f" + bankClan.getBankBalance()));
                     lore.add(cm.translateColors("&7Nutze /clan bank add [betrag]"));
@@ -1877,7 +1877,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Set/open clan chest (" + ClanSkillProgress.getChestUnlockPoints() + "+ Punkte)"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Set clan chest (Leader, "
+                    + ClanSkillProgress.getChestUnlockPoints() + "+ Punkte)"));
         }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
