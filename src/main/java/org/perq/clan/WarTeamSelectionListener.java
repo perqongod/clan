@@ -179,8 +179,8 @@ public class WarTeamSelectionListener implements Listener {
         }
 
         // Row 5: bottom bar with arrows + red/green blocks
-        ItemStack leftArrow = namedItem(Material.ARROW, Component.text("Not fighting", NamedTextColor.RED));
-        ItemStack rightArrow = namedItem(Material.ARROW, Component.text("Fighting", NamedTextColor.GREEN));
+        ItemStack leftArrow = namedItem(Material.ARROW, Component.text("Nicht kämpfend", NamedTextColor.RED));
+        ItemStack rightArrow = namedItem(Material.ARROW, Component.text("Kämpfend", NamedTextColor.GREEN));
         for (int col = 0; col < 9; col++) {
             int slot = 45 + col;
             if (col == 0) {
