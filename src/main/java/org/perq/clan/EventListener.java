@@ -3,9 +3,11 @@ package org.perq.clan;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -38,7 +40,7 @@ public class EventListener implements Listener {
         String clanTag = title.substring("Clan Chest: ".length());
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
-        if (!ClanSkillProgress.hasChest(clan.getPoints())) {
+        if (!ClanSkillProgress.hasChest(clan.getSkillPoints())) {
             event.setCancelled(true);
             player.closeInventory();
             player.sendMessage(plugin.getConfigManager().getMessage("skills-locked-chest")
@@ -101,11 +103,23 @@ public class EventListener implements Listener {
         if (attackerClan == null || victimClan == null) return;
         if (!attackerClan.getTag().equalsIgnoreCase(victimClan.getTag())) return;
         ClanFriendlyFirePermission permission = attackerClan.getFriendlyFirePermission(attacker.getUniqueId());
-        if (attackerClan.getLeader().equals(attacker.getUniqueId())) {
-            permission = ClanFriendlyFirePermission.leaderDefault();
-        }
         if (permission == ClanFriendlyFirePermission.DENY) {
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onQuestZombieKill(EntityDeathEvent event) {
+        if (!(event.getEntity() instanceof Zombie)) return;
+        Player killer = event.getEntity().getKiller();
+        if (killer == null) return;
+        ClanData clan = getPlayerClan(killer.getUniqueId());
+        if (clan == null) return;
+        clan.setQuestZombieKills(clan.getQuestZombieKills() + 1);
+        try {
+            plugin.getFileManager().saveClan(clan);
+        } catch (IOException e) {
+            // ignore
         }
     }
 
@@ -118,7 +132,9 @@ public class EventListener implements Listener {
         if (killer != null) {
             ClanData killerClan = getPlayerClan(killer.getUniqueId());
             ClanData victimClan = getPlayerClan(victim.getUniqueId());
-            if (killerClan != null) {
+            boolean sameClan = killerClan != null && victimClan != null
+                    && victimClan.getTag().equalsIgnoreCase(killerClan.getTag());
+            if (killerClan != null && !sameClan) {
                 applyKillPoints(killerClan);
                 try {
                     plugin.getFileManager().saveClan(killerClan);
@@ -126,8 +142,7 @@ public class EventListener implements Listener {
                     // ignore
                 }
             }
-            if (victimClan != null && killerClan != null
-                    && !victimClan.getTag().equalsIgnoreCase(killerClan.getTag())) {
+            if (victimClan != null && killerClan != null && !sameClan) {
                 applyDeathPenalty(victimClan);
                 try {
                     plugin.getFileManager().saveClan(victimClan);

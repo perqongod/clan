@@ -79,6 +79,7 @@ messages:
   skills-locked-chest: "%prefix%&cClan Chest ist gesperrt. Benötigt %required% Punkte."
   skills-locked-spawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-setspawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
+  skills-locked-rename: "%prefix%&cClan Rename ist gesperrt. Benötigt %required% Punkte."
   chest-set: "%prefix%&aClan Chest gesetzt!"
   chest-not-set: "%prefix%&cClan Chest wurde noch nicht gesetzt."
   spawn-set: "%prefix%&aClan Spawn gesetzt!"
@@ -138,4 +139,5 @@ ranks:
       &f/clan setspawn
       &f/clan delspawn
       &f/clan skills
+      &f/clan quest
       &f/clan logs

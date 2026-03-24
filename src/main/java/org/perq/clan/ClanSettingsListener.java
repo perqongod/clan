@@ -116,7 +116,6 @@ public class ClanSettingsListener implements Listener {
 
         if (rawSlot == FRIENDLY_FIRE_SLOT) {
             if (session.selectedMember != null) {
-                if (isLeaderFriendlyFireToggle(player, clan, session.selectedMember)) return;
                 toggleFriendlyFirePermission(player, clan, session.selectedMember);
                 refreshFriendlyFireSettings(event.getView().getTopInventory(), clan, session);
             }
@@ -129,7 +128,6 @@ public class ClanSettingsListener implements Listener {
         if (memberIndex >= session.members.size()) return;
 
         UUID member = session.members.get(memberIndex);
-        if (isLeaderFriendlyFireToggle(player, clan, member)) return;
         session.selectedMember = member;
         toggleFriendlyFirePermission(player, clan, member);
         refreshFriendlyFireSettings(event.getView().getTopInventory(), clan, session);
@@ -205,12 +203,11 @@ public class ClanSettingsListener implements Listener {
         }
         inv.setItem(FRIENDLY_FIRE_SLOT, friendlyFireItem(session.selectedMember));
 
-        UUID leaderId = clan.getLeader();
         for (int i = 0; i < session.members.size() && i < 45; i++) {
             UUID member = session.members.get(i);
-            ClanFriendlyFirePermission permission = effectiveFriendlyFirePermission(clan, member, leaderId);
+            ClanFriendlyFirePermission permission = effectiveFriendlyFirePermission(clan, member);
             boolean selected = member.equals(session.selectedMember);
-            inv.setItem(9 + i, friendlyFireMemberSkull(member, permission, selected, leaderId));
+            inv.setItem(9 + i, friendlyFireMemberSkull(member, permission, selected, clan.getLeader()));
         }
 
         if (session.members.size() < 45) {
@@ -263,13 +260,6 @@ public class ClanSettingsListener implements Listener {
         return true;
     }
 
-    private boolean isLeaderFriendlyFireToggle(Player player, ClanData clan, UUID member) {
-        if (member == null) return false;
-        if (!member.equals(clan.getLeader())) return false;
-        player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-friendly-fire"));
-        return true;
-    }
-
     private ClanChestPermission effectivePermission(ClanData clan, UUID member, UUID leaderId) {
         if (member.equals(leaderId)) {
             return ClanChestPermission.leaderDefault();
@@ -277,10 +267,7 @@ public class ClanSettingsListener implements Listener {
         return clan.getChestPermission(member);
     }
 
-    private ClanFriendlyFirePermission effectiveFriendlyFirePermission(ClanData clan, UUID member, UUID leaderId) {
-        if (member.equals(leaderId)) {
-            return ClanFriendlyFirePermission.leaderDefault();
-        }
+    private ClanFriendlyFirePermission effectiveFriendlyFirePermission(ClanData clan, UUID member) {
         return clan.getFriendlyFirePermission(member);
     }
 
@@ -375,10 +362,9 @@ public class ClanSettingsListener implements Listener {
             List<String> lore = new ArrayList<>();
             boolean isLeader = member.equals(leaderId);
             if (isLeader) {
-                lore.add(cm.translateColors("&7Clan-Leader &f(immer Zugriff)"));
-            } else {
-                lore.add(cm.translateColors("&7Click to change permission"));
+                lore.add(cm.translateColors("&7Clan Leader"));
             }
+            lore.add(cm.translateColors("&7Click to change permission"));
             lore.add(cm.translateColors("&7Current: " + friendlyFireLabel(permission)));
             if (selected) {
                 lore.add(cm.translateColors("&bSelected"));

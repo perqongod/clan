@@ -62,7 +62,7 @@ public class ClanStatsListener implements Listener {
 
         String leaderName = Bukkit.getOfflinePlayer(clan.getLeader()).getName();
         if (leaderName == null) leaderName = "Unknown";
-        int effectiveMaxMembers = cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getPoints());
+        int effectiveMaxMembers = cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getSkillPoints());
 
         List<String> pointsLore = new ArrayList<>();
         pointsLore.add(cm.translateColors("&f" + clan.getPoints()));

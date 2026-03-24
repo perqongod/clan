@@ -65,7 +65,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "create", "delete", "invite", "accept", "deny", "join", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
-            "accept-request", "deny-request", "logs", "skills", "settings", "war", "force", "admin",
+            "accept-request", "deny-request", "logs", "skills", "quest", "settings", "war", "force", "admin",
             "points"
     ));
 
@@ -780,7 +780,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 PlayerData reqPd = plugin.getFileManager().loadPlayer(playerUUID);
                 if (reqPd == null) reqPd = new PlayerData(player.getName());
                 if (reqPd.getClanTag() != null) {
-                    if (reqTag.equals(reqPd.getClanTag())) {
+                    if (reqTag.equalsIgnoreCase(reqPd.getClanTag())) {
                         player.sendMessage(cm.getMessage("already-in-clan"));
                     } else {
                         player.sendMessage(cm.getMessage("request-betrayal"));
@@ -954,6 +954,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
                 }
+                if (!ClanSkillProgress.hasRename(renameClan.getSkillPoints())) {
+                    player.sendMessage(cm.getMessage("skills-locked-rename")
+                            .replace("%required%", String.valueOf(ClanSkillProgress.getRenameUnlockPoints())));
+                    return true;
+                }
                 if (renameClan.getOnlineTime() < RENAME_MIN_HOURS) {
                     player.sendMessage(cm.getMessage("rename-too-soon")
                             .replace("%hours%", String.format("%.1f", renameClan.getOnlineTime()))
@@ -1105,7 +1110,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
-                if (!ClanSkillProgress.hasChest(chestClan.getPoints())) {
+                if (!ClanSkillProgress.hasChest(chestClan.getSkillPoints())) {
                     player.sendMessage(cm.getMessage("skills-locked-chest")
                             .replace("%required%", String.valueOf(ClanSkillProgress.getChestUnlockPoints())));
                     return true;
@@ -1163,7 +1168,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 // All clan members can open the chest (VIEW = see only, EXECUTE = interact)
-                int chestSize = ClanSkillProgress.hasChestUpgrade(chestClan.getPoints()) ? 54 : 27;
+                int chestSize = 27;
                 Inventory chest = clanChests.get(chestClan.getTag());
                 if (chest == null || chest.getSize() != chestSize) {
                     chest = Bukkit.createInventory(null, chestSize, "Clan Chest: " + chestClan.getTag());
@@ -1198,7 +1203,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
-                if (!ClanSkillProgress.hasSpawn(spawnClan.getPoints())) {
+                if (!ClanSkillProgress.hasSpawn(spawnClan.getSkillPoints())) {
                     player.sendMessage(cm.getMessage("skills-locked-spawn")
                             .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                     return true;
@@ -1245,7 +1250,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             ticksLeft[0]--;
                         } else {
                             ClanData refreshed = plugin.getFileManager().loadClan(spawnClan.getTag());
-                            if (refreshed != null && !ClanSkillProgress.hasSpawn(refreshed.getPoints())) {
+                            if (refreshed != null && !ClanSkillProgress.hasSpawn(refreshed.getSkillPoints())) {
                                 spawnTaskIds.remove(playerUUID);
                                 cancel();
                                 player.sendMessage(cm.getMessage("skills-locked-spawn")
@@ -1307,7 +1312,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
                 }
-                if (!ClanSkillProgress.hasSpawn(ssClan.getPoints())) {
+                if (!ClanSkillProgress.hasSpawn(ssClan.getSkillPoints())) {
                     player.sendMessage(cm.getMessage("skills-locked-setspawn")
                             .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                     return true;
@@ -1332,7 +1337,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
                 }
-                if (!ClanSkillProgress.hasSpawn(dsClan.getPoints())) {
+                if (!ClanSkillProgress.hasSpawn(dsClan.getSkillPoints())) {
                     player.sendMessage(cm.getMessage("skills-locked-setspawn")
                             .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                     return true;
@@ -1395,6 +1400,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 plugin.getClanSkillsListener().openGui(player, skillsClan);
+                break;
+            }
+
+            case "quest": {
+                ClanData questClan = getPlayerClan(playerUUID);
+                if (questClan == null) {
+                    player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
+                }
+                plugin.getClanQuestListener().openGui(player, questClan);
                 break;
             }
 
@@ -1683,6 +1698,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan skills"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan quest &7- Open clan quests"));
         if (clan != null && clan.getLeader().equals(playerUUID)) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Open clan settings"));
         }
@@ -1717,7 +1733,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
     private int getMaxMembers(ClanData clan, ConfigManager cm) {
         if (clan == null) return cm.getMaxMembers();
-        return cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getPoints());
+        return cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getSkillPoints());
     }
 
     private ClanData getPlayerClan(UUID playerUUID) {
@@ -1739,19 +1755,19 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     "create", "delete", "invite", "accept", "deny", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
-                    "logs", "skills", "settings"
+                    "logs", "skills", "quest", "settings"
             ));
             ClanData clan = getPlayerClan(playerUUID);
             if (clan == null || !clan.getLeader().equals(playerUUID)) {
                 subs.remove("settings");
             }
-            if (clan == null || !ClanSkillProgress.hasChest(clan.getPoints())) {
+            if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillPoints())) {
                 subs.remove("chest");
             } else if (!clan.getLeader().equals(playerUUID)
                     && clan.getChestPermission(playerUUID) == ClanChestPermission.DENY) {
                 subs.remove("chest");
             }
-            if (clan == null || !ClanSkillProgress.hasSpawn(clan.getPoints())) {
+            if (clan == null || !ClanSkillProgress.hasSpawn(clan.getSkillPoints())) {
                 subs.remove("spawn");
                 subs.remove("setspawn");
                 subs.remove("delspawn");
@@ -1793,7 +1809,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                     String clanTag = clan.getTag();
                     return clans.keySet().stream()
-                            .filter(tag -> !tag.equals(clanTag))
+                            .filter(tag -> !tag.equalsIgnoreCase(clanTag))
                             .collect(Collectors.toList());
                 }
                 case "stats": {

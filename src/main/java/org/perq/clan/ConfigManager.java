@@ -124,6 +124,7 @@ public class ConfigManager {
                     + "&f/clan setspawn\n"
                     + "&f/clan delspawn\n"
                     + "&f/clan skills\n"
+                    + "&f/clan quest\n"
                     + "&f/clan logs");
         }
         return new ArrayList<>(pages);
