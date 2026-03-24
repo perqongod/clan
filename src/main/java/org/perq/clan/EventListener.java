@@ -42,7 +42,8 @@ public class EventListener implements Listener {
         if (!ClanSkillProgress.hasChest(clan.getPoints())) {
             event.setCancelled(true);
             player.closeInventory();
-            player.sendMessage(plugin.getConfigManager().getMessage("skills-locked-chest"));
+            player.sendMessage(plugin.getConfigManager().getMessage("skills-locked-chest")
+                    .replace("%required%", String.valueOf(ClanSkillProgress.getChestUnlockPoints())));
             return;
         }
 
@@ -84,7 +85,8 @@ public class EventListener implements Listener {
         clan.setChestContents(event.getView().getTopInventory().getContents());
         try {
             plugin.getFileManager().saveClan(clan);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            Bukkit.getLogger().warning("[Clan] Failed to save clan chest contents for " + clanTag);
         }
     }
 

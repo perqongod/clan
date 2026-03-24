@@ -1086,7 +1086,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!ClanSkillProgress.hasChest(chestClan.getPoints())) {
-                    player.sendMessage(cm.getMessage("skills-locked-chest"));
+                    player.sendMessage(cm.getMessage("skills-locked-chest")
+                            .replace("%required%", String.valueOf(ClanSkillProgress.getChestUnlockPoints())));
                     return true;
                 }
                 // Handle chest invite subcommand
@@ -1120,7 +1121,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                     return true;
                 }
-                if (args.length == 1 && "clan".equalsIgnoreCase(label) && chestClan.getLeader().equals(playerUUID)) {
+                boolean wantsSet = args.length >= 2 && "set".equalsIgnoreCase(args[1]);
+                if (wantsSet && !chestClan.getLeader().equals(playerUUID)) {
+                    player.sendMessage(cm.getMessage("not-clan-leader"));
+                    return true;
+                }
+                if ((args.length == 1 && "clan".equalsIgnoreCase(label) && chestClan.getLeader().equals(playerUUID)) || wantsSet) {
                     chestClan.setChestLocation(player.getLocation());
                     try {
                         plugin.getFileManager().saveClan(chestClan);
@@ -1166,7 +1172,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!ClanSkillProgress.hasSpawn(spawnClan.getPoints())) {
-                    player.sendMessage(cm.getMessage("skills-locked-spawn"));
+                    player.sendMessage(cm.getMessage("skills-locked-spawn")
+                            .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                     return true;
                 }
                 if (spawnClan.getSpawn() == null) {
@@ -1214,7 +1221,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             if (refreshed != null && !ClanSkillProgress.hasSpawn(refreshed.getPoints())) {
                                 spawnTaskIds.remove(playerUUID);
                                 cancel();
-                                player.sendMessage(cm.getMessage("skills-locked-spawn"));
+                                player.sendMessage(cm.getMessage("skills-locked-spawn")
+                                        .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                                 return;
                             }
                             Location target = refreshed != null && refreshed.getSpawn() != null
@@ -1268,7 +1276,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!ClanSkillProgress.hasSpawn(ssClan.getPoints())) {
-                    player.sendMessage(cm.getMessage("skills-locked-setspawn"));
+                    player.sendMessage(cm.getMessage("skills-locked-setspawn")
+                            .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                     return true;
                 }
                 ssClan.setSpawn(player.getLocation());
@@ -1288,19 +1297,15 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!ClanSkillProgress.hasBank(bankClan.getPoints())) {
-                    player.sendMessage(cm.getMessage("skills-locked-bank"));
+                    player.sendMessage(cm.getMessage("skills-locked-bank")
+                            .replace("%required%", String.valueOf(ClanSkillProgress.getBankUnlockPoints())));
                     return true;
                 }
                 if (args.length >= 2 && args[1].equalsIgnoreCase("add")) {
                     int amount = 1;
                     if (args.length >= 3) {
                         try {
-                            long parsed = Long.parseLong(args[2]);
-                            if (parsed > Integer.MAX_VALUE) {
-                                player.sendMessage(cm.getMessage("bank-add-usage"));
-                                return true;
-                            }
-                            amount = (int) parsed;
+                            amount = Integer.parseInt(args[2]);
                         } catch (NumberFormatException e) {
                             player.sendMessage(cm.getMessage("bank-add-usage"));
                             return true;

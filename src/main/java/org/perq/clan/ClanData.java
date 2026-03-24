@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -106,7 +105,7 @@ public class ClanData {
             float pitch = (float) config.getDouble("chest.pitch", 0.0f);
             this.chestLocation = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
         }
-        this.chestItems = deserializeChestItems(config.getString("chest-items-json"));
+        this.chestItems = deserializeChestItems(config.getString("chest-items-json"), this.tag);
         this.bankBalance = Math.max(0, config.getInt("bank.balance", 0));
         this.logs = new ArrayList<>(config.getStringList("logs"));
         this.pendingRequests = new ArrayList<>();
@@ -231,7 +230,11 @@ public class ClanData {
     }
 
     public void setChestContents(ItemStack[] contents) {
-        chestItems = normalizeChestItems(contents == null ? Collections.emptyList() : Arrays.asList(contents));
+        List<ItemStack> normalized = new ArrayList<>();
+        if (contents != null) {
+            Collections.addAll(normalized, contents);
+        }
+        chestItems = normalizeChestItems(normalized);
     }
 
     public int getBankBalance() { return bankBalance; }
@@ -281,14 +284,14 @@ public class ClanData {
         return GSON.toJson(encoded);
     }
 
-    private static List<ItemStack> deserializeChestItems(String json) {
+    private static List<ItemStack> deserializeChestItems(String json, String clanTag) {
         if (json == null || json.isEmpty()) return createEmptyChestItems();
         try {
             List<String> encoded = GSON.fromJson(json, new TypeToken<List<String>>() {}.getType());
             if (encoded == null) return createEmptyChestItems();
             List<ItemStack> items = new ArrayList<>();
             for (String entry : encoded) {
-                items.add(decodeItemStack(entry));
+                items.add(decodeItemStack(entry, clanTag));
             }
             return normalizeChestItems(items);
         } catch (RuntimeException e) {
@@ -307,13 +310,13 @@ public class ClanData {
         }
     }
 
-    private static ItemStack decodeItemStack(String data) {
+    private static ItemStack decodeItemStack(String data, String clanTag) {
         if (data == null || data.isEmpty()) return null;
         byte[] raw;
         try {
             raw = Base64.getDecoder().decode(data);
         } catch (IllegalArgumentException e) {
-            Bukkit.getLogger().warning("[Clan] Invalid clan chest item data encountered.");
+            Bukkit.getLogger().warning("[Clan] Invalid clan chest item data encountered for clan: " + clanTag);
             return null;
         }
         try (ByteArrayInputStream input = new ByteArrayInputStream(raw);

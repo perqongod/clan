@@ -41,8 +41,7 @@ public final class ClanSkillProgress {
     public static int getNextUnlockPoints(int points) {
         if (points < CHEST_UNLOCK_POINTS) return CHEST_UNLOCK_POINTS;
         if (points < BANK_UNLOCK_POINTS) return BANK_UNLOCK_POINTS;
-        int next = ((points / BONUS_SLOT_STEP) + 1) * BONUS_SLOT_STEP;
-        return Math.max(next, points + 1);
+        return ((points / BONUS_SLOT_STEP) + 1) * BONUS_SLOT_STEP;
     }
 
     public static String getRewardLabel(int points) {
