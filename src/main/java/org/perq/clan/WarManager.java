@@ -430,15 +430,7 @@ public class WarManager {
         war.setRemainingSeconds(totalSeconds);
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             int rem = war.getRemainingSeconds();
-            if (rem <= 1) {
-                if (rem > 0) {
-                    for (UUID uuid : war.getJoinedPlayers()) {
-                        Player player = Bukkit.getPlayer(uuid);
-                        if (player == null) continue;
-                        player.sendTitle("§c" + rem, plugin.getConfigManager().getMessage("war-countdown-subtitle"), 0, 20, 0);
-                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1f, 1f);
-                    }
-                }
+            if (rem <= 0) {
                 war.getCountdownTask().cancel();
                 startCombat(war);
                 return;
@@ -449,7 +441,12 @@ public class WarManager {
                 player.sendTitle("§c" + rem, plugin.getConfigManager().getMessage("war-countdown-subtitle"), 0, 20, 0);
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1f, 1f);
             }
-            war.setRemainingSeconds(rem - 1);
+            int next = rem - 1;
+            war.setRemainingSeconds(next);
+            if (next <= 0) {
+                war.getCountdownTask().cancel();
+                startCombat(war);
+            }
         }, 20L, 20L);
         war.setCountdownTask(task);
     }
