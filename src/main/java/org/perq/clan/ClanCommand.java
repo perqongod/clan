@@ -1722,7 +1722,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     List<String> tags = new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
                     if (clan != null) {
                         String clanTag = clan.getTag();
-                        tags.removeIf(tag -> tag.equals(clanTag));
+                        tags.remove(clanTag);
                     }
                     return tags;
                 }
