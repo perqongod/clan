@@ -23,6 +23,7 @@ import java.util.logging.Level;
 public class EventListener implements Listener {
     private final Clan plugin;
     private Map<UUID, Long> joinTimes = new HashMap<>();
+    // Save quest progress every N zombie kills to reduce disk I/O.
     private static final int QUEST_SAVE_INTERVAL = 10;
 
     public EventListener(Clan plugin) {
