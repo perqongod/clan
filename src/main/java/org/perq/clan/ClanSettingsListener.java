@@ -81,10 +81,7 @@ public class ClanSettingsListener implements Listener {
 
         if (rawSlot == CHEST_SLOT) {
             if (session.selectedMember != null) {
-                if (session.selectedMember.equals(clan.getLeader())) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
-                    return;
-                }
+                if (isLeaderToggle(player, clan, session.selectedMember)) return;
                 togglePermission(player, clan, session.selectedMember);
                 refreshChestSettings(event.getView().getTopInventory(), clan, session);
             }
@@ -97,10 +94,7 @@ public class ClanSettingsListener implements Listener {
         if (memberIndex >= session.members.size()) return;
 
         UUID member = session.members.get(memberIndex);
-        if (member.equals(clan.getLeader())) {
-            player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
-            return;
-        }
+        if (isLeaderToggle(player, clan, member)) return;
         session.selectedMember = member;
         togglePermission(player, clan, member);
         refreshChestSettings(event.getView().getTopInventory(), clan, session);
@@ -177,6 +171,12 @@ public class ClanSettingsListener implements Listener {
         } catch (IOException e) {
             player.sendMessage(plugin.getConfigManager().getPrefix() + "Error saving.");
         }
+    }
+
+    private boolean isLeaderToggle(Player player, ClanData clan, UUID member) {
+        if (member == null || !member.equals(clan.getLeader())) return false;
+        player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
+        return true;
     }
 
     private ItemStack clanChestItem(UUID selectedMember) {
