@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class EventListener implements Listener {
     private final Clan plugin;
@@ -86,7 +87,8 @@ public class EventListener implements Listener {
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {
-            Bukkit.getLogger().warning("[Clan] Failed to save clan chest contents for " + clanTag);
+            Bukkit.getLogger().log(Level.WARNING,
+                    "[Clan] Failed to save clan chest contents for " + clanTag, e);
         }
     }
 

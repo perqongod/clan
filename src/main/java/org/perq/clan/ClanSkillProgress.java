@@ -38,8 +38,15 @@ public final class ClanSkillProgress {
         return (points - BANK_UNLOCK_POINTS) / BONUS_SLOT_STEP;
     }
 
+    public static int getBonusSlotStep() {
+        return BONUS_SLOT_STEP;
+    }
+
     public static int getNextUnlockPoints(int points) {
-        if (points < CHEST_UNLOCK_POINTS) return CHEST_UNLOCK_POINTS;
+        int firstUnlock = Math.min(CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS);
+        int secondUnlock = Math.max(CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS);
+        if (points < firstUnlock) return firstUnlock;
+        if (points < secondUnlock) return secondUnlock;
         if (points < BANK_UNLOCK_POINTS) return BANK_UNLOCK_POINTS;
         return ((points / BONUS_SLOT_STEP) + 1) * BONUS_SLOT_STEP;
     }

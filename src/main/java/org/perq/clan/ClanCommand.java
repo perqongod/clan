@@ -56,6 +56,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private static final long DELETE_CONFIRM_TIMEOUT_MS = 30_000L;
     private static final long INVITE_COOLDOWN_MS = 10_000L;
     private static final double RENAME_MIN_HOURS = 48.0;
+    private static final int SPAWN_PARTICLE_COUNT = 60;
+    private static final double SPAWN_PARTICLE_OFFSET_X = 0.6;
+    private static final double SPAWN_PARTICLE_OFFSET_Y = 0.8;
+    private static final double SPAWN_PARTICLE_OFFSET_Z = 0.6;
+    private static final double SPAWN_PARTICLE_EXTRA = 0.1;
 
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "join", "leave",
@@ -1121,12 +1126,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                     return true;
                 }
+                boolean isLeader = chestClan.getLeader().equals(playerUUID);
+                boolean isClanLabel = "clan".equalsIgnoreCase(label);
                 boolean wantsSet = args.length >= 2 && "set".equalsIgnoreCase(args[1]);
-                if (wantsSet && !chestClan.getLeader().equals(playerUUID)) {
+                if (wantsSet && !isLeader) {
                     player.sendMessage(cm.getMessage("not-clan-leader"));
                     return true;
                 }
-                if ((args.length == 1 && "clan".equalsIgnoreCase(label) && chestClan.getLeader().equals(playerUUID)) || wantsSet) {
+                if ((isLeader && isClanLabel && args.length == 1) || (isLeader && wantsSet)) {
                     chestClan.setChestLocation(player.getLocation());
                     try {
                         plugin.getFileManager().saveClan(chestClan);
@@ -1237,7 +1244,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             player.teleport(target);
                             player.sendMessage(cm.getMessage("spawn-teleported"));
                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
-                            player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 60, 0.6, 0.8, 0.6, 0.1);
+                            player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(),
+                                    SPAWN_PARTICLE_COUNT,
+                                    SPAWN_PARTICLE_OFFSET_X,
+                                    SPAWN_PARTICLE_OFFSET_Y,
+                                    SPAWN_PARTICLE_OFFSET_Z,
+                                    SPAWN_PARTICLE_EXTRA);
                             long cdEnd = System.currentTimeMillis() + 30_000L;
                             spawnCooldowns.put(playerUUID, cdEnd);
                             spawnTaskIds.remove(playerUUID);

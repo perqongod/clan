@@ -94,7 +94,8 @@ public class ClanSkillsListener implements Listener {
 
         List<String> memberLore = new ArrayList<>();
         memberLore.add(cm.translateColors("&7Bonus slots: &f+" + bonusSlots));
-        memberLore.add(cm.translateColors("&7Gain +1 member slot each " + ClanSkillProgress.getBankUnlockPoints() + "+ points"));
+        memberLore.add(cm.translateColors("&7Gain +1 member slot every " + ClanSkillProgress.getBonusSlotStep()
+                + " points after " + ClanSkillProgress.getBankUnlockPoints()));
         inv.setItem(MEMBERS_SLOT, namedItem(Material.PAPER, cm.translateColors("&6Member Slots"), memberLore));
     }
 

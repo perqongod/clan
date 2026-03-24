@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.logging.Level;
 
 public class ClanData {
     private String tag;
@@ -92,8 +93,8 @@ public class ClanData {
             double x = config.getDouble("spawn.x");
             double y = config.getDouble("spawn.y");
             double z = config.getDouble("spawn.z");
-            float yaw = (float) config.getDouble("spawn.yaw", 0.0f);
-            float pitch = (float) config.getDouble("spawn.pitch", 0.0f);
+            float yaw = (float) config.getDouble("spawn.yaw", 0.0);
+            float pitch = (float) config.getDouble("spawn.pitch", 0.0);
             this.spawn = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
         }
         if (config.contains("chest")) {
@@ -101,8 +102,8 @@ public class ClanData {
             double x = config.getDouble("chest.x");
             double y = config.getDouble("chest.y");
             double z = config.getDouble("chest.z");
-            float yaw = (float) config.getDouble("chest.yaw", 0.0f);
-            float pitch = (float) config.getDouble("chest.pitch", 0.0f);
+            float yaw = (float) config.getDouble("chest.yaw", 0.0);
+            float pitch = (float) config.getDouble("chest.pitch", 0.0);
             this.chestLocation = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
         }
         this.chestItems = deserializeChestItems(config.getString("chest-items-json"), this.tag);
@@ -316,7 +317,8 @@ public class ClanData {
         try {
             raw = Base64.getDecoder().decode(data);
         } catch (IllegalArgumentException e) {
-            Bukkit.getLogger().warning("[Clan] Invalid clan chest item data encountered for clan: " + clanTag);
+            Bukkit.getLogger().log(Level.WARNING,
+                    "[Clan] Invalid clan chest item data encountered for clan: " + clanTag, e);
             return null;
         }
         try (ByteArrayInputStream input = new ByteArrayInputStream(raw);
