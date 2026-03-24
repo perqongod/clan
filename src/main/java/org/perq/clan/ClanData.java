@@ -93,8 +93,8 @@ public class ClanData {
             double x = config.getDouble("spawn.x");
             double y = config.getDouble("spawn.y");
             double z = config.getDouble("spawn.z");
-            float yaw = (float) config.getDouble("spawn.yaw", 0.0);
-            float pitch = (float) config.getDouble("spawn.pitch", 0.0);
+            float yaw = (float) config.getDouble("spawn.yaw", 0.0f);
+            float pitch = (float) config.getDouble("spawn.pitch", 0.0f);
             this.spawn = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
         }
         if (config.contains("chest")) {
@@ -102,8 +102,8 @@ public class ClanData {
             double x = config.getDouble("chest.x");
             double y = config.getDouble("chest.y");
             double z = config.getDouble("chest.z");
-            float yaw = (float) config.getDouble("chest.yaw", 0.0);
-            float pitch = (float) config.getDouble("chest.pitch", 0.0);
+            float yaw = (float) config.getDouble("chest.yaw", 0.0f);
+            float pitch = (float) config.getDouble("chest.pitch", 0.0f);
             this.chestLocation = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
         }
         this.chestItems = deserializeChestItems(config.getString("chest-items-json"));
@@ -309,7 +309,13 @@ public class ClanData {
 
     private static ItemStack decodeItemStack(String data) {
         if (data == null || data.isEmpty()) return null;
-        byte[] raw = Base64.getDecoder().decode(data);
+        byte[] raw;
+        try {
+            raw = Base64.getDecoder().decode(data);
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().warning("[Clan] Invalid clan chest item data encountered.");
+            return null;
+        }
         try (ByteArrayInputStream input = new ByteArrayInputStream(raw);
              BukkitObjectInputStream dataStream = new BukkitObjectInputStream(input)) {
             Object obj = dataStream.readObject();

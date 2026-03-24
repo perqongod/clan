@@ -988,7 +988,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(prefix + "Rank: " + infoClan.getRank());
                 player.sendMessage(prefix + "Members: " + infoClan.getMembers().size() + "/" + getMaxMembers(infoClan, cm));
                 player.sendMessage(prefix + "Created: " + infoClan.getCreated());
-                player.sendMessage(prefix + "Gesamtspielzeit: " + String.format("%.1f", infoClan.getOnlineTime()) + "h");
+                player.sendMessage(cm.getMessage("clan-info-playtime")
+                        .replace("%hours%", String.format("%.1f", infoClan.getOnlineTime())));
                 player.sendMessage(prefix + "Leader: " + Bukkit.getOfflinePlayer(infoClan.getLeader()).getName());
                 String modsStr = infoClan.getModerators().isEmpty() ? "None"
                         : infoClan.getModerators().stream()
@@ -1294,7 +1295,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     int amount = 1;
                     if (args.length >= 3) {
                         try {
-                            amount = Integer.parseInt(args[2]);
+                            long parsed = Long.parseLong(args[2]);
+                            if (parsed > Integer.MAX_VALUE) {
+                                player.sendMessage(cm.getMessage("bank-add-usage"));
+                                return true;
+                            }
+                            amount = (int) parsed;
                         } catch (NumberFormatException e) {
                             player.sendMessage(cm.getMessage("bank-add-usage"));
                             return true;
@@ -1323,7 +1329,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     meta.setDisplayName(cm.translateColors("&6Clan Bank"));
                     List<String> lore = new ArrayList<>();
                     lore.add(cm.translateColors("&7Balance: &f" + bankClan.getBankBalance()));
-                    lore.add(cm.translateColors("&7Use /clan bank add <amount>"));
+                    lore.add(cm.translateColors("&7Nutze /clan bank add [betrag]"));
                     meta.setLore(lore);
                     balanceItem.setItemMeta(meta);
                 }
@@ -1859,7 +1865,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan bank &7- Open clan bank (" + ClanSkillProgress.getBankUnlockPoints() + "+ Punkte)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan bank add <amount> &7- Add to clan bank"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan bank add [betrag] &7- Add to clan bank"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));

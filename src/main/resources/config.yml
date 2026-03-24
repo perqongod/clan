@@ -99,9 +99,10 @@ messages:
   spawn-set: "%prefix%&aClan Spawn gesetzt!"
   spawn-teleporting: "%prefix%&aTeleportiere..."
   spawn-teleported: "%prefix%&aTeleportiert."
-  bank-add-usage: "%prefix%&cUsage: /clan bank add [amount]"
+  bank-add-usage: "%prefix%&cBetrag muss eine positive Ganzzahl sein. Nutzung: /clan bank add [betrag]"
   bank-added: "%prefix%&aClan Bank: +%amount% (Neu: %total%)."
   rename-too-soon: "%prefix%&cClan kann erst nach %required%h Gesamtspielzeit umbenannt werden. Aktuell: %hours%h."
+  clan-info-playtime: "%prefix%Gesamtspielzeit: %hours%h"
   leader-request-confirm: "%prefix%&cDo you really want to leave your clan to join another?"
   force-kick-confirm: "%prefix%&cAre you sure you want to remove %player% from their clan?"
   force-delete-confirm: "%prefix%&cAre you sure you want to disband the clan %tag%?"
@@ -178,7 +179,7 @@ help-book:
       &f/clan rename <tag>
       &f/clan chest (set)
       &f/clan bank
-      &f/clan bank add <amount>
+      &f/clan bank add [betrag]
       &f/clan spawn
       &f/clan setspawn
       &f/clan skills
