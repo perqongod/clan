@@ -99,7 +99,7 @@ public class ClanQuestListener implements Listener {
         overviewLore.add(cm.translateColors("&7Quest level: &f" + questLevel));
         overviewLore.add(cm.translateColors("&7Zombie kills: &f" + zombieKills));
         overviewLore.add(cm.translateColors("&7Quest skill points: &f" + questPoints));
-        overviewLore.add(cm.translateColors("&eQuest points do not affect ranking"));
+        overviewLore.add(cm.translateColors("&eQuest points affect clan skills, not ranking"));
         inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Quests"), overviewLore));
 
         List<ItemStack> questEntries = buildQuestEntries(zombieKills, cm);
