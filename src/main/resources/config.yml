@@ -1,5 +1,6 @@
 prefix: "&b[Xyntrix]&r "
 clansystem-prefix: "&4[ClanSystem]&r "
+# Points awarded to a clan per kill (ranking/points)
 kill-points: 1
 online-save-interval: 60
 
