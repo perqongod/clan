@@ -1642,8 +1642,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         String status = (myClan != null && warManager.isAtWar(myClan.getTag()))
                 ? cm.translateColors("&cAt war")
                 : cm.translateColors("&aAt peace");
-        String body = cm.getMessage("war-info-body")
-                .replace("%cost%", String.valueOf(cm.getWarCost()))
+        String body = cm.getMessage("war-info-body");
+        if (body == null || body.isEmpty()) {
+            return;
+        }
+        body = body.replace("%cost%", String.valueOf(cm.getWarCost()))
                 .replace("%cooldown%", String.valueOf(cm.getWarCooldownMinutes()))
                 .replace("%status%", status);
         for (String line : body.split("\n")) {
@@ -1668,8 +1671,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return;
         }
         List<Component> pages = new ArrayList<>();
+        LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
         for (String page : rawPages) {
-            pages.add(LegacyComponentSerializer.legacySection().deserialize(cm.translateColors(page)));
+            pages.add(serializer.deserialize(cm.translateColors(page)));
         }
         bookMeta.pages(pages);
         book.setItemMeta(bookMeta);
