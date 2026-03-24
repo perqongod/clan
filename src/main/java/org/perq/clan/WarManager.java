@@ -169,6 +169,7 @@ public class WarManager {
         if (clan == null) return;
         int newPts = Math.max(0, clan.getPoints() + delta);
         clan.setPoints(newPts);
+        clan.setRank(plugin.getConfigManager().getRankForPoints(newPts));
         try { plugin.getFileManager().saveClan(clan); } catch (Exception ignored) {}
     }
 

@@ -29,9 +29,9 @@ public class EventListener implements Listener {
 
         @SuppressWarnings("deprecation")
         String title = event.getView().getTitle();
-        if (!title.startsWith("Clan-Kiste: ")) return;
+        if (!title.startsWith("Clan Chest: ")) return;
 
-        String clanTag = title.substring("Clan-Kiste: ".length());
+        String clanTag = title.substring("Clan Chest: ".length());
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
 
@@ -96,7 +96,7 @@ public class EventListener implements Listener {
                     // Log the war kill in the clan log
                     ClanData killerClan = plugin.getFileManager().loadClan(killerTeamTag);
                     if (killerClan != null) {
-                        killerClan.addLog(killer.getName() + " hat " + victim.getName() + " im Clan-Krieg besiegt.");
+                        killerClan.addLog(killer.getName() + " defeated " + victim.getName() + " in a clan war.");
                         try { plugin.getFileManager().saveClan(killerClan); } catch (IOException ignored) {}
                     }
                 }
@@ -109,7 +109,7 @@ public class EventListener implements Listener {
             ClanData clan = getPlayerClan(killer.getUniqueId());
             if (clan != null) {
                 clan.setPoints(clan.getPoints() + plugin.getConfigManager().getKillPoints());
-                clan.setRank(getRank(clan.getPoints()));
+                clan.setRank(plugin.getConfigManager().getRankForPoints(clan.getPoints()));
                 try {
                     plugin.getFileManager().saveClan(clan);
                 } catch (IOException e) {
@@ -158,16 +158,4 @@ public class EventListener implements Listener {
         return plugin.getFileManager().loadClan(p.getClanTag());
     }
 
-    private String getRank(int points) {
-        Map<String, Integer> ranks = plugin.getConfigManager().getRanks();
-        String currentRank = "Bronze";
-        for (Map.Entry<String, Integer> entry : ranks.entrySet()) {
-            if (points >= entry.getValue()) {
-                currentRank = entry.getKey();
-            } else {
-                break;
-            }
-        }
-        return currentRank;
-    }
 }

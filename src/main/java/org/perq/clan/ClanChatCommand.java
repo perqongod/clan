@@ -17,7 +17,7 @@ public class ClanChatCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Dieser Befehl kann nur von Spielern verwendet werden.");
+            sender.sendMessage("This command can only be used by players.");
             return true;
         }
 
@@ -29,7 +29,7 @@ public class ClanChatCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "Verwendung: /c <nachricht>");
+            player.sendMessage(plugin.getConfigManager().getPrefix() + "Usage: /c <message>");
             return true;
         }
 

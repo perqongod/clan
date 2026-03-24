@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
@@ -515,8 +514,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getPrefix() + "Please wait " + remSec + " more seconds.");
                     return true;
                 }
-                if (inviteClan.getMembers().size() >= cm.getMaxMembers()) {
-                    player.sendMessage(cm.getMessage("clan-full"));
+                int inviteMaxMembers = getMaxMembers(inviteClan, cm);
+                if (inviteClan.getMembers().size() >= inviteMaxMembers) {
+                    player.sendMessage(cm.getMessage("clan-full").replace("%max%", String.valueOf(inviteMaxMembers)));
                     return true;
                 }
                 Player invTarget = Bukkit.getPlayer(args[1]);
@@ -839,8 +839,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getPrefix() + "No request from that player found.");
                     return true;
                 }
-                if (arClan.getMembers().size() >= cm.getMaxMembers()) {
-                    player.sendMessage(cm.getMessage("clan-full"));
+                int requestMaxMembers = getMaxMembers(arClan, cm);
+                if (arClan.getMembers().size() >= requestMaxMembers) {
+                    player.sendMessage(cm.getMessage("clan-full").replace("%max%", String.valueOf(requestMaxMembers)));
                     return true;
                 }
                 arClan.getPendingRequests().remove(arUUID);
@@ -965,7 +966,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(prefix + "Tag: " + infoClan.getTag());
                 player.sendMessage(prefix + "Points: " + infoClan.getPoints());
                 player.sendMessage(prefix + "Rank: " + infoClan.getRank());
-                player.sendMessage(prefix + "Members: " + infoClan.getMembers().size() + "/" + cm.getMaxMembers());
+                player.sendMessage(prefix + "Members: " + infoClan.getMembers().size() + "/" + getMaxMembers(infoClan, cm));
                 player.sendMessage(prefix + "Created: " + infoClan.getCreated());
                 player.sendMessage(prefix + "Online time: " + String.format("%.1f", infoClan.getOnlineTime()) + "h");
                 player.sendMessage(prefix + "Leader: " + Bukkit.getOfflinePlayer(infoClan.getLeader()).getName());
@@ -1058,6 +1059,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
+                if (!ClanSkillProgress.hasChest(chestClan.getSkillLevel())) {
+                    player.sendMessage(cm.getMessage("skills-locked-chest"));
+                    return true;
+                }
                 // Handle chest invite subcommand
                 if (args.length >= 2 && args[1].equalsIgnoreCase("invite")) {
                     PlayerData chestInviterData = plugin.getFileManager().loadPlayer(playerUUID);
@@ -1092,7 +1097,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 // All clan members can open the chest (VIEW = see only, EXECUTE = interact)
                 Inventory chest = clanChests.get(chestClan.getTag());
                 if (chest == null) {
-                    chest = Bukkit.createInventory(null, 27, "Clan-Kiste: " + chestClan.getTag());
+                    chest = Bukkit.createInventory(null, 27, "Clan Chest: " + chestClan.getTag());
                     clanChests.put(chestClan.getTag(), chest);
                 }
                 player.openInventory(chest);
@@ -1117,6 +1122,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 ClanData spawnClan = getPlayerClan(playerUUID);
                 if (spawnClan == null) {
                     player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
+                }
+                if (!ClanSkillProgress.hasSpawn(spawnClan.getSkillLevel())) {
+                    player.sendMessage(cm.getMessage("skills-locked-spawn"));
                     return true;
                 }
                 if (spawnClan.getSpawn() == null) {
@@ -1199,6 +1208,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
                 }
+                if (!ClanSkillProgress.hasSpawn(ssClan.getSkillLevel())) {
+                    player.sendMessage(cm.getMessage("skills-locked-setspawn"));
+                    return true;
+                }
                 ssClan.setSpawn(player.getLocation());
                 try {
                     plugin.getFileManager().saveClan(ssClan);
@@ -1247,23 +1260,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             case "skills": {
-                Inventory skillsGui = Bukkit.createInventory(null, 54, "Clan Skills");
-                ItemStack grayPane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
-                ItemMeta grayMeta = grayPane.getItemMeta();
-                if (grayMeta != null) { grayMeta.setDisplayName(" "); grayPane.setItemMeta(grayMeta); }
-                ItemStack greenPane = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-                ItemMeta greenMeta = greenPane.getItemMeta();
-                if (greenMeta != null) { greenMeta.setDisplayName(" "); greenPane.setItemMeta(greenMeta); }
-                for (int col = 0; col < 9; col++) {
-                    skillsGui.setItem(col, grayPane.clone());
-                    skillsGui.setItem(45 + col, grayPane.clone());
+                ClanData skillsClan = getPlayerClan(playerUUID);
+                if (skillsClan == null) {
+                    player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
                 }
-                for (int row = 1; row <= 4; row++) {
-                    for (int col = 0; col < 9; col++) {
-                        skillsGui.setItem(row * 9 + col, greenPane.clone());
-                    }
-                }
-                player.openInventory(skillsGui);
+                plugin.getClanSkillsListener().openGui(player, skillsClan);
                 break;
             }
 
@@ -1427,7 +1429,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         WarManager warManager = plugin.getWarManager();
 
         if (args.length < 2) {
-            player.sendMessage(cm.getPrefix() + "Verwendung: /clan war <info|<clanTag>|accept|deny|setarena>");
+            player.sendMessage(cm.getPrefix() + "Usage: /clan war <info|<clanTag>|accept|deny|setarena>");
             return;
         }
 
@@ -1436,21 +1438,21 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         switch (warSub) {
 
             case "info": {
-                player.sendMessage(cm.getPrefix() + "Krieg-Info:");
-                player.sendMessage(cm.getPrefix() + "Kosten: " + cm.getWarCost() + " Punkte");
-                player.sendMessage(cm.getPrefix() + "Cooldown: " + cm.getWarCooldownMinutes() + " Minuten");
+                player.sendMessage(cm.getPrefix() + "War info:");
+                player.sendMessage(cm.getPrefix() + "Cost: " + cm.getWarCost() + " points");
+                player.sendMessage(cm.getPrefix() + "Cooldown: " + cm.getWarCooldownMinutes() + " minutes");
                 ClanData myClan = getPlayerClan(playerUUID);
                 if (myClan != null && warManager.isAtWar(myClan.getTag())) {
-                    player.sendMessage(cm.getPrefix() + "Dein Clan ist im Krieg!");
+                    player.sendMessage(cm.getPrefix() + "Your clan is at war!");
                 } else {
-                    player.sendMessage(cm.getPrefix() + "Dein Clan ist im Frieden.");
+                    player.sendMessage(cm.getPrefix() + "Your clan is at peace.");
                 }
                 break;
             }
 
             case "accept": {
                 if (args.length < 3) {
-                    player.sendMessage(cm.getPrefix() + "Verwendung: /clan war accept <challengerTag>");
+                    player.sendMessage(cm.getPrefix() + "Usage: /clan war accept <challengerTag>");
                     return;
                 }
                 String challengerTag = args[2];
@@ -1459,7 +1461,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (!myClan.getLeader().equals(playerUUID)) { player.sendMessage(cm.getMessage("no-permission")); return; }
                 WarManager.WarRequest warReq = warManager.getWarRequestByChallenger(challengerTag);
                 if (warReq == null || !warReq.getTargetTag().equals(myClan.getTag())) {
-                    player.sendMessage(cm.getPrefix() + "Keine Kriegsanfrage von " + challengerTag + " gefunden.");
+                    player.sendMessage(cm.getPrefix() + "No war request from " + challengerTag + " found.");
                     return;
                 }
                 warManager.removeWarRequest(challengerTag);
@@ -1478,7 +1480,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 Location spawnA = arenaSpawns.get("a");
                 Location spawnB = arenaSpawns.get("b");
                 if (spawnA == null || spawnB == null) {
-                    player.sendMessage(cm.getPrefix() + "Krieg-Arena nicht gesetzt! Nutze /clan war setarena a/b");
+                    player.sendMessage(cm.getPrefix() + "War arena not set. Use /clan war setarena a/b");
                     return;
                 }
                 List<UUID> teamA = challengerClan != null ? new ArrayList<>(challengerClan.getMembers()) : new ArrayList<>();
@@ -1489,7 +1491,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
             case "deny": {
                 if (args.length < 3) {
-                    player.sendMessage(cm.getPrefix() + "Verwendung: /clan war deny <challengerTag>");
+                    player.sendMessage(cm.getPrefix() + "Usage: /clan war deny <challengerTag>");
                     return;
                 }
                 String challengerTag = args[2];
@@ -1498,7 +1500,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (!myClan.getLeader().equals(playerUUID)) { player.sendMessage(cm.getMessage("no-permission")); return; }
                 WarManager.WarRequest warReq = warManager.getWarRequestByChallenger(challengerTag);
                 if (warReq == null || !warReq.getTargetTag().equals(myClan.getTag())) {
-                    player.sendMessage(cm.getPrefix() + "Keine Kriegsanfrage von " + challengerTag + " gefunden.");
+                    player.sendMessage(cm.getPrefix() + "No war request from " + challengerTag + " found.");
                     return;
                 }
                 warManager.removeWarRequest(challengerTag);
@@ -1516,12 +1518,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 if (args.length < 3 || (!args[2].equalsIgnoreCase("a") && !args[2].equalsIgnoreCase("b"))) {
-                    player.sendMessage(cm.getPrefix() + "Verwendung: /clan war setarena <a|b>");
+                    player.sendMessage(cm.getPrefix() + "Usage: /clan war setarena <a|b>");
                     return;
                 }
                 String spawnKey = args[2].toLowerCase();
                 arenaSpawns.put(spawnKey, player.getLocation());
-                player.sendMessage(cm.getPrefix() + "Arena-Spawn " + spawnKey.toUpperCase() + " gesetzt.");
+                player.sendMessage(cm.getPrefix() + "Arena spawn " + spawnKey.toUpperCase() + " set.");
                 break;
             }
 
@@ -1531,34 +1533,35 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (myClan == null) { player.sendMessage(cm.getMessage("no-clan")); return; }
                 if (!myClan.getLeader().equals(playerUUID)) { player.sendMessage(cm.getMessage("no-permission")); return; }
                 if (targetTag.equalsIgnoreCase(myClan.getTag())) {
-                    player.sendMessage(cm.getPrefix() + "Du kannst deinen eigenen Clan nicht herausfordern.");
+                    player.sendMessage(cm.getPrefix() + "You cannot challenge your own clan.");
                     return;
                 }
                 ClanData targetClan = plugin.getFileManager().loadClan(targetTag);
                 if (targetClan == null) { player.sendMessage(cm.getMessage("clan-not-found")); return; }
                 if (warManager.isAtWar(myClan.getTag())) {
-                    player.sendMessage(cm.getPrefix() + "Dein Clan ist bereits im Krieg.");
+                    player.sendMessage(cm.getPrefix() + "Your clan is already at war.");
                     return;
                 }
                 if (warManager.isAtWar(targetTag)) {
-                    player.sendMessage(cm.getPrefix() + "Der Ziel-Clan ist bereits im Krieg.");
+                    player.sendMessage(cm.getPrefix() + "The target clan is already at war.");
                     return;
                 }
                 if (warManager.isOnWarCooldown(playerUUID)) {
                     long remMin = warManager.getRemainingCooldownMinutes(playerUUID);
-                    player.sendMessage(cm.getPrefix() + "Kriegs-Cooldown: noch " + remMin + " Minuten.");
+                    player.sendMessage(cm.getPrefix() + "War cooldown: " + remMin + " minutes remaining.");
                     return;
                 }
                 if (warManager.getWarRequestByChallenger(myClan.getTag()) != null) {
-                    player.sendMessage(cm.getPrefix() + "Du hast bereits eine offene Kriegsanfrage.");
+                    player.sendMessage(cm.getPrefix() + "You already have an open war request.");
                     return;
                 }
                 int cost = cm.getWarCost();
                 if (myClan.getPoints() < cost) {
-                    player.sendMessage(cm.getPrefix() + "Du brauchst mindestens " + cost + " Punkte, um einen Krieg zu starten.");
+                    player.sendMessage(cm.getPrefix() + "You need at least " + cost + " points to start a war.");
                     return;
                 }
                 myClan.setPoints(myClan.getPoints() - cost);
+                myClan.setRank(cm.getRankForPoints(myClan.getPoints()));
                 try { plugin.getFileManager().saveClan(myClan); } catch (IOException ignored) { /* continue */ }
                 warManager.addWarRequest(myClan.getTag(), targetTag, playerUUID);
                 player.sendMessage(cm.getMessage("war-request-sent").replace("%tag%", targetTag));
@@ -1587,7 +1590,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         if (leaderOnline != null) {
             leaderOnline.sendMessage(
                     Component.text(cm.getMessage("request-received").replace("%player%", requester.getName()) + " ")
-                            .append(Component.text("[zeig Notification]")
+                            .append(Component.text("[View requests]")
                                     .color(TextColor.color(0x55FFFF))
                                     .clickEvent(ClickEvent.runCommand("/clan requests")))
             );
@@ -1597,38 +1600,43 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(Player player, ConfigManager cm) {
         ClanData clan = getPlayerClan(player.getUniqueId());
         UUID playerUUID = player.getUniqueId();
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan create <tag> &7- Clan erstellen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delete &7- Clan aufl\u00f6sen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan invite <spieler> &7- Spieler einladen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan accept <tag> &7- Einladung annehmen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan deny <tag> &7- Einladung ablehnen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan join <tag> &7- Clan beitreten (via Einladung)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leave &7- Clan verlassen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan kick <spieler> &7- Spieler kicken"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan promote <spieler> &7- Spieler bef\u00f6rdern"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan demote [spieler] &7- Spieler degradieren"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leader <spieler> &7- F\u00fchrung \u00fcbergeben"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rename <neuerTag> &7- Clan umbenennen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan info &7- Clan-Info"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Einladungen ein-/ausschalten"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats &7- Clan-Stats"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan-Ranking"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan create <tag> &7- Create a clan"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delete &7- Disband your clan"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan invite <player> &7- Invite a player"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan accept <tag> &7- Accept an invite"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan deny <tag> &7- Decline an invite"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan join <tag> &7- Join a clan (via invite)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leave &7- Leave your clan"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan kick <player> &7- Kick a player"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan promote <player> &7- Promote a player"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan demote [player] &7- Demote a player"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leader <player> &7- Transfer leadership"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rename <newTag> &7- Rename your clan"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan info &7- Clan info"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Toggle invitations"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats &7- Clan stats"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Clan-Kiste \u00f6ffnen"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest (Battle Pass lvl " + ClanSkillProgress.getChestUnlockLevel() + "+)"));
         }
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Zum Clan-Spawn teleportieren"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Clan-Spawn setzen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Beitrittsanfrage senden"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- Beitrittsanfragen einsehen (Leader)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- Clan-Logs anzeigen"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Clan-Skills \u00f6ffnen"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (Battle Pass lvl " + ClanSkillProgress.getSpawnUnlockLevel() + "+)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (Battle Pass lvl " + ClanSkillProgress.getSpawnUnlockLevel() + "+)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan skills (battle pass)"));
         if (clan != null && clan.getLeader().equals(playerUUID)) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Clan-Einstellungen \u00f6ffnen"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Open clan settings"));
         }
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan war <tag> &7- Clan zum Krieg herausfordern"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan war <tag> &7- Challenge a clan to war"));
         if (player.hasPermission("clan.admin")) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "&7Admin: &f/clan admin &7f\u00fcr Admin-Befehle"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "&7Admin: &f/clan admin &7for admin commands"));
         }
+    }
+
+    private int getMaxMembers(ClanData clan, ConfigManager cm) {
+        if (clan == null) return cm.getMaxMembers();
+        return cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getSkillLevel());
     }
 
     private ClanData getPlayerClan(UUID playerUUID) {
@@ -1650,15 +1658,21 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     "create", "delete", "invite", "accept", "deny", "join", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "request", "requests",
-                    "accept-request", "logs", "skills", "settings", "war"
+                    "logs", "skills", "settings", "war"
             ));
             ClanData clan = getPlayerClan(playerUUID);
             if (clan == null || !clan.getLeader().equals(playerUUID)) {
                 subs.remove("settings");
             }
-            if (clan != null && !clan.getLeader().equals(playerUUID)
+            if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillLevel())) {
+                subs.remove("chest");
+            } else if (!clan.getLeader().equals(playerUUID)
                     && clan.getChestPermission(playerUUID) == ClanChestPermission.DENY) {
                 subs.remove("chest");
+            }
+            if (clan == null || !ClanSkillProgress.hasSpawn(clan.getSkillLevel())) {
+                subs.remove("spawn");
+                subs.remove("setspawn");
             }
             if (player.hasPermission("clan.admin")) {
                 subs.add("force");

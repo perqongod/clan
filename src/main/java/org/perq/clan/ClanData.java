@@ -24,6 +24,7 @@ public class ClanData {
     private String created;
     private double onlineTime;
     private Location spawn;
+    private int skillLevel;
     /** Log entries in format "[HH:MM DD.MM.YYYY] message" */
     private List<String> logs;
     /** UUIDs of players who requested to join this clan */
@@ -44,6 +45,7 @@ public class ClanData {
         this.created = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         this.onlineTime = 0.0;
         this.spawn = null;
+        this.skillLevel = 0;
         this.logs = new ArrayList<>();
         this.pendingRequests = new ArrayList<>();
         this.chestPermissions = new HashMap<>();
@@ -65,6 +67,7 @@ public class ClanData {
         this.rank = config.getString("rank");
         this.created = config.getString("created");
         this.onlineTime = config.getDouble("online-time");
+        this.skillLevel = config.getInt("skill-level", 0);
         if (config.contains("spawn")) {
             String world = config.getString("spawn.world");
             double x = config.getDouble("spawn.x");
@@ -109,6 +112,7 @@ public class ClanData {
         config.set("rank", rank);
         config.set("created", created);
         config.set("online-time", onlineTime);
+        config.set("skill-level", skillLevel);
         if (spawn != null) {
             config.set("spawn.world", spawn.getWorld().getName());
             config.set("spawn.x", spawn.getX());
@@ -169,6 +173,9 @@ public class ClanData {
 
     public Location getSpawn() { return spawn; }
     public void setSpawn(Location spawn) { this.spawn = spawn; }
+
+    public int getSkillLevel() { return skillLevel; }
+    public void setSkillLevel(int skillLevel) { this.skillLevel = skillLevel; }
 
     public List<String> getLogs() { return logs; }
     public void setLogs(List<String> logs) { this.logs = logs; }

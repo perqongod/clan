@@ -4,7 +4,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,6 +70,22 @@ public class ConfigManager {
             }
         }
         return ranks;
+    }
+
+    public String getRankForPoints(int points) {
+        Map<String, Integer> ranks = getRanks();
+        if (ranks.isEmpty()) return "Bronze";
+        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(ranks.entrySet());
+        sorted.sort(Comparator.comparingInt(Map.Entry::getValue));
+        String currentRank = sorted.get(0).getKey();
+        for (Map.Entry<String, Integer> entry : sorted) {
+            if (points >= entry.getValue()) {
+                currentRank = entry.getKey();
+            } else {
+                break;
+            }
+        }
+        return currentRank;
     }
 
     public String getClanChatFormat() {

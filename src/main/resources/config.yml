@@ -3,7 +3,7 @@ clansystem-prefix: "&4[ClanSystem]&r "
 kill-points: 1
 online-save-interval: 60
 
-# Clan-Tag Validierung
+# Clan tag validation
 clan-tag-settings:
   min-length: 3
   max-length: 4
@@ -73,6 +73,11 @@ messages:
   requests-only-leader: "%prefix%&cOnly the clan leader can view incoming requests."
   requests-empty: "%prefix%&cNo open requests."
   request-already-sent: "%prefix%&cYou have already sent a request to this clan."
+  skills-upgraded: "%prefix%&aClan battle pass upgraded to level %level% (cost: %cost% points)."
+  skills-not-enough-points: "%prefix%&cYou need %cost% points to upgrade. You have %points%."
+  skills-locked-chest: "%prefix%&cClan chest is locked. Unlock it in /clan skills."
+  skills-locked-spawn: "%prefix%&cClan spawn is locked. Unlock it in /clan skills."
+  skills-locked-setspawn: "%prefix%&cClan spawn is locked. Unlock it in /clan skills."
   leader-request-confirm: "%prefix%&cDo you really want to leave your clan to join another?"
   force-kick-confirm: "%prefix%&cAre you sure you want to remove %player% from their clan?"
   force-delete-confirm: "%prefix%&cAre you sure you want to disband the clan %tag%?"
@@ -105,10 +110,10 @@ messages:
 
 ranks:
   Bronze: 0
-  Silber: 5
+  Silver: 5
   Gold: 10
-  Platin: 11
-  Diamant: 12
+  Platinum: 11
+  Diamond: 12
 
 # War arenas (set via /clan war setarena a/b)
 arenas: []
