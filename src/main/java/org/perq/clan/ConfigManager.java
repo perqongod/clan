@@ -92,6 +92,47 @@ public class ConfigManager {
         return config.getString("messages.clan-chat-format", "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &f%player%&7: &f%message%");
     }
 
+    public String getHelpBookTitle() {
+        return translateColors(config.getString("help-book.title", "Clan Help"));
+    }
+
+    public String getHelpBookAuthor() {
+        return translateColors(config.getString("help-book.author", "Clan System"));
+    }
+
+    public List<String> getHelpBookPages() {
+        List<String> pages = config.getStringList("help-book.pages");
+        if (pages == null || pages.isEmpty()) {
+            pages = new ArrayList<>();
+            pages.add("&6&lClan Hilfe\n"
+                    + "&7Erste Schritte:\n"
+                    + "&f/clan create <tag>\n"
+                    + "&f/clan invite <spieler>\n"
+                    + "&f/clan join <tag>\n"
+                    + "&f/clan leave\n"
+                    + "&f/clan info\n"
+                    + "&f/clan request <tag>\n"
+                    + "&f/clan requests");
+            pages.add("&6&lVerwaltung\n"
+                    + "&f/clan kick <spieler>\n"
+                    + "&f/clan promote <spieler>\n"
+                    + "&f/clan demote [spieler]\n"
+                    + "&f/clan leader <spieler>\n"
+                    + "&f/clan rename <tag>\n"
+                    + "&f/clan chest\n"
+                    + "&f/clan spawn\n"
+                    + "&f/clan setspawn\n"
+                    + "&f/clan skills\n"
+                    + "&f/clan logs");
+            pages.add("&6&lClan War\n"
+                    + "&f/clan war <tag>\n"
+                    + "&f/clan war info\n"
+                    + "&f/clan war accept <tag>\n"
+                    + "&f/clan war deny <tag>");
+        }
+        return new ArrayList<>(pages);
+    }
+
     /** @deprecated Use getTagMinLength() / getTagMaxLength() */
     @Deprecated
     public int getTagLength() {

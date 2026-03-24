@@ -3,6 +3,7 @@ package org.perq.clan;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -54,7 +55,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "join", "leave",
-            "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
+            "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "request", "requests",
             "accept-request", "deny-request", "logs", "skills", "settings", "war", "force", "admin"
     ));
@@ -988,6 +989,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 break;
             }
 
+            case "help": {
+                openHelpBook(player, cm);
+                break;
+            }
+
             case "toggle": {
                 boolean toggled = plugin.toggleInvitation(playerUUID);
                 player.sendMessage(toggled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
@@ -1429,7 +1435,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         WarManager warManager = plugin.getWarManager();
 
         if (args.length < 2) {
-            player.sendMessage(cm.getPrefix() + "Usage: /clan war <info|<clanTag>|accept|deny|setarena>");
+            sendWarOverview(player, playerUUID, cm, warManager);
             return;
         }
 
@@ -1438,15 +1444,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         switch (warSub) {
 
             case "info": {
-                player.sendMessage(cm.getPrefix() + "War info:");
-                player.sendMessage(cm.getPrefix() + "Cost: " + cm.getWarCost() + " points");
-                player.sendMessage(cm.getPrefix() + "Cooldown: " + cm.getWarCooldownMinutes() + " minutes");
-                ClanData myClan = getPlayerClan(playerUUID);
-                if (myClan != null && warManager.isAtWar(myClan.getTag())) {
-                    player.sendMessage(cm.getPrefix() + "Your clan is at war!");
-                } else {
-                    player.sendMessage(cm.getPrefix() + "Your clan is at peace.");
-                }
+                sendWarOverview(player, playerUUID, cm, warManager);
                 break;
             }
 
@@ -1613,6 +1611,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leader <player> &7- Transfer leadership"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rename <newTag> &7- Rename your clan"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan info &7- Clan info"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan help &7- Open the clan help book"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Toggle invitations"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
@@ -1632,6 +1631,49 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         if (player.hasPermission("clan.admin")) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "&7Admin: &f/clan admin &7for admin commands"));
         }
+    }
+
+    private void sendWarOverview(Player player, UUID playerUUID, ConfigManager cm, WarManager warManager) {
+        String header = cm.getMessage("war-info-header");
+        if (header != null && !header.isEmpty()) {
+            player.sendMessage(header);
+        }
+        ClanData myClan = getPlayerClan(playerUUID);
+        String status = (myClan != null && warManager.isAtWar(myClan.getTag()))
+                ? cm.translateColors("&cAt war")
+                : cm.translateColors("&aAt peace");
+        String body = cm.getMessage("war-info-body")
+                .replace("%cost%", String.valueOf(cm.getWarCost()))
+                .replace("%cooldown%", String.valueOf(cm.getWarCooldownMinutes()))
+                .replace("%status%", status);
+        for (String line : body.split("\n")) {
+            if (!line.isEmpty()) {
+                player.sendMessage(line);
+            }
+        }
+    }
+
+    private void openHelpBook(Player player, ConfigManager cm) {
+        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+        BookMeta bookMeta = (BookMeta) book.getItemMeta();
+        if (bookMeta == null) {
+            player.sendMessage(cm.getPrefix() + "Unable to open the help book.");
+            return;
+        }
+        bookMeta.setTitle(cm.getHelpBookTitle());
+        bookMeta.setAuthor(cm.getHelpBookAuthor());
+        List<String> rawPages = cm.getHelpBookPages();
+        if (rawPages.isEmpty()) {
+            player.sendMessage(cm.getPrefix() + "Help book is empty.");
+            return;
+        }
+        List<Component> pages = new ArrayList<>();
+        for (String page : rawPages) {
+            pages.add(LegacyComponentSerializer.legacySection().deserialize(cm.translateColors(page)));
+        }
+        bookMeta.pages(pages);
+        book.setItemMeta(bookMeta);
+        player.openBook(book);
     }
 
     private int getMaxMembers(ClanData clan, ConfigManager cm) {
@@ -1656,7 +1698,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             List<String> subs = new ArrayList<>(Arrays.asList(
                     "create", "delete", "invite", "accept", "deny", "join", "leave",
-                    "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
+                    "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "request", "requests",
                     "logs", "skills", "settings", "war"
             ));
