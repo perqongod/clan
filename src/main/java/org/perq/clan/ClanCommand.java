@@ -60,6 +60,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private static final double SPAWN_PARTICLE_OFFSET_Y = 0.8;
     private static final double SPAWN_PARTICLE_OFFSET_Z = 0.6;
     private static final double SPAWN_PARTICLE_EXTRA = 0.1;
+    private static final int DEFAULT_CHEST_SIZE = 27;
 
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "join", "leave",
@@ -1168,7 +1169,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 // All clan members can open the chest (VIEW = see only, EXECUTE = interact)
-                int chestSize = 27;
+                int chestSize = DEFAULT_CHEST_SIZE;
                 Inventory chest = clanChests.get(chestClan.getTag());
                 if (chest == null || chest.getSize() != chestSize) {
                     chest = Bukkit.createInventory(null, chestSize, "Clan Chest: " + chestClan.getTag());

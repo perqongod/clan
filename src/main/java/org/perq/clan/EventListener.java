@@ -104,6 +104,9 @@ public class EventListener implements Listener {
         if (attackerClan == null || victimClan == null) return;
         if (!attackerClan.getTag().equalsIgnoreCase(victimClan.getTag())) return;
         ClanFriendlyFirePermission permission = attackerClan.getFriendlyFirePermission(attacker.getUniqueId());
+        if (permission == null) {
+            permission = ClanFriendlyFirePermission.ALLOW;
+        }
         if (permission == ClanFriendlyFirePermission.DENY) {
             event.setCancelled(true);
         }
