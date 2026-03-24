@@ -53,7 +53,7 @@ public class WarTeamSelectionListener implements Listener {
      * @param members    All clan member UUIDs
      */
     public void openGui(Player leader, String clanTag, List<UUID> members) {
-        Inventory inv = Bukkit.createInventory(null, 54, "Clan-Krieg: Team wählen");
+        Inventory inv = Bukkit.createInventory(null, 54, "Clan War: Select Team");
 
         TeamSelectionSession session = new TeamSelectionSession(clanTag, members);
         sessions.put(leader.getUniqueId(), session);
@@ -84,7 +84,7 @@ public class WarTeamSelectionListener implements Listener {
 
         TeamSelectionSession session = sessions.get(player.getUniqueId());
         if (session == null) return;
-        if (!event.getView().title().equals(Component.text("Clan-Krieg: Team wählen"))) return;
+        if (!event.getView().title().equals(Component.text("Clan War: Select Team"))) return;
 
         event.setCancelled(true);
 
@@ -148,9 +148,9 @@ public class WarTeamSelectionListener implements Listener {
             if (col == 4) { inv.setItem(18 + col, blue); continue; }
             ItemStack arrow;
             if (col < 4) {
-                arrow = namedItem(Material.ARROW, "§aKämpft");
+                arrow = namedItem(Material.ARROW, "§aFighting");
             } else {
-                arrow = namedItem(Material.ARROW, "§cKämpft nicht");
+                arrow = namedItem(Material.ARROW, "§cNot fighting");
             }
             inv.setItem(18 + col, arrow);
         }
@@ -168,7 +168,7 @@ public class WarTeamSelectionListener implements Listener {
             if (i < session.fighting.size()) {
                 inv.setItem(9 + i, playerSkull(session.fighting.get(i)));
             } else {
-                inv.setItem(9 + i, namedItem(Material.GRAY_STAINED_GLASS_PANE, "§7Leer"));
+                inv.setItem(9 + i, namedItem(Material.GRAY_STAINED_GLASS_PANE, "§7Empty"));
             }
         }
         // Separator
@@ -178,7 +178,7 @@ public class WarTeamSelectionListener implements Listener {
             if (i < session.notFighting.size()) {
                 inv.setItem(9 + 5 + i, playerSkull(session.notFighting.get(i)));
             } else {
-                inv.setItem(9 + 5 + i, namedItem(Material.GRAY_STAINED_GLASS_PANE, "§7Leer"));
+                inv.setItem(9 + 5 + i, namedItem(Material.GRAY_STAINED_GLASS_PANE, "§7Empty"));
             }
         }
     }
