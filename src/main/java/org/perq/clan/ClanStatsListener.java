@@ -61,7 +61,7 @@ public class ClanStatsListener implements Listener {
         }
 
         String leaderName = Bukkit.getOfflinePlayer(clan.getLeader()).getName();
-        if (leaderName == null) leaderName = "?";
+        if (leaderName == null) leaderName = "Unknown";
         int maxMembers = cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getPoints());
 
         List<String> pointsLore = new ArrayList<>();
@@ -94,13 +94,7 @@ public class ClanStatsListener implements Listener {
     }
 
     private ItemStack namedItem(Material material, String name) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            item.setItemMeta(meta);
-        }
-        return item;
+        return namedItem(material, name, null);
     }
 
     private ItemStack namedItem(Material material, String name, List<String> lore) {
@@ -108,7 +102,9 @@ public class ClanStatsListener implements Listener {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
-            meta.setLore(lore);
+            if (lore != null) {
+                meta.setLore(lore);
+            }
             item.setItemMeta(meta);
         }
         return item;
