@@ -234,11 +234,10 @@ public class ClanSettingsListener implements Listener {
             List<String> lore = new ArrayList<>();
             if (isLeader) {
                 lore.add(cm.translateColors("&7Leader &f(always access)"));
-                lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
             } else {
                 lore.add(cm.translateColors("&7Click to change permission"));
-                lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
             }
+            lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
             if (selected) {
                 lore.add(cm.translateColors("&bSelected"));
             }
