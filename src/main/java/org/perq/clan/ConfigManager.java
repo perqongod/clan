@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -190,6 +191,18 @@ public class ConfigManager {
 
     public int getWarTeleportTimeoutSeconds() {
         return config.getInt("war.teleport-timeout-seconds", 30);
+    }
+
+    public List<String> getWarCommandAllowlist() {
+        List<String> allowlist = config.getStringList("war.command-allowlist");
+        if (allowlist == null || allowlist.isEmpty()) {
+            allowlist = Arrays.asList("/help", "/logout", "/quit", "/clan", "/war");
+        }
+        List<String> normalized = new ArrayList<>();
+        for (String cmd : allowlist) {
+            normalized.add(cmd.toLowerCase());
+        }
+        return normalized;
     }
 
     public String getMySQLHost() {

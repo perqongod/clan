@@ -435,13 +435,18 @@ public class WarManager {
                 startCombat(war);
                 return;
             }
-            war.setRemainingSeconds(rem - 1);
             for (UUID uuid : war.getJoinedPlayers()) {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player == null) continue;
                 player.sendTitle("§c" + rem, plugin.getConfigManager().getMessage("war-countdown-subtitle"), 0, 20, 0);
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1f, 1f);
             }
+            if (rem <= 1) {
+                war.getCountdownTask().cancel();
+                startCombat(war);
+                return;
+            }
+            war.setRemainingSeconds(rem - 1);
         }, 20L, 20L);
         war.setCountdownTask(task);
     }
@@ -766,8 +771,11 @@ public class WarManager {
         }
 
         public void addSelected(String clanTag, UUID uuid) {
-            if (clanTagA.equalsIgnoreCase(clanTag)) selectedA.add(uuid);
-            if (clanTagB.equalsIgnoreCase(clanTag)) selectedB.add(uuid);
+            if (clanTagA.equalsIgnoreCase(clanTag)) {
+                selectedA.add(uuid);
+            } else if (clanTagB.equalsIgnoreCase(clanTag)) {
+                selectedB.add(uuid);
+            }
         }
 
         public void removeSelected(UUID uuid) {

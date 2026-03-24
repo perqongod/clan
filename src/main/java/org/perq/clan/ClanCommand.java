@@ -1784,8 +1784,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         }
         ClanData myClan = getPlayerClan(playerUUID);
         String status = (myClan != null && warManager.isAtWar(myClan.getTag()))
-                ? cm.translateColors("&cAt war")
-                : cm.translateColors("&aAt peace");
+                ? cm.translateColors("&cIm Krieg")
+                : cm.translateColors("&aIn Frieden");
         String body = cm.getMessage("war-info-body");
         if (body == null || body.isEmpty()) {
             return;
