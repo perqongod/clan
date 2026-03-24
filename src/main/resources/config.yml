@@ -81,6 +81,7 @@ messages:
   chest-set: "%prefix%&aClan Chest gesetzt!"
   chest-not-set: "%prefix%&cClan Chest wurde noch nicht gesetzt."
   spawn-set: "%prefix%&aClan Spawn gesetzt!"
+  spawn-deleted: "%prefix%&aClan spawn removed."
   spawn-teleporting: "%prefix%&aTeleportiere..."
   spawn-teleported: "%prefix%&aTeleportiert."
   rename-too-soon: "%prefix%&cClan kann erst nach %required%h Gesamtspielzeit umbenannt werden. Aktuell: %hours%h."
@@ -92,6 +93,7 @@ messages:
   leader-transferred: "%prefix%&aLeadership has been transferred to %player%."
   leader-received: "%prefix%&aYou are now the leader of clan %tag%."
   settings-leader-chest: "%prefix%&cDer Clan-Leader hat immer Zugriff auf die Clan Chest."
+  settings-leader-friendly-fire: "%prefix%&cThe clan leader always has friendly fire enabled."
   invite-cooldown: "%prefix%&cPlease wait %seconds% more seconds before sending another invite."
   invite-max-open: "%prefix%&cThis player already has an open invitation."
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"
@@ -132,5 +134,6 @@ ranks:
       &f/clan chest (set)
       &f/clan spawn
       &f/clan setspawn
+      &f/clan delspawn
       &f/clan skills
       &f/clan logs

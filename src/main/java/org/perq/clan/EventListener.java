@@ -1,9 +1,11 @@
 package org.perq.clan;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -77,6 +79,30 @@ public class EventListener implements Listener {
         } catch (IOException e) {
             Bukkit.getLogger().log(Level.WARNING,
                     "[Clan] Failed to save clan chest contents for " + clanTag, e);
+        }
+    }
+
+    @EventHandler
+    public void onFriendlyFire(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+        Player victim = (Player) event.getEntity();
+        Player attacker = null;
+        if (event.getDamager() instanceof Player) {
+            attacker = (Player) event.getDamager();
+        } else if (event.getDamager() instanceof Projectile) {
+            Projectile projectile = (Projectile) event.getDamager();
+            if (projectile.getShooter() instanceof Player) {
+                attacker = (Player) projectile.getShooter();
+            }
+        }
+        if (attacker == null || attacker.getUniqueId().equals(victim.getUniqueId())) return;
+        ClanData attackerClan = getPlayerClan(attacker.getUniqueId());
+        ClanData victimClan = getPlayerClan(victim.getUniqueId());
+        if (attackerClan == null || victimClan == null) return;
+        if (!attackerClan.getTag().equalsIgnoreCase(victimClan.getTag())) return;
+        if (attackerClan.getLeader().equals(attacker.getUniqueId())) return;
+        if (attackerClan.getFriendlyFirePermission(attacker.getUniqueId()) == ClanFriendlyFirePermission.DENY) {
+            event.setCancelled(true);
         }
     }
 

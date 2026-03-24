@@ -24,11 +24,14 @@ public class ClanSettingsListener implements Listener {
 
     private static final String MAIN_TITLE = "Clan Settings";
     private static final String CHEST_TITLE = "Clan Chest Settings";
+    private static final String FRIENDLY_FIRE_TITLE = "Clan Friendly Fire Settings";
     private static final int MAIN_INVENTORY_SIZE = 27;
     private static final int CHEST_INVENTORY_SIZE = 54;
+    private static final int FRIENDLY_FIRE_INVENTORY_SIZE = 54;
     private static final int CHEST_SLOT = 4;
+    private static final int FRIENDLY_FIRE_SLOT = 4;
     private static final int MAIN_CHEST_SLOT = 10;
-    private static final int MAIN_HEAD_SLOT = 11;
+    private static final int MAIN_FRIENDLY_FIRE_SLOT = 11;
 
     private final Clan plugin;
     private final Map<UUID, SettingsSession> sessions = new HashMap<>();
@@ -54,7 +57,9 @@ public class ClanSettingsListener implements Listener {
         if (session == null) return;
         Component title = event.getView().title();
         boolean mainMenu = title.equals(Component.text(MAIN_TITLE));
-        if (!mainMenu && !title.equals(Component.text(CHEST_TITLE))) return;
+        boolean chestMenu = title.equals(Component.text(CHEST_TITLE));
+        boolean friendlyMenu = title.equals(Component.text(FRIENDLY_FIRE_TITLE));
+        if (!mainMenu && !chestMenu && !friendlyMenu) return;
 
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
@@ -76,14 +81,44 @@ public class ClanSettingsListener implements Listener {
                 }
                 openChestSettings(player, clan, session);
             }
+            if (rawSlot == MAIN_FRIENDLY_FIRE_SLOT) {
+                session.members = new ArrayList<>(clan.getMembers());
+                if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
+                    session.selectedMember = null;
+                }
+                openFriendlyFireSettings(player, clan, session);
+            }
             return;
         }
 
-        if (rawSlot == CHEST_SLOT) {
+        if (chestMenu) {
+            if (rawSlot == CHEST_SLOT) {
+                if (session.selectedMember != null) {
+                    if (isLeaderToggle(player, clan, session.selectedMember)) return;
+                    togglePermission(player, clan, session.selectedMember);
+                    refreshChestSettings(event.getView().getTopInventory(), clan, session);
+                }
+                return;
+            }
+
+            if (rawSlot < 9) return;
+
+            int memberIndex = rawSlot - 9;
+            if (memberIndex >= session.members.size()) return;
+
+            UUID member = session.members.get(memberIndex);
+            if (isLeaderToggle(player, clan, member)) return;
+            session.selectedMember = member;
+            togglePermission(player, clan, member);
+            refreshChestSettings(event.getView().getTopInventory(), clan, session);
+            return;
+        }
+
+        if (rawSlot == FRIENDLY_FIRE_SLOT) {
             if (session.selectedMember != null) {
-                if (isLeaderToggle(player, clan, session.selectedMember)) return;
-                togglePermission(player, clan, session.selectedMember);
-                refreshChestSettings(event.getView().getTopInventory(), clan, session);
+                if (isLeaderFriendlyFireToggle(player, clan, session.selectedMember)) return;
+                toggleFriendlyFirePermission(player, clan, session.selectedMember);
+                refreshFriendlyFireSettings(event.getView().getTopInventory(), clan, session);
             }
             return;
         }
@@ -94,16 +129,20 @@ public class ClanSettingsListener implements Listener {
         if (memberIndex >= session.members.size()) return;
 
         UUID member = session.members.get(memberIndex);
-        if (isLeaderToggle(player, clan, member)) return;
+        if (isLeaderFriendlyFireToggle(player, clan, member)) return;
         session.selectedMember = member;
-        togglePermission(player, clan, member);
-        refreshChestSettings(event.getView().getTopInventory(), clan, session);
+        toggleFriendlyFirePermission(player, clan, member);
+        refreshFriendlyFireSettings(event.getView().getTopInventory(), clan, session);
     }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         Component title = event.getView().title();
-        if (!title.equals(Component.text(MAIN_TITLE)) && !title.equals(Component.text(CHEST_TITLE))) return;
+        if (!title.equals(Component.text(MAIN_TITLE))
+                && !title.equals(Component.text(CHEST_TITLE))
+                && !title.equals(Component.text(FRIENDLY_FIRE_TITLE))) {
+            return;
+        }
         SettingsSession session = sessions.get(event.getPlayer().getUniqueId());
         if (session == null) return;
         if (session.switching) {
@@ -118,6 +157,11 @@ public class ClanSettingsListener implements Listener {
         populateChestSettings(inv, clan, session);
     }
 
+    private void refreshFriendlyFireSettings(Inventory inv, ClanData clan, SettingsSession session) {
+        inv.clear();
+        populateFriendlyFireSettings(inv, clan, session);
+    }
+
     private void populateMainMenu(Inventory inv) {
         ItemStack orangePane = namedItem(Material.ORANGE_STAINED_GLASS_PANE, " ");
         ItemStack grayPane = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
@@ -129,7 +173,7 @@ public class ClanSettingsListener implements Listener {
             inv.setItem(i, grayPane);
         }
         inv.setItem(MAIN_CHEST_SLOT, clanChestItem(null));
-        inv.setItem(MAIN_HEAD_SLOT, futureSettingsItem());
+        inv.setItem(MAIN_FRIENDLY_FIRE_SLOT, friendlyFireItem(null));
     }
 
     private void populateChestSettings(Inventory inv, ClanData clan, SettingsSession session) {
@@ -154,10 +198,39 @@ public class ClanSettingsListener implements Listener {
         }
     }
 
+    private void populateFriendlyFireSettings(Inventory inv, ClanData clan, SettingsSession session) {
+        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
+        for (int i = 0; i < 9; i++) {
+            inv.setItem(i, filler);
+        }
+        inv.setItem(FRIENDLY_FIRE_SLOT, friendlyFireItem(session.selectedMember));
+
+        UUID leaderId = clan.getLeader();
+        for (int i = 0; i < session.members.size() && i < 45; i++) {
+            UUID member = session.members.get(i);
+            ClanFriendlyFirePermission permission = effectiveFriendlyFirePermission(clan, member, leaderId);
+            boolean selected = member.equals(session.selectedMember);
+            inv.setItem(9 + i, friendlyFireMemberSkull(member, permission, selected, leaderId));
+        }
+
+        if (session.members.size() < 45) {
+            for (int i = session.members.size(); i < 45; i++) {
+                inv.setItem(9 + i, namedItem(Material.BLACK_STAINED_GLASS_PANE, " "));
+            }
+        }
+    }
+
     private void openChestSettings(Player player, ClanData clan, SettingsSession session) {
         session.switching = true;
         Inventory inv = Bukkit.createInventory(null, CHEST_INVENTORY_SIZE, CHEST_TITLE);
         populateChestSettings(inv, clan, session);
+        player.openInventory(inv);
+    }
+
+    private void openFriendlyFireSettings(Player player, ClanData clan, SettingsSession session) {
+        session.switching = true;
+        Inventory inv = Bukkit.createInventory(null, FRIENDLY_FIRE_INVENTORY_SIZE, FRIENDLY_FIRE_TITLE);
+        populateFriendlyFireSettings(inv, clan, session);
         player.openInventory(inv);
     }
 
@@ -172,10 +245,28 @@ public class ClanSettingsListener implements Listener {
         }
     }
 
+    private void toggleFriendlyFirePermission(Player player, ClanData clan, UUID member) {
+        ClanFriendlyFirePermission current = clan.getFriendlyFirePermission(member);
+        ClanFriendlyFirePermission next = current.next();
+        clan.setFriendlyFirePermission(member, next);
+        try {
+            plugin.getFileManager().saveClan(clan);
+        } catch (IOException e) {
+            player.sendMessage(plugin.getConfigManager().getPrefix() + "Error saving.");
+        }
+    }
+
     private boolean isLeaderToggle(Player player, ClanData clan, UUID member) {
         if (member == null) return false;
         if (!member.equals(clan.getLeader())) return false;
         player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
+        return true;
+    }
+
+    private boolean isLeaderFriendlyFireToggle(Player player, ClanData clan, UUID member) {
+        if (member == null) return false;
+        if (!member.equals(clan.getLeader())) return false;
+        player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-friendly-fire"));
         return true;
     }
 
@@ -184,6 +275,13 @@ public class ClanSettingsListener implements Listener {
             return ClanChestPermission.leaderDefault();
         }
         return clan.getChestPermission(member);
+    }
+
+    private ClanFriendlyFirePermission effectiveFriendlyFirePermission(ClanData clan, UUID member, UUID leaderId) {
+        if (member.equals(leaderId)) {
+            return ClanFriendlyFirePermission.leaderDefault();
+        }
+        return clan.getFriendlyFirePermission(member);
     }
 
     private ItemStack clanChestItem(UUID selectedMember) {
@@ -208,14 +306,21 @@ public class ClanSettingsListener implements Listener {
         return item;
     }
 
-    private ItemStack futureSettingsItem() {
+    private ItemStack friendlyFireItem(UUID selectedMember) {
         ConfigManager cm = plugin.getConfigManager();
-        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+        ItemStack item = new ItemStack(Material.IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(cm.translateColors("&6More Settings"));
+            meta.setDisplayName(cm.translateColors("&6Friendly Fire"));
             List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Coming soon"));
+            lore.add(cm.translateColors("&7Click to configure"));
+            if (selectedMember != null) {
+                String name = Bukkit.getOfflinePlayer(selectedMember).getName();
+                if (name == null) name = selectedMember.toString().substring(0, 8);
+                lore.add(cm.translateColors("&7Selected: &f" + name));
+            }
+            lore.add(cm.translateColors("&7✅ &aEnabled"));
+            lore.add(cm.translateColors("&7❌ &cDisabled"));
             meta.setLore(lore);
             item.setItemMeta(meta);
         }
@@ -244,11 +349,37 @@ public class ClanSettingsListener implements Listener {
             List<String> lore = new ArrayList<>();
             boolean isLeader = member.equals(leaderId);
             if (isLeader) {
-                lore.add(cm.translateColors("&7Clan-Leader &f(immer Zugriff)"));
+                lore.add(cm.translateColors("&7Clan-Leader &f(always enabled)"));
             } else {
                 lore.add(cm.translateColors("&7Click to change permission"));
             }
             lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
+            if (selected) {
+                lore.add(cm.translateColors("&bSelected"));
+            }
+            meta.setLore(lore);
+            skull.setItemMeta(meta);
+        }
+        return skull;
+    }
+
+    private ItemStack friendlyFireMemberSkull(UUID member, ClanFriendlyFirePermission permission, boolean selected, UUID leaderId) {
+        ConfigManager cm = plugin.getConfigManager();
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        if (meta != null) {
+            org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(member);
+            meta.setOwningPlayer(op);
+            String name = op.getName() != null ? op.getName() : member.toString().substring(0, 8);
+            meta.setDisplayName("§f" + name);
+            List<String> lore = new ArrayList<>();
+            boolean isLeader = member.equals(leaderId);
+            if (isLeader) {
+                lore.add(cm.translateColors("&7Clan-Leader &f(immer Zugriff)"));
+            } else {
+                lore.add(cm.translateColors("&7Click to change permission"));
+            }
+            lore.add(cm.translateColors("&7Current: " + friendlyFireLabel(permission)));
             if (selected) {
                 lore.add(cm.translateColors("&bSelected"));
             }
@@ -267,6 +398,13 @@ public class ClanSettingsListener implements Listener {
             default:
                 return "&e👁 View only";
         }
+    }
+
+    private String friendlyFireLabel(ClanFriendlyFirePermission permission) {
+        if (permission == ClanFriendlyFirePermission.DENY) {
+            return "&c❌ Disabled";
+        }
+        return "&a✅ Enabled";
     }
 
     private static class SettingsSession {
