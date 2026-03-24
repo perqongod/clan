@@ -93,6 +93,10 @@ public class ClanSettingsListener implements Listener {
         if (memberIndex >= session.members.size()) return;
 
         UUID member = session.members.get(memberIndex);
+        if (member.equals(clan.getLeader())) {
+            player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
+            return;
+        }
         session.selectedMember = member;
         togglePermission(player, clan, member);
         refreshChestSettings(event.getView().getTopInventory(), clan, session);
@@ -139,9 +143,10 @@ public class ClanSettingsListener implements Listener {
 
         for (int i = 0; i < session.members.size() && i < 45; i++) {
             UUID member = session.members.get(i);
-            ClanChestPermission permission = clan.getChestPermission(member);
+            boolean isLeader = member.equals(clan.getLeader());
+            ClanChestPermission permission = isLeader ? ClanChestPermission.EXECUTE : clan.getChestPermission(member);
             boolean selected = member.equals(session.selectedMember);
-            inv.setItem(9 + i, memberSkull(member, permission, selected));
+            inv.setItem(9 + i, memberSkull(member, permission, selected, isLeader));
         }
 
         if (session.members.size() < 45) {
@@ -159,6 +164,10 @@ public class ClanSettingsListener implements Listener {
     }
 
     private void togglePermission(Player player, ClanData clan, UUID member) {
+        if (member.equals(clan.getLeader())) {
+            player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
+            return;
+        }
         ClanChestPermission current = clan.getChestPermission(member);
         ClanChestPermission next = current.next();
         clan.setChestPermission(member, next);
@@ -215,7 +224,7 @@ public class ClanSettingsListener implements Listener {
         return item;
     }
 
-    private ItemStack memberSkull(UUID member, ClanChestPermission permission, boolean selected) {
+    private ItemStack memberSkull(UUID member, ClanChestPermission permission, boolean selected, boolean isLeader) {
         ConfigManager cm = plugin.getConfigManager();
         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
@@ -225,8 +234,13 @@ public class ClanSettingsListener implements Listener {
             String name = op.getName() != null ? op.getName() : member.toString().substring(0, 8);
             meta.setDisplayName("§f" + name);
             List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Click to change permission"));
-            lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
+            if (isLeader) {
+                lore.add(cm.translateColors("&7Leader &f(always access)"));
+                lore.add(cm.translateColors("&7Current: " + permissionLabel(ClanChestPermission.EXECUTE)));
+            } else {
+                lore.add(cm.translateColors("&7Click to change permission"));
+                lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
+            }
             if (selected) {
                 lore.add(cm.translateColors("&bSelected"));
             }
