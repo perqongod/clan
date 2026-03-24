@@ -194,4 +194,12 @@ public class ConfigManager {
     public boolean getEnableDatabase() {
         return config.getBoolean("enable-database");
     }
+
+    public int getMinPoints() {
+        return config.getInt("min-points", 0);
+    }
+
+    public int getMaxPoints() {
+        return config.getInt("max-points", 10000);
+    }
 }
