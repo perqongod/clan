@@ -37,7 +37,7 @@ public class ClanQuestListener implements Listener {
     public void openGui(Player player, ClanData clan) {
         Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE, TITLE);
         pages.put(player.getUniqueId(), 0);
-        populateInventory(inv, clan, player.getUniqueId());
+        populateQuestInventory(inv, clan, player.getUniqueId());
         player.openInventory(inv);
     }
 
@@ -72,7 +72,7 @@ public class ClanQuestListener implements Listener {
                 return;
             }
             pages.put(player.getUniqueId(), currentPage);
-            populateInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
+            populateQuestInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
         }
     }
 
@@ -82,7 +82,7 @@ public class ClanQuestListener implements Listener {
         pages.remove(event.getPlayer().getUniqueId());
     }
 
-    private void populateInventory(Inventory inv, ClanData clan, UUID viewer) {
+    private void populateQuestInventory(Inventory inv, ClanData clan, UUID viewer) {
         inv.clear();
         ConfigManager cm = plugin.getConfigManager();
 

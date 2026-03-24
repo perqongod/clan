@@ -23,6 +23,7 @@ import java.util.logging.Level;
 public class EventListener implements Listener {
     private final Clan plugin;
     private Map<UUID, Long> joinTimes = new HashMap<>();
+    private static final int QUEST_SAVE_INTERVAL = 10;
 
     public EventListener(Clan plugin) {
         this.plugin = plugin;
@@ -115,7 +116,9 @@ public class EventListener implements Listener {
         if (killer == null) return;
         ClanData clan = getPlayerClan(killer.getUniqueId());
         if (clan == null) return;
-        clan.setQuestZombieKillCount(clan.getQuestZombieKillCount() + 1);
+        int newCount = clan.getQuestZombieKillCount() + 1;
+        clan.setQuestZombieKillCount(newCount);
+        if (newCount % QUEST_SAVE_INTERVAL != 0) return;
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {
