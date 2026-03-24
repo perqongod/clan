@@ -1,13 +1,17 @@
 package org.perq.clan;
 
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -62,7 +66,8 @@ public class EventListener implements Listener {
 
         WarManager warManager = plugin.getWarManager();
         WarManager.ActiveWar war = warManager.getActiveWar(getPlayerClanTag(attacker.getUniqueId()));
-        if (war == null) return;
+        if (war == null || (war.getState() != WarManager.WarState.COUNTDOWN && war.getState() != WarManager.WarState.ACTIVE)) return;
+        if (!war.isJoinedPlayer(attacker.getUniqueId()) || !war.isJoinedPlayer(victim.getUniqueId())) return;
 
         // Check if both are in the same team (friendly fire)
         boolean sameTeam = (war.isInTeamA(attacker.getUniqueId()) && war.isInTeamA(victim.getUniqueId()))
@@ -81,28 +86,21 @@ public class EventListener implements Listener {
 
         // War death handling
         WarManager warManager = plugin.getWarManager();
-        if (killer != null) {
-            WarManager.ActiveWar war = warManager.getActiveWar(getPlayerClanTag(killer.getUniqueId()));
-            if (war != null) {
-                // Check killer and victim are on opposing teams
-                boolean validKill = (war.isInTeamA(killer.getUniqueId()) && war.isInTeamB(victim.getUniqueId()))
-                        || (war.isInTeamB(killer.getUniqueId()) && war.isInTeamA(victim.getUniqueId()));
-                if (validKill) {
-                    // Check if all members of one team are dead → end war
-                    // (simplified: we just let the war run its timer; scoring is by kills not elimination)
-                    // Notify teams
-                    String killerTeamTag = war.isInTeamA(killer.getUniqueId()) ? war.getClanTagA() : war.getClanTagB();
-                    String victimTeamTag = war.isInTeamA(victim.getUniqueId()) ? war.getClanTagA() : war.getClanTagB();
-                    // Log the war kill in the clan log
-                    ClanData killerClan = plugin.getFileManager().loadClan(killerTeamTag);
-                    if (killerClan != null) {
-                        killerClan.addLog(killer.getName() + " defeated " + victim.getName() + " in a clan war.");
-                        applyKillPoints(killerClan);
-                        try { plugin.getFileManager().saveClan(killerClan); } catch (IOException ignored) {}
-                    }
+        WarManager.ActiveWar war = warManager.getActiveWar(getPlayerClanTag(victim.getUniqueId()));
+        if (war != null && war.getState() == WarManager.WarState.ACTIVE) {
+            warManager.handlePlayerDeath(victim, killer);
+            if (killer != null && war.isActivePlayer(killer.getUniqueId())
+                    && war.isOpposingTeams(killer.getUniqueId(), victim.getUniqueId())) {
+                String killerTeamTag = war.isInTeamA(killer.getUniqueId()) ? war.getClanTagA() : war.getClanTagB();
+                ClanData killerClan = plugin.getFileManager().loadClan(killerTeamTag);
+                if (killerClan != null) {
+                    killerClan.addLog(killer.getName() + " defeated " + victim.getName() + " in a clan war.");
+                    applyKillPoints(killerClan);
+                    try { plugin.getFileManager().saveClan(killerClan); } catch (IOException ignored) {}
                 }
-                return; // Don't award regular kill points during war
             }
+            victim.setGameMode(GameMode.SPECTATOR);
+            return; // Don't award regular kill points during war
         }
 
         // Regular kill points (not in war)
@@ -127,6 +125,7 @@ public class EventListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         UUID player = event.getPlayer().getUniqueId();
+        plugin.getWarManager().handleDisconnect(player);
         Long joinTime = joinTimes.remove(player);
         if (joinTime != null) {
             double hours = (System.currentTimeMillis() - joinTime) / 3600000.0;
@@ -144,6 +143,31 @@ public class EventListener implements Listener {
                     plugin.getFileManager().savePlayer(player, pData);
                 } catch (IOException e) {}
             }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        UUID playerUUID = event.getPlayer().getUniqueId();
+        WarManager.ActiveWar war = plugin.getWarManager().getActiveWarByPlayer(playerUUID);
+        if (war == null || !war.isDead(playerUUID)) return;
+        if (war.getDeathLocation(playerUUID) != null) {
+            event.setRespawnLocation(war.getDeathLocation(playerUUID));
+        }
+        Bukkit.getScheduler().runTask(plugin, () -> event.getPlayer().setGameMode(GameMode.SPECTATOR));
+    }
+
+    @EventHandler
+    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
+        WarManager.ActiveWar war = plugin.getWarManager().getActiveWarByPlayer(event.getPlayer().getUniqueId());
+        if (war == null) return;
+        if (war.getState() == WarManager.WarState.ACTIVE || war.getState() == WarManager.WarState.COUNTDOWN) {
+            String base = event.getMessage().split(" ")[0].toLowerCase();
+            if (plugin.getConfigManager().getWarCommandAllowlist().contains(base)) {
+                return;
+            }
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(plugin.getConfigManager().getMessage("war-commands-blocked"));
         }
     }
 

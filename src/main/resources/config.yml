@@ -23,6 +23,17 @@ war:
   cost: 200
   cooldown-minutes: 30
   arena-countdown-seconds: 600
+  start-countdown-seconds: 10
+  request-timeout-seconds: 30
+  invite-timeout-seconds: 30
+  ready-timeout-seconds: 30
+  teleport-timeout-seconds: 30
+  command-allowlist:
+    - "/help"
+    - "/logout"
+    - "/quit"
+    - "/clan"
+    - "/war"
 
 messages:
   toggle-off: "%prefix%&cYou are no longer accepting clan invitations."
@@ -92,24 +103,35 @@ messages:
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"
   target-in-clan-notify: "%csprefix%&aYou have a new notification."
   war-info-header: "%prefix%&6ᴄʟᴀɴ ᴡᴀʀ"
-  war-info-body: "&eCost: &f%cost% points\n&eCooldown: &f%cooldown% minutes\n&eStatus: %status%"
-  war-not-enough-points: "%prefix%&4You don't have enough points for a clan war. You need %cost% points."
-  war-already-at-war: "%prefix%&cYour clan is already at war."
-  war-target-at-war: "%prefix%&cThe target clan is already at war."
-  war-self: "%prefix%&cYou cannot challenge your own clan."
-  war-cooldown: "%prefix%&cYou can start another clan war in %minutes% minutes."
-  war-request-sent: "%prefix%&aYou have challenged the [%tag%] clan to a &4ᴄʟᴀɴ ᴡᴀʀ&a."
-  war-request-received: "%csprefix%&aYou have been challenged to a &4ᴄʟᴀɴ ᴡᴀʀ &aby %player%. Interested?"
-  war-denied-self: "%prefix%&cYou have declined the &4ᴄʟᴀɴ ᴡᴀʀ&c."
-  war-denied-challenger: "%prefix%&cYour ᴄʟᴀɴ ᴡᴀʀ was declined."
-  war-accepted-notice: "%prefix%&aYou have accepted the &4ᴄʟᴀɴ ᴡᴀʀ&a."
-  war-teleport-notice: "%prefix%&aYou will be teleported to the arena in 10 minutes. Choose who fights with you."
-  war-player-invite: "%csprefix%&aYou were invited to a &4ᴄʟᴀɴ ᴡᴀʀ&a."
-  war-friendly-fire: "%prefix%&cYou cannot attack a teammate!"
-  war-won: "%prefix%&aYour clan won the &4ᴄʟᴀɴ ᴡᴀʀ&a! +100 points."
-  war-lost: "%prefix%&cYour clan lost the &4ᴄʟᴀɴ ᴡᴀʀ&c. -100 points."
-  war-no-arena: "%prefix%&cNo arena available."
-  war-no-pending: "%prefix%&cYou have no pending war request."
+  war-info-body: "&eKosten: &f%cost% Punkte\n&eAbklingzeit: &f%cooldown% Minuten\n&eStatus: %status%"
+  war-not-enough-points: "%prefix%&4Du hast nicht genug Punkte für einen Clan-War. Du brauchst %cost% Punkte."
+  war-already-at-war: "%prefix%&cDein Clan ist bereits im War."
+  war-target-at-war: "%prefix%&cDer Zielclan ist bereits im War."
+  war-self: "%prefix%&cDu kannst deinen eigenen Clan nicht herausfordern."
+  war-cooldown: "%prefix%&cDu kannst in %minutes% Minuten wieder einen War starten."
+  war-request-sent: "%prefix%&aDu hast den Clan [%tag%] zu einem &4ᴄʟᴀɴ ᴡᴀʀ&a herausgefordert."
+  war-request-received: "%csprefix%&aDer Clan %player% hat euch zu einem Clan-War herausgefordert."
+  war-request-timeout-challenger: "%prefix%&cDeine War-Anfrage wurde automatisch abgelehnt (Timeout)."
+  war-request-timeout-target: "%prefix%&cDie War-Anfrage ist abgelaufen."
+  war-denied-self: "%prefix%&cDu hast den &4ᴄʟᴀɴ ᴡᴀʀ&c abgelehnt."
+  war-denied-challenger: "%prefix%&cDein ᴄʟᴀɴ ᴡᴀʀ wurde abgelehnt."
+  war-accepted-notice: "%prefix%&aDu hast den &4ᴄʟᴀɴ ᴡᴀʀ&a angenommen."
+  war-team-select: "%prefix%&aWähle jetzt deine Kämpfer im Team-GUI."
+  war-player-invite: "%csprefix%&a⚔ Dein Clan möchte dich für einen War einsetzen. Gegner: %tag%"
+  war-ready-question: "&eBist du bereit für den War?"
+  war-teleport-question: "&eDer War beginnt jetzt. Möchtest du zur Arena teleportiert werden?"
+  war-countdown-subtitle: "&eWar beginnt gleich!"
+  war-start-subtitle: "&fViel Erfolg!"
+  war-no-active: "%prefix%&cDu bist in keinem aktiven Clan War."
+  war-selection-locked: "%prefix%&cDie Teamauswahl ist gerade gesperrt."
+  war-cancelled-no-players: "%prefix%&cWar abgebrochen: Zu wenig Spieler."
+  war-cancelled-no-ready: "%prefix%&cWar abgebrochen: Niemand war bereit."
+  war-commands-blocked: "%prefix%&cBefehle sind während des Wars deaktiviert."
+  war-friendly-fire: "%prefix%&cDu kannst Teamkameraden nicht angreifen!"
+  war-won: "%prefix%&aDein Clan hat den &4ᴄʟᴀɴ ᴡᴀʀ&a gewonnen! +100 Punkte."
+  war-lost: "%prefix%&cDein Clan hat den &4ᴄʟᴀɴ ᴡᴀʀ&c verloren. -100 Punkte."
+  war-no-arena: "%prefix%&cKeine Arena verfügbar."
+  war-no-pending: "%prefix%&cDu hast keine ausstehende War-Anfrage."
   admin-points-no-op: "%prefix%&cDu brauchst OP-Rechte für diesen Befehl."
   admin-points-not-found: "%prefix%&cSpieler/Clan nicht gefunden."
   admin-points-add: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte hinzugefügt. Neuer Stand: %total%."
@@ -155,6 +177,7 @@ help-book:
       &f/clan war info
       &f/clan war accept <tag>
       &f/clan war deny <tag>
+      &f/clan war team
 
 # War arenas (set via /clan war setarena a/b)
 arenas: []

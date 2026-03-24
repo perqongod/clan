@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -128,7 +129,8 @@ public class ConfigManager {
                     + "&f/clan war <tag>\n"
                     + "&f/clan war info\n"
                     + "&f/clan war accept <tag>\n"
-                    + "&f/clan war deny <tag>");
+                    + "&f/clan war deny <tag>\n"
+                    + "&f/clan war team");
         }
         return new ArrayList<>(pages);
     }
@@ -169,6 +171,38 @@ public class ConfigManager {
 
     public int getWarArenaCountdownSeconds() {
         return config.getInt("war.arena-countdown-seconds", 600);
+    }
+
+    public int getWarStartCountdownSeconds() {
+        return config.getInt("war.start-countdown-seconds", 10);
+    }
+
+    public int getWarRequestTimeoutSeconds() {
+        return config.getInt("war.request-timeout-seconds", 30);
+    }
+
+    public int getWarInviteTimeoutSeconds() {
+        return config.getInt("war.invite-timeout-seconds", 30);
+    }
+
+    public int getWarReadyTimeoutSeconds() {
+        return config.getInt("war.ready-timeout-seconds", 30);
+    }
+
+    public int getWarTeleportTimeoutSeconds() {
+        return config.getInt("war.teleport-timeout-seconds", 30);
+    }
+
+    public List<String> getWarCommandAllowlist() {
+        List<String> allowlist = config.getStringList("war.command-allowlist");
+        if (allowlist == null || allowlist.isEmpty()) {
+            allowlist = Arrays.asList("/help", "/logout", "/quit", "/clan", "/war");
+        }
+        List<String> normalized = new ArrayList<>();
+        for (String cmd : allowlist) {
+            normalized.add(cmd.toLowerCase());
+        }
+        return normalized;
     }
 
     public String getMySQLHost() {

@@ -29,6 +29,10 @@ public final class Clan extends JavaPlugin {
         ClanCommand clanCommand = new ClanCommand(this);
         getCommand("clan").setExecutor(clanCommand);
         getCommand("clan").setTabCompleter(clanCommand);
+        if (getCommand("war") != null) {
+            getCommand("war").setExecutor(clanCommand);
+            getCommand("war").setTabCompleter(clanCommand);
+        }
 
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
         getServer().getPluginManager().registerEvents(warTeamSelectionListener, this);

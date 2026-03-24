@@ -81,6 +81,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (command.getName().equalsIgnoreCase("war")) {
+            String[] warArgs = new String[args.length + 1];
+            warArgs[0] = "war";
+            System.arraycopy(args, 0, warArgs, 1, args.length);
+            handleWarCommand(player, playerUUID, warArgs, cm);
+            return true;
+        }
+
         // Clan-chat routing: unknown sub-arg treated as chat message
         if (args.length > 0 && !SUBCOMMANDS.contains(args[0].toLowerCase())) {
             ClanData chatClan = getPlayerClan(playerUUID);
@@ -1558,16 +1566,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 warManager.removeWarRequest(challengerTag);
                 warManager.setWarCooldown(warReq.getChallengerLeaderUUID());
                 Player challengerLeader = Bukkit.getPlayer(warReq.getChallengerLeaderUUID());
-                if (challengerLeader != null) {
-                    challengerLeader.sendMessage(cm.getMessage("war-accepted-notice"));
-                    challengerLeader.sendMessage(cm.getMessage("war-teleport-notice"));
-                }
                 ClanData challengerClan = plugin.getFileManager().loadClan(challengerTag);
-                if (challengerClan != null && challengerLeader != null) {
-                    plugin.getWarTeamSelectionListener().openGui(challengerLeader, challengerTag, challengerClan.getMembers());
-                }
-                plugin.getWarTeamSelectionListener().openGui(player, myClan.getTag(), myClan.getMembers());
-                player.sendMessage(cm.getMessage("war-accepted-notice"));
                 Location spawnA = arenaSpawns.get("a");
                 Location spawnB = arenaSpawns.get("b");
                 if (spawnA == null || spawnB == null) {
@@ -1576,7 +1575,15 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 List<UUID> teamA = challengerClan != null ? new ArrayList<>(challengerClan.getMembers()) : new ArrayList<>();
                 List<UUID> teamB = new ArrayList<>(myClan.getMembers());
-                warManager.startWar(challengerTag, teamA, myClan.getTag(), teamB, spawnA, spawnB);
+                WarManager.ActiveWar war = warManager.startWar(challengerTag, teamA, myClan.getTag(), teamB, spawnA, spawnB);
+                if (challengerLeader != null) {
+                    challengerLeader.sendMessage(cm.getMessage("war-accepted-notice"));
+                    challengerLeader.sendMessage(cm.getMessage("war-team-select"));
+                    plugin.getWarTeamSelectionListener().openGui(challengerLeader, war, challengerTag);
+                }
+                plugin.getWarTeamSelectionListener().openGui(player, war, myClan.getTag());
+                player.sendMessage(cm.getMessage("war-accepted-notice"));
+                player.sendMessage(cm.getMessage("war-team-select"));
                 break;
             }
 
@@ -1600,6 +1607,49 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (challengerLeader != null) {
                     challengerLeader.sendMessage(cm.getMessage("war-denied-challenger"));
                 }
+                break;
+            }
+
+            case "team": {
+                ClanData myClan = getPlayerClan(playerUUID);
+                if (myClan == null) { player.sendMessage(cm.getMessage("no-clan")); return; }
+                if (!myClan.getLeader().equals(playerUUID)) { player.sendMessage(cm.getMessage("no-permission")); return; }
+                WarManager.ActiveWar war = warManager.getActiveWar(myClan.getTag());
+                if (war == null) {
+                    player.sendMessage(cm.getMessage("war-no-active"));
+                    return;
+                }
+                plugin.getWarTeamSelectionListener().openGui(player, war, myClan.getTag());
+                break;
+            }
+
+            case "invite-accept": {
+                warManager.handleInviteResponse(playerUUID, true);
+                break;
+            }
+
+            case "invite-deny": {
+                warManager.handleInviteResponse(playerUUID, false);
+                break;
+            }
+
+            case "ready": {
+                warManager.handleReadyResponse(playerUUID, true);
+                break;
+            }
+
+            case "not-ready": {
+                warManager.handleReadyResponse(playerUUID, false);
+                break;
+            }
+
+            case "teleport-accept": {
+                warManager.handleTeleportResponse(playerUUID, true);
+                break;
+            }
+
+            case "teleport-deny": {
+                warManager.handleTeleportResponse(playerUUID, false);
                 break;
             }
 
@@ -1658,13 +1708,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(cm.getMessage("war-request-sent").replace("%tag%", targetTag));
                 Player targetLeader = Bukkit.getPlayer(targetClan.getLeader());
                 if (targetLeader != null) {
+                    targetLeader.sendMessage(cm.getMessage("war-request-received").replace("%player%", player.getName()));
                     targetLeader.sendMessage(
-                            Component.text(cm.getMessage("war-request-received").replace("%player%", player.getName()) + " ")
-                                    .append(Component.text("[Accept]")
-                                            .color(TextColor.color(0x55FF55))
-                                            .clickEvent(ClickEvent.runCommand("/clan war accept " + myClan.getTag())))
-                                    .append(Component.text(" / ").color(TextColor.color(0xAAAAAA)))
-                                    .append(Component.text("[Deny]")
+                            Component.text("[✔ ACCEPT]")
+                                    .color(TextColor.color(0x55FF55))
+                                    .clickEvent(ClickEvent.runCommand("/clan war accept " + myClan.getTag()))
+                                    .append(Component.text("   ").color(TextColor.color(0xAAAAAA)))
+                                    .append(Component.text("[✖ DENY]")
                                             .color(TextColor.color(0xFF5555))
                                             .clickEvent(ClickEvent.runCommand("/clan war deny " + myClan.getTag())))
                     );
@@ -1721,6 +1771,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Open clan settings"));
         }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan war <tag> &7- Challenge a clan to war"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan war team &7- Reopen war team selection"));
         if (player.hasPermission("clan.admin")) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "&7Admin: &f/clan admin &7for admin commands"));
         }
@@ -1733,8 +1784,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         }
         ClanData myClan = getPlayerClan(playerUUID);
         String status = (myClan != null && warManager.isAtWar(myClan.getTag()))
-                ? cm.translateColors("&cAt war")
-                : cm.translateColors("&aAt peace");
+                ? cm.translateColors("&cIm Krieg")
+                : cm.translateColors("&aIn Frieden");
         String body = cm.getMessage("war-info-body");
         if (body == null || body.isEmpty()) {
             return;
@@ -1792,6 +1843,32 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
         UUID playerUUID = player.getUniqueId();
 
+        if (command.getName().equalsIgnoreCase("war")) {
+            if (args.length == 1) {
+                List<String> warOpts = new ArrayList<>(Arrays.asList(
+                        "info", "accept", "deny", "team", "invite-accept", "invite-deny",
+                        "ready", "not-ready", "teleport-accept", "teleport-deny", "setarena"
+                ));
+                warOpts.addAll(plugin.getFileManager().loadAllClans().keySet());
+                return warOpts;
+            }
+            if (args.length == 2 && ("accept".equalsIgnoreCase(args[0]) || "deny".equalsIgnoreCase(args[0]))) {
+                WarManager wm = plugin.getWarManager();
+                List<String> challenges = new ArrayList<>();
+                ClanData myClan = getPlayerClan(playerUUID);
+                if (myClan != null) {
+                    for (String ct : plugin.getFileManager().loadAllClans().keySet()) {
+                        WarManager.WarRequest req = wm.getWarRequestByChallenger(ct);
+                        if (req != null && req.getTargetTag().equals(myClan.getTag())) {
+                            challenges.add(ct);
+                        }
+                    }
+                }
+                return challenges;
+            }
+            return null;
+        }
+
         if (args.length == 1) {
             List<String> subs = new ArrayList<>(Arrays.asList(
                     "create", "delete", "invite", "accept", "deny", "join", "leave",
@@ -1847,7 +1924,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
                 }
                 case "war": {
-                    List<String> warOpts = new ArrayList<>(Arrays.asList("info", "accept", "deny", "setarena"));
+                    List<String> warOpts = new ArrayList<>(Arrays.asList(
+                            "info", "accept", "deny", "team", "invite-accept", "invite-deny",
+                            "ready", "not-ready", "teleport-accept", "teleport-deny", "setarena"
+                    ));
                     warOpts.addAll(plugin.getFileManager().loadAllClans().keySet());
                     return warOpts;
                 }
