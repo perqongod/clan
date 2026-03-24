@@ -88,8 +88,8 @@ messages:
   invite-max-open: "%prefix%&cThis player already has an open invitation."
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"
   target-in-clan-notify: "%csprefix%&aYou have a new notification."
-  war-info-header: "%prefix%ᴄʟᴀɴ ᴡᴀʀ"
-  war-info-body: "&eYou are fighting with your clan against another clan.\n&eThe winner receives +100 points.\n&eThe loser receives -100 points."
+  war-info-header: "%prefix%&6ᴄʟᴀɴ ᴡᴀʀ"
+  war-info-body: "&eCost: &f%cost% points\n&eCooldown: &f%cooldown% minutes\n&eStatus: %status%"
   war-not-enough-points: "%prefix%&4You don't have enough points for a clan war. You need %cost% points."
   war-already-at-war: "%prefix%&cYour clan is already at war."
   war-target-at-war: "%prefix%&cThe target clan is already at war."
@@ -114,6 +114,39 @@ ranks:
   Gold: 10
   Platinum: 11
   Diamond: 12
+
+help-book:
+  title: "Clan Hilfe"
+  author: "Clan System"
+  pages:
+    - |-
+      &6&lClan Hilfe
+      &7Erste Schritte:
+      &f/clan create <tag>
+      &f/clan invite <spieler>
+      &f/clan join <tag>
+      &f/clan leave
+      &f/clan info
+      &f/clan request <tag>
+      &f/clan requests
+    - |-
+      &6&lVerwaltung
+      &f/clan kick <spieler>
+      &f/clan promote <spieler>
+      &f/clan demote [spieler]
+      &f/clan leader <spieler>
+      &f/clan rename <tag>
+      &f/clan chest
+      &f/clan spawn
+      &f/clan setspawn
+      &f/clan skills
+      &f/clan logs
+    - |-
+      &6&lClan War
+      &f/clan war <tag>
+      &f/clan war info
+      &f/clan war accept <tag>
+      &f/clan war deny <tag>
 
 # War arenas (set via /clan war setarena a/b)
 arenas: []
