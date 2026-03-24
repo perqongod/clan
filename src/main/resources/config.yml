@@ -90,7 +90,7 @@ messages:
   promote-only-mod: "%prefix%&cYou can only promote players up to MOD. Use /clan leader <player> to transfer leadership."
   leader-transferred: "%prefix%&aLeadership has been transferred to %player%."
   leader-received: "%prefix%&aYou are now the leader of clan %tag%."
-  settings-leader-chest: "%prefix%&cDer Clan-Lead hat immer Zugriff auf die Clan Chest."
+  settings-leader-chest: "%prefix%&cDer Clan-Leader hat immer Zugriff auf die Clan Chest."
   invite-cooldown: "%prefix%&cPlease wait %seconds% more seconds before sending another invite."
   invite-max-open: "%prefix%&cThis player already has an open invitation."
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"

@@ -141,7 +141,7 @@ public class ClanSettingsListener implements Listener {
         for (int i = 0; i < session.members.size() && i < 45; i++) {
             UUID member = session.members.get(i);
             boolean isLeader = member.equals(clan.getLeader());
-            ClanChestPermission permission = isLeader ? ClanChestPermission.EXECUTE : clan.getChestPermission(member);
+            ClanChestPermission permission = isLeader ? ClanChestPermission.leaderDefault() : clan.getChestPermission(member);
             boolean selected = member.equals(session.selectedMember);
             inv.setItem(9 + i, memberSkull(member, permission, selected, isLeader));
         }
