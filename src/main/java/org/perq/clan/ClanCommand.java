@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ClanCommand implements CommandExecutor, TabCompleter {
 
@@ -1719,12 +1720,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return null;
                 }
                 case "request": {
-                    List<String> tags = new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
-                    if (clan != null) {
-                        String clanTag = clan.getTag();
-                        tags.remove(clanTag);
+                    Map<String, ClanData> clans = plugin.getFileManager().loadAllClans();
+                    if (clan == null) {
+                        return new ArrayList<>(clans.keySet());
                     }
-                    return tags;
+                    String clanTag = clan.getTag();
+                    return clans.keySet().stream()
+                            .filter(tag -> !tag.equals(clanTag))
+                            .collect(Collectors.toList());
                 }
                 case "stats": {
                     return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
