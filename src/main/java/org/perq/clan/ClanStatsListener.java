@@ -15,6 +15,8 @@ import java.util.List;
 
 public class ClanStatsListener implements Listener {
     private static final String TITLE_PREFIX = "Clan stats of ";
+    private static final String FILLER_NAME = " ";
+    private static final String PLAYTIME_FORMAT = "%.1f";
     private static final int INVENTORY_SIZE = 27;
     private static final int POINTS_SLOT = 10;
     private static final int RANK_SLOT = 11;
@@ -53,7 +55,7 @@ public class ClanStatsListener implements Listener {
         inv.clear();
         ConfigManager cm = plugin.getConfigManager();
 
-        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
+        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, FILLER_NAME);
         for (int i = 0; i < inv.getSize(); i++) {
             inv.setItem(i, filler);
         }
@@ -79,7 +81,7 @@ public class ClanStatsListener implements Listener {
         inv.setItem(MEMBERS_SLOT, namedItem(Material.GRAY_WOOL, cm.translateColors("&7Members"), membersLore));
 
         List<String> playtimeLore = new ArrayList<>();
-        playtimeLore.add(cm.translateColors("&f" + String.format("%.1f", clan.getOnlineTime()) + "h"));
+        playtimeLore.add(cm.translateColors("&f" + String.format(PLAYTIME_FORMAT, clan.getOnlineTime()) + "h"));
         inv.setItem(PLAYTIME_SLOT, namedItem(Material.YELLOW_WOOL, cm.translateColors("&eTotal Playtime"), playtimeLore));
 
         List<String> leaderLore = new ArrayList<>();
