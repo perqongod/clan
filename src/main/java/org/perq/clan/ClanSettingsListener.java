@@ -101,8 +101,8 @@ public class ClanSettingsListener implements Listener {
             player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
             return;
         }
-        togglePermission(player, clan, member);
         session.selectedMember = member;
+        togglePermission(player, clan, member);
         refreshChestSettings(event.getView().getTopInventory(), clan, session);
     }
 
