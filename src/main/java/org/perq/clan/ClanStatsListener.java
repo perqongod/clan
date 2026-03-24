@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ClanStatsListener implements Listener {
     private static final String TITLE_PREFIX = "Clan stats of ";
-    private static final String FILLER_NAME = " ";
+    private static final String EMPTY_DISPLAY_NAME = " ";
     private static final String PLAYTIME_FORMAT = "%.1f";
     private static final int INVENTORY_SIZE = 27;
     private static final int POINTS_SLOT = 10;
@@ -55,14 +55,14 @@ public class ClanStatsListener implements Listener {
         inv.clear();
         ConfigManager cm = plugin.getConfigManager();
 
-        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, FILLER_NAME);
+        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, EMPTY_DISPLAY_NAME);
         for (int i = 0; i < inv.getSize(); i++) {
             inv.setItem(i, filler);
         }
 
         String leaderName = Bukkit.getOfflinePlayer(clan.getLeader()).getName();
         if (leaderName == null) leaderName = "Unknown";
-        int maxMembers = cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getPoints());
+        int effectiveMaxMembers = cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getPoints());
 
         List<String> pointsLore = new ArrayList<>();
         pointsLore.add(cm.translateColors("&f" + clan.getPoints()));
@@ -77,7 +77,7 @@ public class ClanStatsListener implements Listener {
         inv.setItem(CREATED_SLOT, namedItem(Material.RED_WOOL, cm.translateColors("&cCreated"), createdLore));
 
         List<String> membersLore = new ArrayList<>();
-        membersLore.add(cm.translateColors("&f" + clan.getMembers().size() + "/" + maxMembers));
+        membersLore.add(cm.translateColors("&f" + clan.getMembers().size() + "/" + effectiveMaxMembers));
         inv.setItem(MEMBERS_SLOT, namedItem(Material.GRAY_WOOL, cm.translateColors("&7Members"), membersLore));
 
         List<String> playtimeLore = new ArrayList<>();
