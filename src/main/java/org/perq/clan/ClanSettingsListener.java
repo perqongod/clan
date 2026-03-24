@@ -173,14 +173,14 @@ public class ClanSettingsListener implements Listener {
     }
 
     private boolean isLeaderToggle(Player player, ClanData clan, UUID member) {
-        if (member == null) return true;
+        if (member == null) return false;
         if (!member.equals(clan.getLeader())) return false;
         player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
         return true;
     }
 
     private ClanChestPermission effectivePermission(ClanData clan, UUID member, UUID leaderId) {
-        if (member != null && member.equals(leaderId)) {
+        if (member.equals(leaderId)) {
             return ClanChestPermission.leaderDefault();
         }
         return clan.getChestPermission(member);
