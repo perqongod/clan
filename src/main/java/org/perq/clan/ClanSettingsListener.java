@@ -93,9 +93,9 @@ public class ClanSettingsListener implements Listener {
         if (memberIndex >= session.members.size()) return;
 
         UUID member = session.members.get(memberIndex);
-        if (blockLeaderChestChange(player, clan, member)) return;
-        session.selectedMember = member;
-        togglePermission(player, clan, member);
+        if (togglePermission(player, clan, member)) {
+            session.selectedMember = member;
+        }
         refreshChestSettings(event.getView().getTopInventory(), clan, session);
     }
 
@@ -160,8 +160,11 @@ public class ClanSettingsListener implements Listener {
         player.openInventory(inv);
     }
 
-    private void togglePermission(Player player, ClanData clan, UUID member) {
-        if (blockLeaderChestChange(player, clan, member)) return;
+    private boolean togglePermission(Player player, ClanData clan, UUID member) {
+        if (member.equals(clan.getLeader())) {
+            player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
+            return false;
+        }
         ClanChestPermission current = clan.getChestPermission(member);
         ClanChestPermission next = current.next();
         clan.setChestPermission(member, next);
@@ -170,11 +173,6 @@ public class ClanSettingsListener implements Listener {
         } catch (IOException e) {
             player.sendMessage(plugin.getConfigManager().getPrefix() + "Error saving.");
         }
-    }
-
-    private boolean blockLeaderChestChange(Player player, ClanData clan, UUID member) {
-        if (!member.equals(clan.getLeader())) return false;
-        player.sendMessage(plugin.getConfigManager().getMessage("settings-leader-chest"));
         return true;
     }
 
@@ -236,7 +234,7 @@ public class ClanSettingsListener implements Listener {
             List<String> lore = new ArrayList<>();
             if (isLeader) {
                 lore.add(cm.translateColors("&7Leader &f(always access)"));
-                lore.add(cm.translateColors("&7Current: " + permissionLabel(ClanChestPermission.EXECUTE)));
+                lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
             } else {
                 lore.add(cm.translateColors("&7Click to change permission"));
                 lore.add(cm.translateColors("&7Current: " + permissionLabel(permission)));
