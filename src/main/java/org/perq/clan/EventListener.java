@@ -100,8 +100,11 @@ public class EventListener implements Listener {
         ClanData victimClan = getPlayerClan(victim.getUniqueId());
         if (attackerClan == null || victimClan == null) return;
         if (!attackerClan.getTag().equalsIgnoreCase(victimClan.getTag())) return;
-        if (attackerClan.getLeader().equals(attacker.getUniqueId())) return;
-        if (attackerClan.getFriendlyFirePermission(attacker.getUniqueId()) == ClanFriendlyFirePermission.DENY) {
+        ClanFriendlyFirePermission permission = attackerClan.getFriendlyFirePermission(attacker.getUniqueId());
+        if (attackerClan.getLeader().equals(attacker.getUniqueId())) {
+            permission = ClanFriendlyFirePermission.leaderDefault();
+        }
+        if (permission == ClanFriendlyFirePermission.DENY) {
             event.setCancelled(true);
         }
     }

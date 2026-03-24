@@ -349,7 +349,7 @@ public class ClanSettingsListener implements Listener {
             List<String> lore = new ArrayList<>();
             boolean isLeader = member.equals(leaderId);
             if (isLeader) {
-                lore.add(cm.translateColors("&7Clan-Leader &f(always enabled)"));
+                lore.add(cm.translateColors("&7Clan Leader &f(always enabled)"));
             } else {
                 lore.add(cm.translateColors("&7Click to change permission"));
             }

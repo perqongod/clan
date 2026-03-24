@@ -192,8 +192,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("delete-denied"));
                 } else {
                     pendingDeletes.put(playerUUID, System.currentTimeMillis());
-                    player.sendMessage(cm.getPrefix() + "The [" + disbandClan.getTag() + "] clan will be disbanded upon confirmation.");
-                    player.sendMessage(cm.translateColors("&cAre you sure you want to delete the clan?"));
+                    player.sendMessage(cm.getMessage("delete-pending").replace("%tag%", disbandClan.getTag()));
+                    player.sendMessage(cm.getMessage("delete-confirm"));
                     player.sendMessage(
                             Component.text("[Accept]")
                                     .color(TextColor.color(0x55FF55))
@@ -230,8 +230,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         return true;
                     } else {
                         pendingAdminLeaves.put(playerUUID, System.currentTimeMillis());
-                        player.sendMessage(cm.getPrefix() + "The [" + leaveClan.getTag() + "] clan will be disbanded upon confirmation.");
-                        player.sendMessage(cm.translateColors("&cAre you sure you want to delete the clan?"));
+                        player.sendMessage(cm.getMessage("delete-pending").replace("%tag%", leaveClan.getTag()));
+                        player.sendMessage(cm.getMessage("delete-confirm"));
                         player.sendMessage(
                                 Component.text("[Accept]")
                                         .color(TextColor.color(0x55FF55))
@@ -1204,7 +1204,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (spawnClan.getSpawn() == null) {
-                    player.sendMessage(cm.getPrefix() + "Clan spawn is not set.");
+                    player.sendMessage(cm.getMessage("spawn-not-set"));
                     return true;
                 }
                 long now = System.currentTimeMillis();
@@ -1258,7 +1258,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             if (target == null) {
                                 spawnTaskIds.remove(playerUUID);
                                 cancel();
-                                player.sendMessage(cm.getPrefix() + "Clan spawn is not set.");
+                                player.sendMessage(cm.getMessage("spawn-not-set"));
                                 return;
                             }
                             player.teleport(target);
@@ -1338,7 +1338,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (dsClan.getSpawn() == null) {
-                    player.sendMessage(cm.getPrefix() + "Clan spawn is not set.");
+                    player.sendMessage(cm.getMessage("spawn-not-set"));
                     return true;
                 }
                 dsClan.setSpawn(null);
