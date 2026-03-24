@@ -94,12 +94,17 @@ public class ClanQuestListener implements Listener {
         int zombieKills = clan.getQuestZombieKillCount();
         int questLevel = ClanQuestProgress.getQuestLevel(zombieKills);
         int questPoints = clan.getQuestSkillPoints();
+        String questInfo = cm.getMessage("quest-info");
+        String prefix = cm.getPrefix();
+        if (questInfo.startsWith(prefix)) {
+            questInfo = questInfo.substring(prefix.length()).trim();
+        }
 
         List<String> overviewLore = new ArrayList<>();
         overviewLore.add(cm.translateColors("&7Quest level: &f" + questLevel));
         overviewLore.add(cm.translateColors("&7Zombie kills: &f" + zombieKills));
         overviewLore.add(cm.translateColors("&7Quest skill points: &f" + questPoints));
-        overviewLore.add(cm.translateColors("&eQuest points affect clan skills, not ranking"));
+        overviewLore.add(questInfo);
         inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Quests"), overviewLore));
 
         List<ItemStack> questEntries = buildQuestEntries(zombieKills, cm);
