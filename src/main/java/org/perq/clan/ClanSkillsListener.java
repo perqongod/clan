@@ -21,6 +21,7 @@ public class ClanSkillsListener implements Listener {
     private static final int CHEST_SLOT = 10;
     private static final int SPAWN_SLOT = 12;
     private static final int BANK_SLOT = 14;
+    private static final int EC_UPGRADE_SLOT = 15;
     private static final int MEMBERS_SLOT = 16;
 
     private final Clan plugin;
@@ -91,6 +92,12 @@ public class ClanSkillsListener implements Listener {
         bankLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getBankUnlockPoints()));
         bankLore.add(cm.translateColors(ClanSkillProgress.hasBank(points) ? "&aUnlocked" : "&cLocked"));
         inv.setItem(BANK_SLOT, namedItem(Material.GOLD_INGOT, cm.translateColors("&6Clan Bank"), bankLore));
+
+        List<String> ecLore = new ArrayList<>();
+        ecLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getChestUpgradePoints()));
+        ecLore.add(cm.translateColors(ClanSkillProgress.hasChestUpgrade(points) ? "&aUnlocked" : "&cLocked"));
+        ecLore.add(cm.translateColors("&7Ab Level 4: Clan EC Upgrade"));
+        inv.setItem(EC_UPGRADE_SLOT, namedItem(Material.ENDER_CHEST, cm.translateColors("&6Clan EC Upgrade"), ecLore));
 
         List<String> memberLore = new ArrayList<>();
         memberLore.add(cm.translateColors("&7Bonus slots: &f+" + bonusSlots));

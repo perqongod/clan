@@ -6,7 +6,7 @@ online-save-interval: 60
 
 # Clan tag validation
 clan-tag-settings:
-  min-length: 3
+  min-length: 4
   max-length: 4
   only-letters: false
   blacklist:
@@ -18,22 +18,6 @@ clan-tag-settings:
 max-members: 10
 min-points: 0
 max-points: 10000
-
-war:
-  cost: 200
-  cooldown-minutes: 30
-  arena-countdown-seconds: 600
-  start-countdown-seconds: 10
-  request-timeout-seconds: 30
-  invite-timeout-seconds: 30
-  ready-timeout-seconds: 30
-  teleport-timeout-seconds: 30
-  command-allowlist:
-    - "/help"
-    - "/logout"
-    - "/quit"
-    - "/clan"
-    - "/war"
 
 messages:
   toggle-off: "%prefix%&cYou are no longer accepting clan invitations."
@@ -60,13 +44,13 @@ messages:
   clan-full: "%prefix%&cThe clan is full (max. %max% members)."
   clan-exists: "%prefix%&cA clan with this tag already exists."
   invitations-disabled: "%prefix%&cThis player has disabled invitations."
-  tag-invalid-length: "%prefix%&cThe clan tag must be between %min% and %max% characters."
+  tag-invalid-length: "%prefix%&cThe clan tag must be exactly %length% characters."
   tag-invalid-chars: "%prefix%&cThe clan tag may only contain letters and numbers."
   tag-blacklisted: "%prefix%&cThis clan tag is not allowed."
   tag-no-colors: "%prefix%&cYou may not use color codes. Purchase VIP for colored tags!"
   tag-vip-only-gold: "%prefix%&cAs VIP you may only use the &6&6 &ccolor code."
   tag-vip-invalid-codes: "%prefix%&cInvalid color codes in tag. Use only valid Minecraft color codes (e.g. &a&a, &6&6, &c&c)."
-  tag-vip-max-length: "%prefix%&cThe clan tag may be at most %length% characters."
+  tag-vip-max-length: "%prefix%&cThe clan tag must be exactly %length% characters."
   disband-confirm: "&cAre you sure you want to delete the clan?"
   disband-denied: "%prefix%&cClan deletion cancelled."
   disband-cancelled: "%prefix%&cClan deletion cancelled (timed out)."
@@ -87,7 +71,7 @@ messages:
   requests-only-leader: "%prefix%&cOnly the clan leader can view incoming requests."
   requests-empty: "%prefix%&cNo open requests."
   request-already-sent: "%prefix%&cYou have already sent a request to this clan."
-  skills-upgraded: "%prefix%&aClan battle pass upgraded to level %level% (cost: %cost% points)."
+  skills-upgraded: "%prefix%&aClan skills upgraded to level %level% (cost: %cost% points)."
   skills-not-enough-points: "%prefix%&cYou need %cost% points to upgrade. You have %points%."
   skills-auto-progress: "%prefix%&aClan Fortschritt basiert auf Punkten."
   skills-locked-chest: "%prefix%&cClan Chest ist gesperrt. Benötigt %required% Punkte."
@@ -113,36 +97,6 @@ messages:
   invite-max-open: "%prefix%&cThis player already has an open invitation."
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"
   target-in-clan-notify: "%csprefix%&aYou have a new notification."
-  war-info-header: "%prefix%&6ᴄʟᴀɴ ᴡᴀʀ"
-  war-info-body: "&eKosten: &f%cost% Punkte\n&eAbklingzeit: &f%cooldown% Minuten\n&eStatus: %status%"
-  war-not-enough-points: "%prefix%&4Du hast nicht genug Punkte für einen Clan-War. Du brauchst %cost% Punkte."
-  war-already-at-war: "%prefix%&cDein Clan ist bereits im War."
-  war-target-at-war: "%prefix%&cDer Zielclan ist bereits im War."
-  war-self: "%prefix%&cDu kannst deinen eigenen Clan nicht herausfordern."
-  war-cooldown: "%prefix%&cDu kannst in %minutes% Minuten wieder einen War starten."
-  war-request-sent: "%prefix%&aDu hast den Clan [%tag%] zu einem &4ᴄʟᴀɴ ᴡᴀʀ&a herausgefordert."
-  war-request-received: "%csprefix%&aDer Clan %player% hat euch zu einem Clan-War herausgefordert."
-  war-request-timeout-challenger: "%prefix%&cDeine War-Anfrage wurde automatisch abgelehnt (Timeout)."
-  war-request-timeout-target: "%prefix%&cDie War-Anfrage ist abgelaufen."
-  war-denied-self: "%prefix%&cDu hast den &4ᴄʟᴀɴ ᴡᴀʀ&c abgelehnt."
-  war-denied-challenger: "%prefix%&cDein ᴄʟᴀɴ ᴡᴀʀ wurde abgelehnt."
-  war-accepted-notice: "%prefix%&aDu hast den &4ᴄʟᴀɴ ᴡᴀʀ&a angenommen."
-  war-team-select: "%prefix%&aWähle jetzt deine Kämpfer im Team-GUI."
-  war-player-invite: "%csprefix%&a⚔ Dein Clan möchte dich für einen War einsetzen. Gegner: %tag%"
-  war-ready-question: "&eBist du bereit für den War?"
-  war-teleport-question: "&eDer War beginnt jetzt. Möchtest du zur Arena teleportiert werden?"
-  war-countdown-subtitle: "&eWar beginnt gleich!"
-  war-start-subtitle: "&fViel Erfolg!"
-  war-no-active: "%prefix%&cDu bist in keinem aktiven Clan War."
-  war-selection-locked: "%prefix%&cDie Teamauswahl ist gerade gesperrt."
-  war-cancelled-no-players: "%prefix%&cWar abgebrochen: Zu wenig Spieler."
-  war-cancelled-no-ready: "%prefix%&cWar abgebrochen: Niemand war bereit."
-  war-commands-blocked: "%prefix%&cBefehle sind während des Wars deaktiviert."
-  war-friendly-fire: "%prefix%&cDu kannst Teamkameraden nicht angreifen!"
-  war-won: "%prefix%&aDein Clan hat den &4ᴄʟᴀɴ ᴡᴀʀ&a gewonnen! +100 Punkte."
-  war-lost: "%prefix%&cDein Clan hat den &4ᴄʟᴀɴ ᴡᴀʀ&c verloren. -100 Punkte."
-  war-no-arena: "%prefix%&cKeine Arena verfügbar."
-  war-no-pending: "%prefix%&cDu hast keine ausstehende War-Anfrage."
   admin-points-no-op: "%prefix%&cDu brauchst OP-Rechte für diesen Befehl."
   admin-points-not-found: "%prefix%&cSpieler/Clan nicht gefunden."
   admin-points-add: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte hinzugefügt. Neuer Stand: %total%."
@@ -156,7 +110,7 @@ ranks:
   Platinum: 11
   Diamond: 12
 
-help-book:
+  help-book:
   title: "Clan Hilfe"
   author: "Clan System"
   pages:
@@ -184,13 +138,3 @@ help-book:
       &f/clan setspawn
       &f/clan skills
       &f/clan logs
-    - |-
-      &6&lClan War
-      &f/clan war <tag>
-      &f/clan war info
-      &f/clan war accept <tag>
-      &f/clan war deny <tag>
-      &f/clan war team
-
-# War arenas (set via /clan war setarena a/b)
-arenas: []
