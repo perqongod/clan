@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -38,6 +39,12 @@ public class EventListener implements Listener {
         String clanTag = title.substring("Clan Chest: ".length());
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
+        if (!ClanSkillProgress.hasChest(clan.getPoints())) {
+            event.setCancelled(true);
+            player.closeInventory();
+            player.sendMessage(plugin.getConfigManager().getMessage("skills-locked-chest"));
+            return;
+        }
 
         UUID playerUUID = player.getUniqueId();
 
@@ -55,6 +62,29 @@ public class EventListener implements Listener {
                 event.setCancelled(true);
                 player.sendMessage(plugin.getConfigManager().getMessage("leader-disallow"));
             }
+        }
+    }
+
+    @EventHandler
+    public void onClanBankClick(InventoryClickEvent event) {
+        @SuppressWarnings("deprecation")
+        String title = event.getView().getTitle();
+        if (!title.startsWith("Clan Bank: ")) return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onClanChestClose(InventoryCloseEvent event) {
+        @SuppressWarnings("deprecation")
+        String title = event.getView().getTitle();
+        if (!title.startsWith("Clan Chest: ")) return;
+        String clanTag = title.substring("Clan Chest: ".length());
+        ClanData clan = plugin.getFileManager().loadClan(clanTag);
+        if (clan == null) return;
+        clan.setChestContents(event.getView().getTopInventory().getContents());
+        try {
+            plugin.getFileManager().saveClan(clan);
+        } catch (IOException ignored) {
         }
     }
 
@@ -98,6 +128,12 @@ public class EventListener implements Listener {
                     applyKillPoints(killerClan);
                     try { plugin.getFileManager().saveClan(killerClan); } catch (IOException ignored) {}
                 }
+                ClanData victimClan = getPlayerClan(victim.getUniqueId());
+                if (victimClan != null && killerClan != null
+                        && !victimClan.getTag().equalsIgnoreCase(killerClan.getTag())) {
+                    applyDeathPenalty(victimClan);
+                    try { plugin.getFileManager().saveClan(victimClan); } catch (IOException ignored) {}
+                }
             }
             victim.setGameMode(GameMode.SPECTATOR);
             return; // Don't award regular kill points during war
@@ -105,11 +141,21 @@ public class EventListener implements Listener {
 
         // Regular kill points (not in war)
         if (killer != null) {
-            ClanData clan = getPlayerClan(killer.getUniqueId());
-            if (clan != null) {
-                applyKillPoints(clan);
+            ClanData killerClan = getPlayerClan(killer.getUniqueId());
+            ClanData victimClan = getPlayerClan(victim.getUniqueId());
+            if (killerClan != null) {
+                applyKillPoints(killerClan);
                 try {
-                    plugin.getFileManager().saveClan(clan);
+                    plugin.getFileManager().saveClan(killerClan);
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+            if (victimClan != null && killerClan != null
+                    && !victimClan.getTag().equalsIgnoreCase(killerClan.getTag())) {
+                applyDeathPenalty(victimClan);
+                try {
+                    plugin.getFileManager().saveClan(victimClan);
                 } catch (IOException e) {
                     // ignore
                 }
@@ -185,9 +231,22 @@ public class EventListener implements Listener {
     private void applyKillPoints(ClanData clan) {
         int killPoints = plugin.getConfigManager().getKillPoints();
         if (killPoints <= 0) return;
-        int newPoints = clan.getPoints() + killPoints;
+        applyPoints(clan, killPoints);
+    }
+
+    private void applyDeathPenalty(ClanData clan) {
+        int killPoints = plugin.getConfigManager().getKillPoints();
+        if (killPoints <= 0) return;
+        applyPoints(clan, -killPoints);
+    }
+
+    private void applyPoints(ClanData clan, int delta) {
+        ConfigManager cm = plugin.getConfigManager();
+        int minPoints = cm.getMinPoints();
+        int maxPoints = cm.getMaxPoints();
+        int newPoints = Math.max(minPoints, Math.min(maxPoints, clan.getPoints() + delta));
         clan.setPoints(newPoints);
-        clan.setRank(plugin.getConfigManager().getRankForPoints(newPoints));
+        clan.setRank(cm.getRankForPoints(newPoints));
     }
 
 }

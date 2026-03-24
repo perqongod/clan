@@ -7,6 +7,8 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
@@ -52,12 +55,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
     private static final long DELETE_CONFIRM_TIMEOUT_MS = 30_000L;
     private static final long INVITE_COOLDOWN_MS = 10_000L;
+    private static final double RENAME_MIN_HOURS = 48.0;
 
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "join", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "request", "requests",
-            "accept-request", "deny-request", "logs", "skills", "settings", "war", "force", "admin",
+            "accept-request", "deny-request", "logs", "skills", "settings", "bank", "war", "force", "admin",
             "points"
     ));
 
@@ -936,6 +940,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
                 }
+                if (renameClan.getOnlineTime() < RENAME_MIN_HOURS) {
+                    player.sendMessage(cm.getMessage("rename-too-soon")
+                            .replace("%hours%", String.format("%.1f", renameClan.getOnlineTime()))
+                            .replace("%required%", String.valueOf((int) RENAME_MIN_HOURS)));
+                    return true;
+                }
                 String newTag = args[1];
                 boolean isVipRename = player.hasPermission("clan.vip");
                 TagValidator.ValidationResult renameResult = new TagValidator(plugin).validate(newTag, isVipRename);
@@ -978,7 +988,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(prefix + "Rank: " + infoClan.getRank());
                 player.sendMessage(prefix + "Members: " + infoClan.getMembers().size() + "/" + getMaxMembers(infoClan, cm));
                 player.sendMessage(prefix + "Created: " + infoClan.getCreated());
-                player.sendMessage(prefix + "Online time: " + String.format("%.1f", infoClan.getOnlineTime()) + "h");
+                player.sendMessage(prefix + "Gesamtspielzeit: " + String.format("%.1f", infoClan.getOnlineTime()) + "h");
                 player.sendMessage(prefix + "Leader: " + Bukkit.getOfflinePlayer(infoClan.getLeader()).getName());
                 String modsStr = infoClan.getModerators().isEmpty() ? "None"
                         : infoClan.getModerators().stream()
@@ -1074,7 +1084,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
-                if (!ClanSkillProgress.hasChest(chestClan.getSkillLevel())) {
+                if (!ClanSkillProgress.hasChest(chestClan.getPoints())) {
                     player.sendMessage(cm.getMessage("skills-locked-chest"));
                     return true;
                 }
@@ -1109,10 +1119,25 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                     return true;
                 }
+                if (args.length == 1 && "clan".equalsIgnoreCase(label) && chestClan.getLeader().equals(playerUUID)) {
+                    chestClan.setChestLocation(player.getLocation());
+                    try {
+                        plugin.getFileManager().saveClan(chestClan);
+                        player.sendMessage(cm.getMessage("chest-set"));
+                    } catch (Exception e) {
+                        player.sendMessage(cm.getPrefix() + "Error saving.");
+                    }
+                    return true;
+                }
+                if (chestClan.getChestLocation() == null) {
+                    player.sendMessage(cm.getMessage("chest-not-set"));
+                    return true;
+                }
                 // All clan members can open the chest (VIEW = see only, EXECUTE = interact)
                 Inventory chest = clanChests.get(chestClan.getTag());
                 if (chest == null) {
                     chest = Bukkit.createInventory(null, 27, "Clan Chest: " + chestClan.getTag());
+                    chest.setContents(chestClan.getChestContents());
                     clanChests.put(chestClan.getTag(), chest);
                 }
                 player.openInventory(chest);
@@ -1139,7 +1164,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
-                if (!ClanSkillProgress.hasSpawn(spawnClan.getSkillLevel())) {
+                if (!ClanSkillProgress.hasSpawn(spawnClan.getPoints())) {
                     player.sendMessage(cm.getMessage("skills-locked-spawn"));
                     return true;
                 }
@@ -1161,7 +1186,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     spawnTaskIds.remove(playerUUID);
                 }
                 Location startLoc = player.getLocation().clone();
-                player.sendMessage(cm.getPrefix() + "Teleporting to clan spawn in 3 seconds... don't move!");
+                player.sendMessage(cm.getMessage("spawn-teleporting"));
                 int[] ticksLeft = {3};
                 int taskId = plugin.getServer().getScheduler().runTaskTimer(plugin, new BukkitRunnable() {
                     @Override
@@ -1184,8 +1209,26 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             player.sendActionBar(cm.translateColors("&#FFFF00Teleporting in " + ticksLeft[0] + "s..."));
                             ticksLeft[0]--;
                         } else {
-                            player.teleport(spawnClan.getSpawn());
-                            player.sendMessage(cm.getPrefix() + "Teleported to clan spawn.");
+                            ClanData refreshed = plugin.getFileManager().loadClan(spawnClan.getTag());
+                            if (refreshed != null && !ClanSkillProgress.hasSpawn(refreshed.getPoints())) {
+                                spawnTaskIds.remove(playerUUID);
+                                cancel();
+                                player.sendMessage(cm.getMessage("skills-locked-spawn"));
+                                return;
+                            }
+                            Location target = refreshed != null && refreshed.getSpawn() != null
+                                    ? refreshed.getSpawn()
+                                    : spawnClan.getSpawn();
+                            if (target == null) {
+                                spawnTaskIds.remove(playerUUID);
+                                cancel();
+                                player.sendMessage(cm.getPrefix() + "Clan spawn is not set.");
+                                return;
+                            }
+                            player.teleport(target);
+                            player.sendMessage(cm.getMessage("spawn-teleported"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
+                            player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 60, 0.6, 0.8, 0.6, 0.1);
                             long cdEnd = System.currentTimeMillis() + 30_000L;
                             spawnCooldowns.put(playerUUID, cdEnd);
                             spawnTaskIds.remove(playerUUID);
@@ -1223,17 +1266,69 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
                 }
-                if (!ClanSkillProgress.hasSpawn(ssClan.getSkillLevel())) {
+                if (!ClanSkillProgress.hasSpawn(ssClan.getPoints())) {
                     player.sendMessage(cm.getMessage("skills-locked-setspawn"));
                     return true;
                 }
                 ssClan.setSpawn(player.getLocation());
                 try {
                     plugin.getFileManager().saveClan(ssClan);
-                    player.sendMessage(cm.getPrefix() + "Clan spawn set.");
+                    player.sendMessage(cm.getMessage("spawn-set"));
                 } catch (Exception e) {
                     player.sendMessage(cm.getPrefix() + "Error saving.");
                 }
+                break;
+            }
+
+            case "bank": {
+                ClanData bankClan = getPlayerClan(playerUUID);
+                if (bankClan == null) {
+                    player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
+                }
+                if (!ClanSkillProgress.hasBank(bankClan.getPoints())) {
+                    player.sendMessage(cm.getMessage("skills-locked-bank"));
+                    return true;
+                }
+                if (args.length >= 2 && args[1].equalsIgnoreCase("add")) {
+                    int amount = 1;
+                    if (args.length >= 3) {
+                        try {
+                            amount = Integer.parseInt(args[2]);
+                        } catch (NumberFormatException e) {
+                            player.sendMessage(cm.getMessage("bank-add-usage"));
+                            return true;
+                        }
+                    }
+                    if (amount <= 0) {
+                        player.sendMessage(cm.getMessage("bank-add-usage"));
+                        return true;
+                    }
+                    bankClan.setBankBalance(bankClan.getBankBalance() + amount);
+                    bankClan.addLog(player.getName() + " added " + amount + " to the clan bank.");
+                    try {
+                        plugin.getFileManager().saveClan(bankClan);
+                        player.sendMessage(cm.getMessage("bank-added")
+                                .replace("%amount%", String.valueOf(amount))
+                                .replace("%total%", String.valueOf(bankClan.getBankBalance())));
+                    } catch (Exception e) {
+                        player.sendMessage(cm.getPrefix() + "Error saving.");
+                    }
+                    return true;
+                }
+                Inventory bankInv = Bukkit.createInventory(null, 27, "Clan Bank: " + bankClan.getTag());
+                ItemStack balanceItem = new ItemStack(Material.GOLD_INGOT);
+                ItemMeta meta = balanceItem.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName(cm.translateColors("&6Clan Bank"));
+                    List<String> lore = new ArrayList<>();
+                    lore.add(cm.translateColors("&7Balance: &f" + bankClan.getBankBalance()));
+                    lore.add(cm.translateColors("&7Use /clan bank add <amount>"));
+                    meta.setLore(lore);
+                    balanceItem.setItemMeta(meta);
+                }
+                bankInv.setItem(13, balanceItem);
+                player.openInventory(bankInv);
                 break;
             }
 
@@ -1759,10 +1854,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest (Battle Pass lvl " + ClanSkillProgress.getChestUnlockLevel() + "+)"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Set/open clan chest (" + ClanSkillProgress.getChestUnlockPoints() + "+ Punkte)"));
         }
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (Battle Pass lvl " + ClanSkillProgress.getSpawnUnlockLevel() + "+)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (Battle Pass lvl " + ClanSkillProgress.getSpawnUnlockLevel() + "+)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan bank &7- Open clan bank (" + ClanSkillProgress.getBankUnlockPoints() + "+ Punkte)"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan bank add <amount> &7- Add to clan bank"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
@@ -1826,7 +1923,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
     private int getMaxMembers(ClanData clan, ConfigManager cm) {
         if (clan == null) return cm.getMaxMembers();
-        return cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getSkillLevel());
+        return cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getPoints());
     }
 
     private ClanData getPlayerClan(UUID playerUUID) {
@@ -1874,21 +1971,24 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     "create", "delete", "invite", "accept", "deny", "join", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "request", "requests",
-                    "logs", "skills", "settings", "war"
+                    "logs", "skills", "settings", "bank", "war"
             ));
             ClanData clan = getPlayerClan(playerUUID);
             if (clan == null || !clan.getLeader().equals(playerUUID)) {
                 subs.remove("settings");
             }
-            if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillLevel())) {
+            if (clan == null || !ClanSkillProgress.hasChest(clan.getPoints())) {
                 subs.remove("chest");
             } else if (!clan.getLeader().equals(playerUUID)
                     && clan.getChestPermission(playerUUID) == ClanChestPermission.DENY) {
                 subs.remove("chest");
             }
-            if (clan == null || !ClanSkillProgress.hasSpawn(clan.getSkillLevel())) {
+            if (clan == null || !ClanSkillProgress.hasSpawn(clan.getPoints())) {
                 subs.remove("spawn");
                 subs.remove("setspawn");
+            }
+            if (clan == null || !ClanSkillProgress.hasBank(clan.getPoints())) {
+                subs.remove("bank");
             }
             if (player.hasPermission("clan.admin")) {
                 subs.add("force");
@@ -1922,6 +2022,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 case "request": {
                     return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                }
+                case "bank": {
+                    return Arrays.asList("add");
                 }
                 case "war": {
                     List<String> warOpts = new ArrayList<>(Arrays.asList(

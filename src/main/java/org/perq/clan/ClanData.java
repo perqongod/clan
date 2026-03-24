@@ -1,18 +1,30 @@
 package org.perq.clan;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.bukkit.util.io.BukkitObjectOutputStream;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ClanData {
     private String tag;
@@ -24,6 +36,9 @@ public class ClanData {
     private String created;
     private double onlineTime;
     private Location spawn;
+    private Location chestLocation;
+    private List<ItemStack> chestItems;
+    private int bankBalance;
     private int skillLevel;
     /** Log entries in format "[HH:MM DD.MM.YYYY] message" */
     private List<String> logs;
@@ -33,6 +48,8 @@ public class ClanData {
     private Map<UUID, ClanChestPermission> chestPermissions;
 
     private static final DateTimeFormatter LOG_FMT = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
+    private static final Gson GSON = new GsonBuilder().serializeNulls().create();
+    private static final int CHEST_SIZE = 27;
 
     public ClanData(String tag, UUID leader) {
         this.tag = tag;
@@ -45,6 +62,9 @@ public class ClanData {
         this.created = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         this.onlineTime = 0.0;
         this.spawn = null;
+        this.chestLocation = null;
+        this.chestItems = createEmptyChestItems();
+        this.bankBalance = 0;
         this.skillLevel = 0;
         this.logs = new ArrayList<>();
         this.pendingRequests = new ArrayList<>();
@@ -73,8 +93,21 @@ public class ClanData {
             double x = config.getDouble("spawn.x");
             double y = config.getDouble("spawn.y");
             double z = config.getDouble("spawn.z");
-            this.spawn = new Location(Bukkit.getWorld(world), x, y, z);
+            float yaw = (float) config.getDouble("spawn.yaw", 0.0);
+            float pitch = (float) config.getDouble("spawn.pitch", 0.0);
+            this.spawn = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
         }
+        if (config.contains("chest")) {
+            String world = config.getString("chest.world");
+            double x = config.getDouble("chest.x");
+            double y = config.getDouble("chest.y");
+            double z = config.getDouble("chest.z");
+            float yaw = (float) config.getDouble("chest.yaw", 0.0);
+            float pitch = (float) config.getDouble("chest.pitch", 0.0);
+            this.chestLocation = new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
+        }
+        this.chestItems = deserializeChestItems(config.getString("chest-items-json"));
+        this.bankBalance = Math.max(0, config.getInt("bank.balance", 0));
         this.logs = new ArrayList<>(config.getStringList("logs"));
         this.pendingRequests = new ArrayList<>();
         for (String req : config.getStringList("pending-requests")) {
@@ -118,7 +151,19 @@ public class ClanData {
             config.set("spawn.x", spawn.getX());
             config.set("spawn.y", spawn.getY());
             config.set("spawn.z", spawn.getZ());
+            config.set("spawn.yaw", spawn.getYaw());
+            config.set("spawn.pitch", spawn.getPitch());
         }
+        if (chestLocation != null) {
+            config.set("chest.world", chestLocation.getWorld().getName());
+            config.set("chest.x", chestLocation.getX());
+            config.set("chest.y", chestLocation.getY());
+            config.set("chest.z", chestLocation.getZ());
+            config.set("chest.yaw", chestLocation.getYaw());
+            config.set("chest.pitch", chestLocation.getPitch());
+        }
+        config.set("chest-items-json", serializeChestItems(chestItems));
+        config.set("bank.balance", bankBalance);
         config.set("logs", logs);
         List<String> reqStrings = new ArrayList<>();
         for (UUID req : pendingRequests) {
@@ -174,6 +219,24 @@ public class ClanData {
     public Location getSpawn() { return spawn; }
     public void setSpawn(Location spawn) { this.spawn = spawn; }
 
+    public Location getChestLocation() { return chestLocation; }
+    public void setChestLocation(Location chestLocation) { this.chestLocation = chestLocation; }
+
+    public List<ItemStack> getChestItems() {
+        return new ArrayList<>(chestItems);
+    }
+
+    public ItemStack[] getChestContents() {
+        return chestItems.toArray(new ItemStack[0]);
+    }
+
+    public void setChestContents(ItemStack[] contents) {
+        chestItems = normalizeChestItems(contents == null ? Collections.emptyList() : Arrays.asList(contents));
+    }
+
+    public int getBankBalance() { return bankBalance; }
+    public void setBankBalance(int bankBalance) { this.bankBalance = Math.max(0, bankBalance); }
+
     public int getSkillLevel() { return skillLevel; }
     public void setSkillLevel(int skillLevel) { this.skillLevel = skillLevel; }
 
@@ -193,5 +256,68 @@ public class ClanData {
         } else {
             chestPermissions.put(member, permission);
         }
+    }
+
+    private static List<ItemStack> createEmptyChestItems() {
+        return new ArrayList<>(Collections.nCopies(CHEST_SIZE, null));
+    }
+
+    private static List<ItemStack> normalizeChestItems(List<ItemStack> items) {
+        List<ItemStack> normalized = new ArrayList<>(items == null ? Collections.emptyList() : items);
+        if (normalized.size() > CHEST_SIZE) {
+            normalized = new ArrayList<>(normalized.subList(0, CHEST_SIZE));
+        }
+        while (normalized.size() < CHEST_SIZE) {
+            normalized.add(null);
+        }
+        return normalized;
+    }
+
+    private static String serializeChestItems(List<ItemStack> items) {
+        List<ItemStack> normalized = normalizeChestItems(items);
+        List<String> encoded = normalized.stream()
+                .map(ClanData::encodeItemStack)
+                .collect(Collectors.toList());
+        return GSON.toJson(encoded);
+    }
+
+    private static List<ItemStack> deserializeChestItems(String json) {
+        if (json == null || json.isEmpty()) return createEmptyChestItems();
+        try {
+            List<String> encoded = GSON.fromJson(json, new TypeToken<List<String>>() {}.getType());
+            if (encoded == null) return createEmptyChestItems();
+            List<ItemStack> items = new ArrayList<>();
+            for (String entry : encoded) {
+                items.add(decodeItemStack(entry));
+            }
+            return normalizeChestItems(items);
+        } catch (RuntimeException e) {
+            return createEmptyChestItems();
+        }
+    }
+
+    private static String encodeItemStack(ItemStack item) {
+        if (item == null) return null;
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream();
+             BukkitObjectOutputStream data = new BukkitObjectOutputStream(output)) {
+            data.writeObject(item);
+            return Base64.getEncoder().encodeToString(output.toByteArray());
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private static ItemStack decodeItemStack(String data) {
+        if (data == null || data.isEmpty()) return null;
+        byte[] raw = Base64.getDecoder().decode(data);
+        try (ByteArrayInputStream input = new ByteArrayInputStream(raw);
+             BukkitObjectInputStream dataStream = new BukkitObjectInputStream(input)) {
+            Object obj = dataStream.readObject();
+            if (obj instanceof ItemStack) {
+                return (ItemStack) obj;
+            }
+        } catch (IOException | ClassNotFoundException ignored) {
+        }
+        return null;
     }
 }
