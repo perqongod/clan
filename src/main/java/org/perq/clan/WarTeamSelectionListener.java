@@ -30,8 +30,8 @@ import java.util.UUID;
  *   Row 5: Bottom bar with arrows (col 0/8) + red/green blocks
  *   Col 4 (all rows): Blue glass separator
  *
- *   Cols 0–3  = "Fighting" side
- *   Cols 5–8  = "Not fighting" side
+ *   Cols 0–3  = "Not fighting" side
+ *   Cols 5–8  = "Fighting" side
  */
 public class WarTeamSelectionListener implements Listener {
 
@@ -98,19 +98,22 @@ public class WarTeamSelectionListener implements Listener {
         if (row != 1 || col == 4) return;
 
         // Determine which member was clicked
-        // Left side slots (cols 0–3) → fighting, right side (cols 5–8) → not fighting
-        // We store member list; cols 0–3 maps to fighting[0–3], cols 5–8 maps to notFighting[0–3]
+        // Left side slots (cols 0–3) → not fighting, right side (cols 5–8) → fighting
+        // We store member list; cols 0–3 maps to notFighting[0–3], cols 5–8 maps to fighting[0–3]
         UUID clickedMember = null;
         boolean wasFighting = false;
 
-        if (col < 4 && col < session.fighting.size()) {
-            clickedMember = session.fighting.get(col);
-            wasFighting = true;
-        } else if (col > 4) {
-            int idx = col - 5;
+        if (col < 4) {
+            int idx = col;
             if (idx < session.notFighting.size()) {
                 clickedMember = session.notFighting.get(idx);
                 wasFighting = false;
+            }
+        } else if (col > 4) {
+            int idx = col - 5;
+            if (idx < session.fighting.size()) {
+                clickedMember = session.fighting.get(idx);
+                wasFighting = true;
             }
         }
 
@@ -158,28 +161,28 @@ public class WarTeamSelectionListener implements Listener {
         }
 
         // Row 1: player skulls
-        // Fighting side (cols 0–3)
+        // Not-fighting side (cols 0–3)
         for (int i = 0; i < 4; i++) {
-            if (i < session.fighting.size()) {
-                inv.setItem(9 + i, playerSkull(session.fighting.get(i)));
+            if (i < session.notFighting.size()) {
+                inv.setItem(9 + i, playerSkull(session.notFighting.get(i)));
             } else {
                 inv.setItem(9 + i, gray);
             }
         }
         // Separator
         inv.setItem(9 + 4, blue);
-        // Not-fighting side (cols 5–8)
+        // Fighting side (cols 5–8)
         for (int i = 0; i < 4; i++) {
-            if (i < session.notFighting.size()) {
-                inv.setItem(9 + 5 + i, playerSkull(session.notFighting.get(i)));
+            if (i < session.fighting.size()) {
+                inv.setItem(9 + 5 + i, playerSkull(session.fighting.get(i)));
             } else {
                 inv.setItem(9 + 5 + i, gray);
             }
         }
 
         // Row 5: bottom bar with arrows + red/green blocks
-        ItemStack leftArrow = namedItem(Material.ARROW, "§aFighting");
-        ItemStack rightArrow = namedItem(Material.ARROW, "§cNot fighting");
+        ItemStack leftArrow = namedItem(Material.ARROW, "§cNot fighting");
+        ItemStack rightArrow = namedItem(Material.ARROW, "§aFighting");
         for (int col = 0; col < 9; col++) {
             int slot = 45 + col;
             if (col == 0) {
