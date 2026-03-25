@@ -1692,12 +1692,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(Player player, ConfigManager cm) {
         ClanData clan = getPlayerClan(player.getUniqueId());
         UUID playerUUID = player.getUniqueId();
-        ClanAccessPermission skillsPermission = clan == null
-                ? ClanAccessPermission.defaultPermission()
-                : getEffectiveSkillsPermission(clan, playerUUID);
-        ClanAccessPermission spawnPermission = clan == null
-                ? ClanAccessPermission.defaultPermission()
-                : getEffectiveSpawnPermission(clan, playerUUID);
+        ClanAccessPermission skillsPermission = getEffectiveSkillsPermission(clan, playerUUID);
+        ClanAccessPermission spawnPermission = getEffectiveSpawnPermission(clan, playerUUID);
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan create <tag> &7- Create a clan"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delete &7- Disband your clan"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan invite <player> &7- Invite a player"));
