@@ -107,6 +107,36 @@ public final class ClanQuestProgress {
         quests.add(new QuestDefinition(7, QuestTarget.PIGLIN, 60, 45));
         quests.add(new QuestDefinition(7, QuestTarget.WITHER_SKELETON, 15, 50));
         quests.add(new QuestDefinition(7, QuestTarget.GUARDIAN, 10, 55));
+        QuestTarget[] extendedTargets = new QuestTarget[] {
+                QuestTarget.SKELETON,
+                QuestTarget.SPIDER,
+                QuestTarget.CREEPER,
+                QuestTarget.ENDERMAN,
+                QuestTarget.WITCH,
+                QuestTarget.ZOMBIE,
+                QuestTarget.BLAZE,
+                QuestTarget.SLIME,
+                QuestTarget.PIGLIN,
+                QuestTarget.WITHER_SKELETON,
+                QuestTarget.GUARDIAN
+        };
+        int level = 8;
+        int baseKills = 150;
+        int killStep = 17;
+        int baseReward = 60;
+        int rewardStep = 3;
+        for (int i = 0; i < 50; i++) {
+            int requiredKills = baseKills + (i * killStep);
+            if (i == 49) {
+                requiredKills = 1000;
+            }
+            int rewardPoints = baseReward + (i * rewardStep);
+            QuestTarget target = extendedTargets[i % extendedTargets.length];
+            quests.add(new QuestDefinition(level, target, requiredKills, rewardPoints));
+            if ((i + 1) % 5 == 0) {
+                level++;
+            }
+        }
         QUESTS = Collections.unmodifiableList(quests);
         for (QuestTarget target : QuestTarget.values()) {
             TARGETS_BY_ENTITY.put(target.getEntityType(), target);

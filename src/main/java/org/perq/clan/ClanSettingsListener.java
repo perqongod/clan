@@ -36,9 +36,9 @@ public class ClanSettingsListener implements Listener {
     private static final int FRIENDLY_FIRE_SLOT = 4;
     private static final int SKILLS_SLOT = 4;
     private static final int SPAWN_SLOT = 4;
-    private static final int MAIN_CHEST_SLOT = 10;
-    private static final int MAIN_FRIENDLY_FIRE_SLOT = 11;
-    private static final int MAIN_INVITE_TOGGLE_SLOT = 12;
+    private static final int MAIN_INVITE_TOGGLE_SLOT = 10;
+    private static final int MAIN_CHEST_SLOT = 11;
+    private static final int MAIN_FRIENDLY_FIRE_SLOT = 12;
     private static final int MAIN_SKILLS_SLOT = 13;
     private static final int MAIN_SPAWN_SLOT = 14;
 
