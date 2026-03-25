@@ -103,7 +103,12 @@ public class ClanSkillsListener implements Listener {
         if (meta == null) return;
         ConfigManager cm = plugin.getConfigManager();
         String displayName = meta.getDisplayName();
-        if (displayName == null || !ChatColor.stripColor(displayName).contains("Clan Rename")) return;
+        if (displayName == null) return;
+        String strippedName = ChatColor.stripColor(displayName);
+        if (!"Level 3 - Clan Rename".equals(strippedName)
+                && !"Level 3 - Clan Rename (Locked)".equals(strippedName)) {
+            return;
+        }
         if (!clan.getLeader().equals(player.getUniqueId())) return;
         if (!ClanSkillProgress.hasRename(clan.getSkillPoints())) return;
         openRenameAnvil(player, clan, cm);
@@ -261,10 +266,10 @@ public class ClanSkillsListener implements Listener {
             lore.add(cm.translateColors("&7Reward: &f" + rewardDescription));
             lore.add(cm.translateColors("&cLocked"));
         }
-        String displayName = "&6Level " + level + " - " + name;
-        if (!unlocked) {
-            displayName += " &7(&cLocked&7)";
-        }
+        String displayName = String.format("&6Level %d - %s%s",
+                level,
+                name,
+                unlocked ? "" : " &7(&cLocked&7)");
         return namedItem(material, cm.translateColors(displayName), lore);
     }
 
