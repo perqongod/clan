@@ -51,6 +51,10 @@ public class ClanData {
     private Map<UUID, ClanChestPermission> chestPermissions;
     /** Per-member permission for friendly fire toggles */
     private Map<UUID, ClanFriendlyFirePermission> friendlyFirePermissions;
+    /** Per-member permission for clan skills visibility/usage */
+    private Map<UUID, ClanAccessPermission> skillsPermissions;
+    /** Per-member permission for clan spawn visibility/usage */
+    private Map<UUID, ClanAccessPermission> spawnPermissions;
 
     private static final DateTimeFormatter LOG_FMT = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
     private static final Gson GSON = new GsonBuilder().serializeNulls().create();
@@ -75,6 +79,8 @@ public class ClanData {
         this.pendingRequests = new ArrayList<>();
         this.chestPermissions = new HashMap<>();
         this.friendlyFirePermissions = new HashMap<>();
+        this.skillsPermissions = new HashMap<>();
+        this.spawnPermissions = new HashMap<>();
     }
 
     public ClanData(File file) {
@@ -139,6 +145,30 @@ public class ClanData {
                     UUID memberId = UUID.fromString(key);
                     String value = config.getString("friendly-fire-permissions." + key);
                     friendlyFirePermissions.put(memberId, ClanFriendlyFirePermission.fromString(value));
+                } catch (IllegalArgumentException ignored) {
+                    // skip invalid UUIDs
+                }
+            }
+        }
+        this.skillsPermissions = new HashMap<>();
+        if (config.isConfigurationSection("skills-permissions")) {
+            for (String key : config.getConfigurationSection("skills-permissions").getKeys(false)) {
+                try {
+                    UUID memberId = UUID.fromString(key);
+                    String value = config.getString("skills-permissions." + key);
+                    skillsPermissions.put(memberId, ClanAccessPermission.fromString(value));
+                } catch (IllegalArgumentException ignored) {
+                    // skip invalid UUIDs
+                }
+            }
+        }
+        this.spawnPermissions = new HashMap<>();
+        if (config.isConfigurationSection("spawn-permissions")) {
+            for (String key : config.getConfigurationSection("spawn-permissions").getKeys(false)) {
+                try {
+                    UUID memberId = UUID.fromString(key);
+                    String value = config.getString("spawn-permissions." + key);
+                    spawnPermissions.put(memberId, ClanAccessPermission.fromString(value));
                 } catch (IllegalArgumentException ignored) {
                     // skip invalid UUIDs
                 }
@@ -210,6 +240,22 @@ public class ClanData {
             }
         }
         config.set("friendly-fire-permissions", friendlyPerms);
+        Map<String, String> skillPerms = new HashMap<>();
+        for (UUID mem : members) {
+            ClanAccessPermission permission = getSkillsPermission(mem);
+            if (permission != ClanAccessPermission.defaultPermission()) {
+                skillPerms.put(mem.toString(), permission.name());
+            }
+        }
+        config.set("skills-permissions", skillPerms);
+        Map<String, String> spawnPerms = new HashMap<>();
+        for (UUID mem : members) {
+            ClanAccessPermission permission = getSpawnPermission(mem);
+            if (permission != ClanAccessPermission.defaultPermission()) {
+                spawnPerms.put(mem.toString(), permission.name());
+            }
+        }
+        config.set("spawn-permissions", spawnPerms);
         config.save(file);
     }
 
@@ -353,6 +399,30 @@ public class ClanData {
             friendlyFirePermissions.remove(member);
         } else {
             friendlyFirePermissions.put(member, permission);
+        }
+    }
+
+    public ClanAccessPermission getSkillsPermission(UUID member) {
+        return skillsPermissions.getOrDefault(member, ClanAccessPermission.defaultPermission());
+    }
+
+    public void setSkillsPermission(UUID member, ClanAccessPermission permission) {
+        if (permission == null || permission == ClanAccessPermission.defaultPermission()) {
+            skillsPermissions.remove(member);
+        } else {
+            skillsPermissions.put(member, permission);
+        }
+    }
+
+    public ClanAccessPermission getSpawnPermission(UUID member) {
+        return spawnPermissions.getOrDefault(member, ClanAccessPermission.defaultPermission());
+    }
+
+    public void setSpawnPermission(UUID member, ClanAccessPermission permission) {
+        if (permission == null || permission == ClanAccessPermission.defaultPermission()) {
+            spawnPermissions.remove(member);
+        } else {
+            spawnPermissions.put(member, permission);
         }
     }
 
