@@ -45,6 +45,11 @@ public class ConfigManager {
         return ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(message));
     }
 
+    public String normalizeTag(String tag) {
+        if (tag == null) return null;
+        return tag.replace(ChatColor.COLOR_CHAR, '&');
+    }
+
     public String getMessage(String key) {
         String msg = config.getString("messages." + key);
         if (msg == null) return getPrefix() + "§cMissing message: " + key;

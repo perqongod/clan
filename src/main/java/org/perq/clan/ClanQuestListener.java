@@ -91,9 +91,11 @@ public class ClanQuestListener implements Listener {
             inv.setItem(i, filler);
         }
 
-        int zombieKills = clan.getQuestZombieKillCount();
-        int questLevel = ClanQuestProgress.getQuestLevel(zombieKills);
+        Map<ClanQuestProgress.QuestTarget, Integer> killCounts = clan.getQuestKillCounts();
+        int questLevel = ClanQuestProgress.getQuestLevel(killCounts);
         int questPoints = clan.getQuestSkillPoints();
+        int completedQuests = ClanQuestProgress.getCompletedQuestCount(killCounts);
+        int totalQuests = ClanQuestProgress.getTotalQuestCount();
         String questInfo = cm.getMessage("quest-info");
         String prefix = cm.getPrefix();
         if (questInfo.startsWith(prefix)) {
@@ -102,12 +104,12 @@ public class ClanQuestListener implements Listener {
 
         List<String> overviewLore = new ArrayList<>();
         overviewLore.add(cm.translateColors("&7Quest level: &f" + questLevel));
-        overviewLore.add(cm.translateColors("&7Zombie kills: &f" + zombieKills));
+        overviewLore.add(cm.translateColors("&7Completed quests: &f" + completedQuests + "/" + totalQuests));
         overviewLore.add(cm.translateColors("&7Quest skill points: &f" + questPoints));
         overviewLore.add(questInfo);
         inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Quests"), overviewLore));
 
-        List<ItemStack> questEntries = buildQuestEntries(zombieKills, cm);
+        List<ItemStack> questEntries = buildQuestEntries(clan, cm);
         int totalPages = Math.max(1, (questEntries.size() + QUEST_ROW_SIZE - 1) / QUEST_ROW_SIZE);
         int page = Math.min(pages.getOrDefault(viewer, 0), totalPages - 1);
         pages.put(viewer, page);
@@ -130,23 +132,27 @@ public class ClanQuestListener implements Listener {
     }
 
     private int getTotalPages(ClanData clan) {
-        int questCount = buildQuestEntries(clan.getQuestZombieKillCount(), plugin.getConfigManager()).size();
+        int questCount = buildQuestEntries(clan, plugin.getConfigManager()).size();
         return Math.max(1, (questCount + QUEST_ROW_SIZE - 1) / QUEST_ROW_SIZE);
     }
 
-    private List<ItemStack> buildQuestEntries(int zombieKills, ConfigManager cm) {
+    private List<ItemStack> buildQuestEntries(ClanData clan, ConfigManager cm) {
         List<ItemStack> entries = new ArrayList<>();
 
         List<String> levelOneLore = new ArrayList<>();
         levelOneLore.add(cm.translateColors("&7Unlocked"));
         entries.add(namedItem(Material.BOOK, cm.translateColors("&6Quest Level 1"), levelOneLore));
 
-        int requiredKills = ClanQuestProgress.getLevel2ZombieKills();
-        List<String> levelTwoLore = new ArrayList<>();
-        levelTwoLore.add(cm.translateColors("&7Task: &fKill " + requiredKills + " Zombies"));
-        levelTwoLore.add(cm.translateColors("&7Progress: &f" + zombieKills + "/" + requiredKills));
-        levelTwoLore.add(cm.translateColors(zombieKills >= requiredKills ? "&aUnlocked" : "&cLocked"));
-        entries.add(namedItem(Material.ZOMBIE_HEAD, cm.translateColors("&6Quest Level 2"), levelTwoLore));
+        for (ClanQuestProgress.QuestDefinition quest : ClanQuestProgress.getQuestDefinitions()) {
+            int kills = clan.getQuestKillCount(quest.getTarget());
+            List<String> lore = new ArrayList<>();
+            lore.add(cm.translateColors("&7Task: &fKill " + quest.getRequiredKills() + " " + quest.getTarget().getDisplayName()));
+            lore.add(cm.translateColors("&7Progress: &f" + kills + "/" + quest.getRequiredKills()));
+            lore.add(cm.translateColors("&7Reward: &f" + quest.getRewardPoints() + " quest points"));
+            lore.add(cm.translateColors(kills >= quest.getRequiredKills() ? "&aUnlocked" : "&cLocked"));
+            entries.add(namedItem(quest.getTarget().getIcon(),
+                    cm.translateColors("&6Quest Level " + quest.getLevel() + " - " + quest.getTarget().getDisplayName()), lore));
+        }
 
         return entries;
     }

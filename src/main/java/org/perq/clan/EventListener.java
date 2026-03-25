@@ -3,7 +3,7 @@ package org.perq.clan;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Zombie;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ import java.util.logging.Level;
 public class EventListener implements Listener {
     private final Clan plugin;
     private Map<UUID, Long> joinTimes = new HashMap<>();
-    // Save quest progress every N zombie kills to reduce disk I/O.
+    // Save quest progress every N quest kills to reduce disk I/O.
     private static final int QUEST_SAVE_INTERVAL = 10;
 
     public EventListener(Clan plugin) {
@@ -35,11 +36,8 @@ public class EventListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
 
-        @SuppressWarnings("deprecation")
-        String title = event.getView().getTitle();
-        if (!title.startsWith("Clan Chest: ")) return;
-
-        String clanTag = title.substring("Clan Chest: ".length());
+        String clanTag = getClanTagFromInventory(event.getView().getTopInventory());
+        if (clanTag == null) return;
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
         if (!ClanSkillProgress.hasChest(clan.getSkillPoints())) {
@@ -71,10 +69,8 @@ public class EventListener implements Listener {
 
     @EventHandler
     public void onClanChestClose(InventoryCloseEvent event) {
-        @SuppressWarnings("deprecation")
-        String title = event.getView().getTitle();
-        if (!title.startsWith("Clan Chest: ")) return;
-        String clanTag = title.substring("Clan Chest: ".length());
+        String clanTag = getClanTagFromInventory(event.getView().getTopInventory());
+        if (clanTag == null) return;
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
         clan.setChestContents(event.getView().getTopInventory().getContents());
@@ -115,13 +111,14 @@ public class EventListener implements Listener {
 
     @EventHandler
     public void onQuestZombieKill(EntityDeathEvent event) {
-        if (!(event.getEntity() instanceof Zombie)) return;
+        EntityType type = event.getEntityType();
+        ClanQuestProgress.QuestTarget target = ClanQuestProgress.getQuestTarget(type);
+        if (target == null) return;
         Player killer = event.getEntity().getKiller();
         if (killer == null) return;
         ClanData clan = getPlayerClan(killer.getUniqueId());
         if (clan == null) return;
-        int newCount = clan.getQuestZombieKillCount() + 1;
-        clan.setQuestZombieKillCount(newCount);
+        int newCount = clan.addQuestKill(target);
         if (newCount % QUEST_SAVE_INTERVAL != 0) return;
         try {
             plugin.getFileManager().saveClan(clan);
@@ -192,6 +189,11 @@ public class EventListener implements Listener {
     private String getPlayerClanTag(UUID player) {
         PlayerData p = plugin.getFileManager().loadPlayer(player);
         return (p == null) ? null : p.getClanTag();
+    }
+
+    private String getClanTagFromInventory(Inventory inventory) {
+        if (!(inventory.getHolder() instanceof ClanChestHolder)) return null;
+        return ((ClanChestHolder) inventory.getHolder()).getClanTag();
     }
 
     private ClanData getPlayerClan(UUID player) {
