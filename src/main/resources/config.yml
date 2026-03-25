@@ -139,6 +139,7 @@ ranks:
       &f/clan spawn
       &f/clan setspawn
       &f/clan delspawn
+      &f/clan settings
       &f/clan skills
       &f/clan quest
       &f/clan logs

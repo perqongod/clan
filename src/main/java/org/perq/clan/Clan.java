@@ -1,9 +1,9 @@
 package org.perq.clan;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 import java.util.UUID;
 
 public final class Clan extends JavaPlugin {
@@ -14,7 +14,6 @@ public final class Clan extends JavaPlugin {
     private ClanSkillsListener clanSkillsListener;
     private ClanStatsListener clanStatsListener;
     private ClanQuestListener clanQuestListener;
-    private Map<UUID, Boolean> invitationToggles = new HashMap<>(); // true = disabled
 
     @Override
     public void onEnable() {
@@ -70,13 +69,23 @@ public final class Clan extends JavaPlugin {
         return clanQuestListener;
     }
 
-    public boolean toggleInvitation(UUID player) {
-        boolean current = invitationToggles.getOrDefault(player, false);
-        invitationToggles.put(player, !current);
-        return !current; // true if now disabled
+    public boolean toggleInvitation(Player player) {
+        PlayerData data = fileManager.loadPlayer(player.getUniqueId());
+        if (data == null) {
+            data = new PlayerData(player.getName());
+        }
+        boolean nowEnabled = !data.isInvitesEnabled();
+        data.setInvitesEnabled(nowEnabled);
+        try {
+            fileManager.savePlayer(player.getUniqueId(), data);
+        } catch (IOException e) {
+            player.sendMessage(configManager.getPrefix() + "Error saving.");
+        }
+        return nowEnabled;
     }
 
-    public Map<UUID, Boolean> getInvitationToggles() {
-        return invitationToggles;
+    public boolean isInvitesEnabled(UUID player) {
+        PlayerData data = fileManager.loadPlayer(player);
+        return data == null || data.isInvitesEnabled();
     }
 }

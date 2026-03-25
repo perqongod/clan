@@ -32,6 +32,7 @@ public class ClanSettingsListener implements Listener {
     private static final int FRIENDLY_FIRE_SLOT = 4;
     private static final int MAIN_CHEST_SLOT = 10;
     private static final int MAIN_FRIENDLY_FIRE_SLOT = 11;
+    private static final int MAIN_INVITE_TOGGLE_SLOT = 12;
 
     private final Clan plugin;
     private final Map<UUID, SettingsSession> sessions = new HashMap<>();
@@ -40,12 +41,12 @@ public class ClanSettingsListener implements Listener {
         this.plugin = plugin;
     }
 
-    public void openGui(Player leader, ClanData clan) {
+    public void openGui(Player player, ClanData clan) {
         Inventory inv = Bukkit.createInventory(null, MAIN_INVENTORY_SIZE, MAIN_TITLE);
         SettingsSession session = new SettingsSession(clan.getTag(), new ArrayList<>(clan.getMembers()));
-        sessions.put(leader.getUniqueId(), session);
-        populateMainMenu(inv);
-        leader.openInventory(inv);
+        sessions.put(player.getUniqueId(), session);
+        populateMainMenu(inv, player, clan);
+        player.openInventory(inv);
     }
 
     @EventHandler
@@ -74,7 +75,18 @@ public class ClanSettingsListener implements Listener {
         }
 
         if (mainMenu) {
+            ConfigManager cm = plugin.getConfigManager();
+            if (rawSlot == MAIN_INVITE_TOGGLE_SLOT) {
+                boolean invitesEnabled = plugin.toggleInvitation(player);
+                player.sendMessage(invitesEnabled ? cm.getMessage("toggle-on") : cm.getMessage("toggle-off"));
+                refreshMainMenu(event.getView().getTopInventory(), player, clan);
+                return;
+            }
             if (rawSlot == MAIN_CHEST_SLOT) {
+                if (!clan.getLeader().equals(player.getUniqueId())) {
+                    player.sendMessage(cm.getMessage("not-clan-leader"));
+                    return;
+                }
                 session.members = new ArrayList<>(clan.getMembers());
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
@@ -82,6 +94,10 @@ public class ClanSettingsListener implements Listener {
                 openChestSettings(player, clan, session);
             }
             if (rawSlot == MAIN_FRIENDLY_FIRE_SLOT) {
+                if (!clan.getLeader().equals(player.getUniqueId())) {
+                    player.sendMessage(cm.getMessage("not-clan-leader"));
+                    return;
+                }
                 session.members = new ArrayList<>(clan.getMembers());
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
@@ -160,7 +176,12 @@ public class ClanSettingsListener implements Listener {
         populateFriendlyFireSettings(inv, clan, session);
     }
 
-    private void populateMainMenu(Inventory inv) {
+    private void refreshMainMenu(Inventory inv, Player player, ClanData clan) {
+        inv.clear();
+        populateMainMenu(inv, player, clan);
+    }
+
+    private void populateMainMenu(Inventory inv, Player player, ClanData clan) {
         ItemStack orangePane = namedItem(Material.ORANGE_STAINED_GLASS_PANE, " ");
         ItemStack grayPane = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 9; i++) {
@@ -172,6 +193,7 @@ public class ClanSettingsListener implements Listener {
         }
         inv.setItem(MAIN_CHEST_SLOT, clanChestItem(null));
         inv.setItem(MAIN_FRIENDLY_FIRE_SLOT, friendlyFireItem(null));
+        inv.setItem(MAIN_INVITE_TOGGLE_SLOT, invitationToggleItem(player));
     }
 
     private void populateChestSettings(Inventory inv, ClanData clan, SettingsSession session) {
@@ -308,6 +330,22 @@ public class ClanSettingsListener implements Listener {
             }
             lore.add(cm.translateColors("&7✅ &aEnabled"));
             lore.add(cm.translateColors("&7❌ &cDisabled"));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    private ItemStack invitationToggleItem(Player player) {
+        ConfigManager cm = plugin.getConfigManager();
+        boolean invitesEnabled = plugin.isInvitesEnabled(player.getUniqueId());
+        ItemStack item = new ItemStack(Material.BELL);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(cm.translateColors("&6Invitations"));
+            List<String> lore = new ArrayList<>();
+            lore.add(cm.translateColors("&7Click to toggle"));
+            lore.add(cm.translateColors("&7Status: " + (invitesEnabled ? "&aEnabled" : "&cDisabled")));
             meta.setLore(lore);
             item.setItemMeta(meta);
         }

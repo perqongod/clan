@@ -1035,13 +1035,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             case "toggle": {
-                boolean toggled = plugin.toggleInvitation(playerUUID);
-                player.sendMessage(toggled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
-                PlayerData ptData = plugin.getFileManager().loadPlayer(playerUUID);
-                if (ptData != null) {
-                    ptData.setInvitesEnabled(!toggled);
-                    try { plugin.getFileManager().savePlayer(playerUUID, ptData); } catch (Exception ignored) { /* continue */ }
-                }
+                boolean invitesEnabled = plugin.toggleInvitation(player);
+                player.sendMessage(invitesEnabled ? cm.getMessage("toggle-on") : cm.getMessage("toggle-off"));
                 break;
             }
 
@@ -1188,10 +1183,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 ClanData settingsClan = getPlayerClan(playerUUID);
                 if (settingsClan == null) {
                     player.sendMessage(cm.getMessage("no-clan"));
-                    return true;
-                }
-                if (!settingsClan.getLeader().equals(playerUUID)) {
-                    player.sendMessage(cm.getMessage("not-clan-leader"));
                     return true;
                 }
                 plugin.getClanSettingsListener().openGui(player, settingsClan);
@@ -1700,7 +1691,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan skills"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan quest &7- Open clan quests"));
-        if (clan != null && clan.getLeader().equals(playerUUID)) {
+        if (clan != null) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Open clan settings"));
         }
         if (player.hasPermission("clan.admin")) {
@@ -1758,10 +1749,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
                     "logs", "skills", "quest", "settings"
             ));
-            ClanData clan = getPlayerClan(playerUUID);
-            if (clan == null || !clan.getLeader().equals(playerUUID)) {
-                subs.remove("settings");
-            }
             if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillPoints())) {
                 subs.remove("chest");
             } else if (!clan.getLeader().equals(playerUUID)
