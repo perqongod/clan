@@ -302,7 +302,7 @@ public class ClanSkillsListener implements Listener {
             fileManager.deleteClan(oldTag);
         } else {
             plugin.getLogger().warning("[Clan] Skipped deleting old clan data for " + oldTag
-                    + " after rename to " + newTag + " due to player save failures.");
+                    + " after rename to " + newTag + " due to player save failures. Manual cleanup may be required.");
         }
     }
 
