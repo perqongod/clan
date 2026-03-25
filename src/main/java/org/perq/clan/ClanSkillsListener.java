@@ -3,6 +3,7 @@ package org.perq.clan;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -101,7 +102,8 @@ public class ClanSkillsListener implements Listener {
         ItemMeta meta = clicked.getItemMeta();
         if (meta == null) return;
         ConfigManager cm = plugin.getConfigManager();
-        if (!cm.translateColors("&6Clan Rename").equals(meta.getDisplayName())) return;
+        String displayName = meta.getDisplayName();
+        if (displayName == null || !ChatColor.stripColor(displayName).contains("Clan Rename")) return;
         if (!clan.getLeader().equals(player.getUniqueId())) return;
         if (!ClanSkillProgress.hasRename(clan.getSkillPoints())) return;
         openRenameAnvil(player, clan, cm);
@@ -210,33 +212,33 @@ public class ClanSkillsListener implements Listener {
 
         entries.add(buildSkillEntry(cm,
                 Material.CHEST,
-                "&6Clan Chest",
+                "Clan Chest",
                 1,
                 ClanSkillProgress.getChestUnlockPoints(),
                 ClanSkillProgress.hasChest(points),
                 Collections.emptyList(),
-                "Clan chest access"));
+                "Access to the clan chest"));
 
         entries.add(buildSkillEntry(cm,
                 Material.ENDER_EYE,
-                "&6Clan Spawn",
+                "Clan Spawn",
                 2,
                 ClanSkillProgress.getSpawnUnlockPoints(),
                 ClanSkillProgress.hasSpawn(points),
                 Collections.emptyList(),
-                "Clan spawn teleport"));
+                "Teleport to the clan spawn"));
 
         List<String> renameUnlockedLore = new ArrayList<>();
         renameUnlockedLore.add(cm.translateColors("&7Cooldown: &f72h"));
         renameUnlockedLore.add(cm.translateColors("&7Click to rename (colors enabled)"));
         entries.add(buildSkillEntry(cm,
                 Material.NAME_TAG,
-                "&6Clan Rename",
+                "Clan Rename",
                 3,
                 ClanSkillProgress.getRenameUnlockPoints(),
                 ClanSkillProgress.hasRename(points),
                 renameUnlockedLore,
-                "Clan rename command"));
+                "Rename the clan tag"));
 
         return entries;
     }
@@ -259,7 +261,11 @@ public class ClanSkillsListener implements Listener {
             lore.add(cm.translateColors("&7Reward: &f" + rewardDescription));
             lore.add(cm.translateColors("&cLocked"));
         }
-        return namedItem(material, cm.translateColors(name), lore);
+        String displayName = "&6Level " + level + " - " + name;
+        if (!unlocked) {
+            displayName += " &7(&cLocked&7)";
+        }
+        return namedItem(material, cm.translateColors(displayName), lore);
     }
 
     private ItemStack arrowItem(String name) {
