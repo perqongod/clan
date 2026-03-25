@@ -6,7 +6,7 @@ import java.util.List;
 public final class ClanSkillProgress {
     private static final int CHEST_UNLOCK_POINTS = 100;
     private static final int SPAWN_UNLOCK_POINTS = 200;
-    private static final int CHEST_UPGRADE_POINTS = 400;
+    private static final int RENAME_UNLOCK_POINTS = 300;
     private static final int BONUS_SLOT_STEP = 100;
 
     private ClanSkillProgress() {
@@ -20,8 +20,8 @@ public final class ClanSkillProgress {
         return SPAWN_UNLOCK_POINTS;
     }
 
-    public static int getChestUpgradePoints() {
-        return CHEST_UPGRADE_POINTS;
+    public static int getRenameUnlockPoints() {
+        return RENAME_UNLOCK_POINTS;
     }
 
     public static boolean hasChest(int points) {
@@ -32,8 +32,8 @@ public final class ClanSkillProgress {
         return points >= SPAWN_UNLOCK_POINTS;
     }
 
-    public static boolean hasChestUpgrade(int points) {
-        return points >= CHEST_UPGRADE_POINTS;
+    public static boolean hasRename(int points) {
+        return points >= RENAME_UNLOCK_POINTS;
     }
 
     public static int getBonusMemberSlots(int points) {
@@ -46,10 +46,10 @@ public final class ClanSkillProgress {
     }
 
     public static int getNextUnlockPoints(int points) {
-        int firstUnlock = Math.min(CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS);
-        int secondUnlock = Math.max(CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS);
-        if (points < firstUnlock) return firstUnlock;
-        if (secondUnlock > firstUnlock && points < secondUnlock) return secondUnlock;
+        int[] unlocks = {CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS, RENAME_UNLOCK_POINTS};
+        for (int unlock : unlocks) {
+            if (points < unlock) return unlock;
+        }
         return ((points / BONUS_SLOT_STEP) + 1) * BONUS_SLOT_STEP;
     }
 
@@ -61,6 +61,9 @@ public final class ClanSkillProgress {
         }
         if (nextUnlock == SPAWN_UNLOCK_POINTS) {
             rewards.add("clan spawn");
+        }
+        if (nextUnlock == RENAME_UNLOCK_POINTS) {
+            rewards.add("clan rename");
         }
         if (rewards.isEmpty()) {
             return "Bonus member slot +1";

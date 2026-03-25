@@ -18,27 +18,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class ClanSkillsListener implements Listener {
-    private static final String TITLE = "Clan Progress";
+public class ClanQuestListener implements Listener {
+    private static final String TITLE = "Clan Quests";
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
-    private static final int MEMBERS_SLOT = 24;
     private static final int PREVIOUS_PAGE_SLOT = 0;
     private static final int NEXT_PAGE_SLOT = 8;
-    private static final int SKILL_ROW_START = 9;
-    private static final int SKILL_ROW_SIZE = 9;
+    private static final int QUEST_ROW_START = 9;
+    private static final int QUEST_ROW_SIZE = 9;
 
     private final Clan plugin;
     private final Map<UUID, Integer> pages = new HashMap<>();
 
-    public ClanSkillsListener(Clan plugin) {
+    public ClanQuestListener(Clan plugin) {
         this.plugin = plugin;
     }
 
     public void openGui(Player player, ClanData clan) {
         Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE, TITLE);
         pages.put(player.getUniqueId(), 0);
-        populateSkillsInventory(inv, clan, player.getUniqueId());
+        populateQuestInventory(inv, clan, player.getUniqueId());
         player.openInventory(inv);
     }
 
@@ -59,13 +58,11 @@ public class ClanSkillsListener implements Listener {
             return;
         }
         if (rawSlot == OVERVIEW_SLOT) {
-            ConfigManager cm = plugin.getConfigManager();
-            player.sendMessage(cm.getMessage("skills-auto-progress"));
+            player.sendMessage(plugin.getConfigManager().getMessage("quest-info"));
             return;
         }
         if (rawSlot == PREVIOUS_PAGE_SLOT || rawSlot == NEXT_PAGE_SLOT) {
-            ConfigManager cm = plugin.getConfigManager();
-            int totalPages = getTotalPages(clan, cm);
+            int totalPages = getTotalPages(clan);
             int currentPage = pages.getOrDefault(player.getUniqueId(), 0);
             if (rawSlot == PREVIOUS_PAGE_SLOT && currentPage > 0) {
                 currentPage--;
@@ -75,7 +72,7 @@ public class ClanSkillsListener implements Listener {
                 return;
             }
             pages.put(player.getUniqueId(), currentPage);
-            populateSkillsInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
+            populateQuestInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
         }
     }
 
@@ -85,7 +82,7 @@ public class ClanSkillsListener implements Listener {
         pages.remove(event.getPlayer().getUniqueId());
     }
 
-    private void populateSkillsInventory(Inventory inv, ClanData clan, UUID viewer) {
+    private void populateQuestInventory(Inventory inv, ClanData clan, UUID viewer) {
         inv.clear();
         ConfigManager cm = plugin.getConfigManager();
 
@@ -94,28 +91,32 @@ public class ClanSkillsListener implements Listener {
             inv.setItem(i, filler);
         }
 
-        int points = clan.getSkillPoints();
-        int nextUnlock = ClanSkillProgress.getNextUnlockPoints(points);
-        int bonusSlots = ClanSkillProgress.getBonusMemberSlots(points);
+        int zombieKills = clan.getQuestZombieKillCount();
+        int questLevel = ClanQuestProgress.getQuestLevel(zombieKills);
+        int questPoints = clan.getQuestSkillPoints();
+        String questInfo = cm.getMessage("quest-info");
+        String prefix = cm.getPrefix();
+        if (questInfo.startsWith(prefix)) {
+            questInfo = questInfo.substring(prefix.length()).trim();
+        }
 
         List<String> overviewLore = new ArrayList<>();
-        overviewLore.add(cm.translateColors("&7Unlock Points: &f" + points));
-        overviewLore.add(cm.translateColors("&7Leaderboard Points: &f" + clan.getPoints()));
-        overviewLore.add(cm.translateColors("&7Next unlock at: &f" + nextUnlock));
-        overviewLore.add(cm.translateColors("&7Next reward: &f" + ClanSkillProgress.getRewardLabel(points)));
-        overviewLore.add(cm.translateColors("&eProgress is automatic"));
-        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Progress"), overviewLore));
+        overviewLore.add(cm.translateColors("&7Quest level: &f" + questLevel));
+        overviewLore.add(cm.translateColors("&7Zombie kills: &f" + zombieKills));
+        overviewLore.add(cm.translateColors("&7Quest skill points: &f" + questPoints));
+        overviewLore.add(questInfo);
+        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Quests"), overviewLore));
 
-        List<ItemStack> skillEntries = buildSkillEntries(points, cm);
-        int totalPages = Math.max(1, (skillEntries.size() + SKILL_ROW_SIZE - 1) / SKILL_ROW_SIZE);
+        List<ItemStack> questEntries = buildQuestEntries(zombieKills, cm);
+        int totalPages = Math.max(1, (questEntries.size() + QUEST_ROW_SIZE - 1) / QUEST_ROW_SIZE);
         int page = Math.min(pages.getOrDefault(viewer, 0), totalPages - 1);
         pages.put(viewer, page);
 
-        int startIndex = page * SKILL_ROW_SIZE;
-        for (int i = 0; i < SKILL_ROW_SIZE; i++) {
+        int startIndex = page * QUEST_ROW_SIZE;
+        for (int i = 0; i < QUEST_ROW_SIZE; i++) {
             int index = startIndex + i;
-            if (index >= skillEntries.size()) break;
-            inv.setItem(SKILL_ROW_START + i, skillEntries.get(index));
+            if (index >= questEntries.size()) break;
+            inv.setItem(QUEST_ROW_START + i, questEntries.get(index));
         }
 
         if (totalPages > 1) {
@@ -126,36 +127,26 @@ public class ClanSkillsListener implements Listener {
                 inv.setItem(NEXT_PAGE_SLOT, arrowItem(cm.translateColors("&eNext")));
             }
         }
-
-        List<String> memberLore = new ArrayList<>();
-        memberLore.add(cm.translateColors("&7Bonus slots: &f+" + bonusSlots));
-        memberLore.add(cm.translateColors("&7Gain +1 member slot every " + ClanSkillProgress.getBonusSlotStep()
-                + " points after " + ClanSkillProgress.getSpawnUnlockPoints()));
-        inv.setItem(MEMBERS_SLOT, namedItem(Material.PAPER, cm.translateColors("&6Member Slots"), memberLore));
     }
 
-    private int getTotalPages(ClanData clan, ConfigManager cm) {
-        int skillCount = buildSkillEntries(clan.getSkillPoints(), cm).size();
-        return Math.max(1, (skillCount + SKILL_ROW_SIZE - 1) / SKILL_ROW_SIZE);
+    private int getTotalPages(ClanData clan) {
+        int questCount = buildQuestEntries(clan.getQuestZombieKillCount(), plugin.getConfigManager()).size();
+        return Math.max(1, (questCount + QUEST_ROW_SIZE - 1) / QUEST_ROW_SIZE);
     }
 
-    private List<ItemStack> buildSkillEntries(int points, ConfigManager cm) {
+    private List<ItemStack> buildQuestEntries(int zombieKills, ConfigManager cm) {
         List<ItemStack> entries = new ArrayList<>();
 
-        List<String> chestLore = new ArrayList<>();
-        chestLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getChestUnlockPoints()));
-        chestLore.add(cm.translateColors(ClanSkillProgress.hasChest(points) ? "&aUnlocked" : "&cLocked"));
-        entries.add(namedItem(Material.CHEST, cm.translateColors("&6Clan Chest"), chestLore));
+        List<String> levelOneLore = new ArrayList<>();
+        levelOneLore.add(cm.translateColors("&7Unlocked"));
+        entries.add(namedItem(Material.BOOK, cm.translateColors("&6Quest Level 1"), levelOneLore));
 
-        List<String> spawnLore = new ArrayList<>();
-        spawnLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getSpawnUnlockPoints()));
-        spawnLore.add(cm.translateColors(ClanSkillProgress.hasSpawn(points) ? "&aUnlocked" : "&cLocked"));
-        entries.add(namedItem(Material.ENDER_EYE, cm.translateColors("&6Clan Spawn"), spawnLore));
-
-        List<String> renameLore = new ArrayList<>();
-        renameLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getRenameUnlockPoints()));
-        renameLore.add(cm.translateColors(ClanSkillProgress.hasRename(points) ? "&aUnlocked" : "&cLocked"));
-        entries.add(namedItem(Material.NAME_TAG, cm.translateColors("&6Clan Rename"), renameLore));
+        int requiredKills = ClanQuestProgress.getLevel2ZombieKills();
+        List<String> levelTwoLore = new ArrayList<>();
+        levelTwoLore.add(cm.translateColors("&7Task: &fKill " + requiredKills + " Zombies"));
+        levelTwoLore.add(cm.translateColors("&7Progress: &f" + zombieKills + "/" + requiredKills));
+        levelTwoLore.add(cm.translateColors(zombieKills >= requiredKills ? "&aUnlocked" : "&cLocked"));
+        entries.add(namedItem(Material.ZOMBIE_HEAD, cm.translateColors("&6Quest Level 2"), levelTwoLore));
 
         return entries;
     }

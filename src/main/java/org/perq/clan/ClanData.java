@@ -32,6 +32,7 @@ public class ClanData {
     private List<UUID> moderators;
     private List<UUID> members;
     private int points;
+    private int questZombieKillCount;
     private String rank;
     private String created;
     private double onlineTime;
@@ -59,6 +60,7 @@ public class ClanData {
         this.members = new ArrayList<>();
         this.members.add(leader);
         this.points = 0;
+        this.questZombieKillCount = 0;
         this.rank = "Bronze";
         this.created = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         this.onlineTime = 0.0;
@@ -85,6 +87,7 @@ public class ClanData {
             members.add(UUID.fromString(mem));
         }
         this.points = config.getInt("points");
+        this.questZombieKillCount = config.getInt("quest-zombie-kills", 0);
         this.rank = config.getString("rank");
         this.created = config.getString("created");
         this.onlineTime = config.getDouble("online-time");
@@ -154,6 +157,7 @@ public class ClanData {
         }
         config.set("members", mems);
         config.set("points", points);
+        config.set("quest-zombie-kills", questZombieKillCount);
         config.set("rank", rank);
         config.set("created", created);
         config.set("online-time", onlineTime);
@@ -226,8 +230,19 @@ public class ClanData {
     public int getPoints() { return points; }
     public void setPoints(int points) { this.points = points; }
 
+    public int getQuestZombieKillCount() { return questZombieKillCount; }
+    public void setQuestZombieKillCount(int questZombieKillCount) { this.questZombieKillCount = questZombieKillCount; }
+
     public String getRank() { return rank; }
     public void setRank(String rank) { this.rank = rank; }
+
+    public int getQuestSkillPoints() {
+        return ClanQuestProgress.getQuestSkillPoints(questZombieKillCount);
+    }
+
+    public int getSkillPoints() {
+        return points + getQuestSkillPoints();
+    }
 
     public String getCreated() { return created; }
     public void setCreated(String created) { this.created = created; }
