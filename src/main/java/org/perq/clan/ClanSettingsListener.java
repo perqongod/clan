@@ -537,7 +537,7 @@ public class ClanSettingsListener implements Listener {
                 if (name == null) name = selectedMember.toString().substring(0, 8);
                 lore.add(cm.translateColors("&7Selected: &f" + name));
             }
-            lore.add(cm.translateColors("&7✅ &aOpen"));
+            lore.add(cm.translateColors("&7✅ &aFull access"));
             lore.add(cm.translateColors("&7👁 &eSee only"));
             lore.add(cm.translateColors("&7❌ &cNo access"));
             meta.setLore(lore);
@@ -559,7 +559,7 @@ public class ClanSettingsListener implements Listener {
                 if (name == null) name = selectedMember.toString().substring(0, 8);
                 lore.add(cm.translateColors("&7Selected: &f" + name));
             }
-            lore.add(cm.translateColors("&7✅ &aOpen"));
+            lore.add(cm.translateColors("&7✅ &aFull access"));
             lore.add(cm.translateColors("&7👁 &eSee only"));
             lore.add(cm.translateColors("&7❌ &cNo access"));
             meta.setLore(lore);
@@ -685,7 +685,7 @@ public class ClanSettingsListener implements Listener {
     private String accessPermissionLabel(ClanAccessPermission permission) {
         switch (permission) {
             case EXECUTE:
-                return "&a✅ Open";
+                return "&a✅ Full access";
             case DENY:
                 return "&c❌ No access";
             default:
