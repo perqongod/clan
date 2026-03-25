@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class ClanSkillsListener implements Listener {
     private static final String TITLE = "Clan Progress";
@@ -276,7 +277,8 @@ public class ClanSkillsListener implements Listener {
         try {
             fileManager.saveClan(clan);
         } catch (IOException ignored) {
-            plugin.getLogger().warning("[Clan] Failed to save clan data for " + newTag + ".");
+            plugin.getLogger().log(Level.WARNING,
+                    "[Clan] Failed to save clan data for " + newTag + ".", ignored);
             clan.setTag(oldTag);
             clan.setLastRenameAt(oldLastRenameAt);
             return;
@@ -288,8 +290,9 @@ public class ClanSkillsListener implements Listener {
                 try {
                     fileManager.savePlayer(mem, md);
                 } catch (IOException ignored) {
-                    plugin.getLogger().warning("[Clan] Failed to save player data for " + mem
-                            + " while renaming " + oldTag + " to " + newTag + ".");
+                    plugin.getLogger().log(Level.WARNING,
+                            "[Clan] Failed to save player data for " + mem
+                                    + " while renaming " + oldTag + " to " + newTag + ".", ignored);
                 }
             }
         }

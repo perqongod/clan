@@ -83,6 +83,8 @@ public final class ClanQuestProgress {
         }
     }
 
+    private static final int EXTRA_QUEST_COUNT = 50;
+    private static final int FINAL_QUEST_KILLS = 1000;
     private static final List<QuestDefinition> QUESTS;
     private static final Map<EntityType, QuestTarget> TARGETS_BY_ENTITY = new HashMap<>();
     private static final Map<String, QuestTarget> TARGETS_BY_KEY = new HashMap<>();
@@ -125,13 +127,11 @@ public final class ClanQuestProgress {
         int killStep = 17;
         int baseReward = 60;
         int rewardStep = 3;
-        int extraQuestCount = 50;
-        int finalQuestIndex = extraQuestCount - 1;
-        int finalQuestKills = 1000;
-        for (int i = 0; i < extraQuestCount; i++) {
+        int finalQuestIndex = EXTRA_QUEST_COUNT - 1;
+        for (int i = 0; i < EXTRA_QUEST_COUNT; i++) {
             int requiredKills = baseKills + (i * killStep);
             if (i == finalQuestIndex) {
-                requiredKills = finalQuestKills;
+                requiredKills = FINAL_QUEST_KILLS;
             }
             int rewardPoints = baseReward + (i * rewardStep);
             QuestTarget target = extendedTargets[i % extendedTargets.length];
