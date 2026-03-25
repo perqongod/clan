@@ -270,6 +270,17 @@ public class ClanSkillsListener implements Listener {
     private void applyRename(ClanData clan, String newTag) {
         FileManager fileManager = plugin.getFileManager();
         String oldTag = clan.getTag();
+        long oldLastRenameAt = clan.getLastRenameAt();
+        clan.setTag(newTag);
+        clan.setLastRenameAt(System.currentTimeMillis());
+        try {
+            fileManager.saveClan(clan);
+        } catch (IOException ignored) {
+            plugin.getLogger().warning("[Clan] Failed to save clan data for " + newTag + ".");
+            clan.setTag(oldTag);
+            clan.setLastRenameAt(oldLastRenameAt);
+            return;
+        }
         for (UUID mem : clan.getMembers()) {
             PlayerData md = fileManager.loadPlayer(mem);
             if (md != null) {
@@ -282,14 +293,7 @@ public class ClanSkillsListener implements Listener {
                 }
             }
         }
-        fileManager.deleteClan(clan.getTag());
-        clan.setTag(newTag);
-        clan.setLastRenameAt(System.currentTimeMillis());
-        try {
-            fileManager.saveClan(clan);
-        } catch (IOException ignored) {
-            plugin.getLogger().warning("[Clan] Failed to save clan data for " + newTag + ".");
-        }
+        fileManager.deleteClan(oldTag);
     }
 
     private void openRenameAnvil(Player player, ClanData clan, ConfigManager cm) {
