@@ -1743,6 +1743,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         UUID playerUUID = player.getUniqueId();
 
         if (args.length == 1) {
+            ClanData clan = getPlayerClan(playerUUID);
             List<String> subs = new ArrayList<>(Arrays.asList(
                     "create", "delete", "invite", "accept", "deny", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
