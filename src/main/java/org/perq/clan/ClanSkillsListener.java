@@ -27,12 +27,11 @@ import java.util.logging.Level;
 public class ClanSkillsListener implements Listener {
     private static final Component TITLE = Component.text("Clan Skills", NamedTextColor.DARK_GRAY);
     private static final String RENAME_TITLE = "Clan Rename";
-    private static final int INVENTORY_SIZE = 45;
-    private static final int OVERVIEW_SLOT = 40;
-    private static final int MEMBERS_SLOT = 42;
-    private static final int PREVIOUS_PAGE_SLOT = 36;
-    private static final int NEXT_PAGE_SLOT = 44;
-    private static final int[] SKILL_SLOTS = {19, 22, 25};
+    private static final int INVENTORY_SIZE = 54;
+    private static final int OVERVIEW_SLOT = 49;
+    private static final int PREVIOUS_PAGE_SLOT = 45;
+    private static final int NEXT_PAGE_SLOT = 53;
+    private static final int[] SKILL_SLOTS = {30, 31, 32};
     private static final int ANVIL_INPUT_SLOT = 0;
     private static final int ANVIL_RESULT_SLOT = 2;
     private static final double RENAME_COOLDOWN_HOURS = 72.0;
@@ -160,14 +159,21 @@ public class ClanSkillsListener implements Listener {
         inv.clear();
         ConfigManager cm = plugin.getConfigManager();
 
-        ItemStack filler = namedItem(Material.RED_STAINED_GLASS_PANE, " ");
-        ItemStack border = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
+        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
+        ItemStack accent = namedItem(Material.RED_STAINED_GLASS_PANE, " ");
         int rows = inv.getSize() / 9;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < 9; col++) {
-                int slot = (row * 9) + col;
-                boolean isBorder = row == 0 || row == rows - 1 || col == 0 || col == 8;
-                inv.setItem(slot, isBorder ? border : filler);
+                inv.setItem((row * 9) + col, filler);
+            }
+        }
+        for (int row = 1; row <= rows - 2; row++) {
+            inv.setItem((row * 9) + 1, accent);
+            inv.setItem((row * 9) + 7, accent);
+        }
+        for (int row = 2; row <= rows - 2; row++) {
+            for (int col = 3; col <= 5; col++) {
+                inv.setItem((row * 9) + col, accent);
             }
         }
 
@@ -180,6 +186,9 @@ public class ClanSkillsListener implements Listener {
         overviewLore.add(cm.translateColors("&7Leaderboard Points: &f" + clan.getPoints()));
         overviewLore.add(cm.translateColors("&7Next unlock at: &f" + nextUnlock));
         overviewLore.add(cm.translateColors("&7Next reward: &f" + ClanSkillProgress.getRewardLabel(points)));
+        overviewLore.add(cm.translateColors("&7Bonus slots: &f+" + bonusSlots));
+        overviewLore.add(cm.translateColors("&7Gain +1 member slot every " + ClanSkillProgress.getBonusSlotStep()
+                + " points after " + ClanSkillProgress.getSpawnUnlockPoints()));
         overviewLore.add(cm.translateColors("&eProgress is automatic"));
         inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Skills"), overviewLore));
 
@@ -198,11 +207,6 @@ public class ClanSkillsListener implements Listener {
         inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(cm.translateColors("&ePrevious")));
         inv.setItem(NEXT_PAGE_SLOT, arrowItem(cm.translateColors("&eNext")));
 
-        List<String> memberLore = new ArrayList<>();
-        memberLore.add(cm.translateColors("&7Bonus slots: &f+" + bonusSlots));
-        memberLore.add(cm.translateColors("&7Gain +1 member slot every " + ClanSkillProgress.getBonusSlotStep()
-                + " points after " + ClanSkillProgress.getSpawnUnlockPoints()));
-        inv.setItem(MEMBERS_SLOT, namedItem(Material.PAPER, cm.translateColors("&6Member Slots"), memberLore));
     }
 
     private int getTotalPages(ClanData clan, ConfigManager cm) {
