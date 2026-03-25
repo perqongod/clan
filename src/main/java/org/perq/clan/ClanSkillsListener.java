@@ -27,11 +27,11 @@ import java.util.logging.Level;
 public class ClanSkillsListener implements Listener {
     private static final Component TITLE = Component.text("Clan Skills", NamedTextColor.DARK_GRAY);
     private static final String RENAME_TITLE = "Clan Rename";
-    private static final int INVENTORY_SIZE = 54;
-    private static final int OVERVIEW_SLOT = 49;
-    private static final int PREVIOUS_PAGE_SLOT = 45;
-    private static final int NEXT_PAGE_SLOT = 53;
-    private static final int[] SKILL_SLOTS = {30, 31, 32};
+    private static final int INVENTORY_SIZE = 45;
+    private static final int OVERVIEW_SLOT = 40;
+    private static final int PREVIOUS_PAGE_SLOT = 36;
+    private static final int NEXT_PAGE_SLOT = 44;
+    private static final int[] SKILL_SLOTS = {21, 22, 23};
     private static final int ANVIL_INPUT_SLOT = 0;
     private static final int ANVIL_RESULT_SLOT = 2;
     private static final double RENAME_COOLDOWN_HOURS = 72.0;
