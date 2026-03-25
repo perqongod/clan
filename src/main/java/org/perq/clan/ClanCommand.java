@@ -1173,11 +1173,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     } catch (Exception e) {
                         player.sendMessage(cm.getPrefix() + "Error saving.");
                     }
-                    return true;
-                }
-                if (chestClan.getChestLocation() == null) {
-                    player.sendMessage(cm.getMessage("chest-not-set"));
-                    return true;
                 }
                 // All clan members can open the chest (VIEW = see only, EXECUTE = interact)
                 int chestSize = CHEST_SIZE;
@@ -1236,7 +1231,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     plugin.getServer().getScheduler().cancelTask(existingTask);
                     spawnTaskIds.remove(playerUUID);
                 }
-                Location startLoc = player.getLocation().clone();
                 player.sendMessage(cm.getMessage("spawn-teleporting"));
                 int[] ticksLeft = {3};
                 int taskId = plugin.getServer().getScheduler().runTaskTimer(plugin, new BukkitRunnable() {
@@ -1245,15 +1239,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         if (!player.isOnline()) {
                             spawnTaskIds.remove(playerUUID);
                             cancel();
-                            return;
-                        }
-                        Location cur = player.getLocation();
-                        if (Math.abs(cur.getX() - startLoc.getX()) > 0.5
-                                || Math.abs(cur.getY() - startLoc.getY()) > 0.5
-                                || Math.abs(cur.getZ() - startLoc.getZ()) > 0.5) {
-                            spawnTaskIds.remove(playerUUID);
-                            cancel();
-                            player.sendMessage(cm.getPrefix() + "Teleport cancelled: you moved!");
                             return;
                         }
                         if (ticksLeft[0] > 0) {
@@ -1710,7 +1695,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats [tag] &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Set clan chest (Leader, "
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest (Leader: /clan chest set, "
                     + ClanSkillProgress.getChestUnlockPoints() + "+ Punkte)"));
         }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));

@@ -24,8 +24,8 @@ import java.util.logging.Level;
 public class EventListener implements Listener {
     private final Clan plugin;
     private Map<UUID, Long> joinTimes = new HashMap<>();
-    // Save quest progress every N quest kills to reduce disk I/O.
-    private static final int QUEST_SAVE_INTERVAL = 10;
+    // Save quest progress after each quest kill so GUI progress updates immediately.
+    private static final int QUEST_SAVE_INTERVAL = 1;
 
     public EventListener(Clan plugin) {
         this.plugin = plugin;
