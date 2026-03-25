@@ -14,6 +14,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,11 +37,8 @@ public class EventListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
 
-        @SuppressWarnings("deprecation")
-        String title = event.getView().getTitle();
-        if (!title.startsWith("Clan Chest: ")) return;
-
-        String clanTag = extractClanTag(title);
+        String clanTag = getClanTagFromInventory(event.getView().getTopInventory());
+        if (clanTag == null) return;
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
         if (!ClanSkillProgress.hasChest(clan.getSkillPoints())) {
@@ -72,10 +70,8 @@ public class EventListener implements Listener {
 
     @EventHandler
     public void onClanChestClose(InventoryCloseEvent event) {
-        @SuppressWarnings("deprecation")
-        String title = event.getView().getTitle();
-        if (!title.startsWith("Clan Chest: ")) return;
-        String clanTag = extractClanTag(title);
+        String clanTag = getClanTagFromInventory(event.getView().getTopInventory());
+        if (clanTag == null) return;
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
         clan.setChestContents(event.getView().getTopInventory().getContents());
@@ -196,7 +192,13 @@ public class EventListener implements Listener {
         return (p == null) ? null : p.getClanTag();
     }
 
-    private String extractClanTag(String title) {
+    private String getClanTagFromInventory(Inventory inventory) {
+        if (inventory.getHolder() instanceof ClanChestHolder) {
+            return ((ClanChestHolder) inventory.getHolder()).getClanTag();
+        }
+        @SuppressWarnings("deprecation")
+        String title = inventory.getTitle();
+        if (!title.startsWith("Clan Chest: ")) return null;
         return title.substring("Clan Chest: ".length())
                 .replace(ChatColor.COLOR_CHAR, '&');
     }

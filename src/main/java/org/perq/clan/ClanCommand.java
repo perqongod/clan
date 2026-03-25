@@ -5,6 +5,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -979,7 +980,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             .replace("%required%", String.valueOf((int) RENAME_COOLDOWN_HOURS)));
                     return true;
                 }
-                String newTag = args[1];
+                String newTag = args[1].replace(ChatColor.COLOR_CHAR, '&');
                 boolean allowColors = player.hasPermission("clan.vip")
                         || ClanSkillProgress.hasRename(renameClan.getSkillPoints());
                 TagValidator.ValidationResult renameResult = new TagValidator(plugin).validate(newTag, allowColors);
@@ -1183,8 +1184,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 int chestSize = CHEST_SIZE;
                 Inventory chest = clanChests.get(chestClan.getTag());
                 if (chest == null || chest.getSize() != chestSize) {
-                    chest = Bukkit.createInventory(null, chestSize,
+                    ClanChestHolder chestHolder = new ClanChestHolder(chestClan.getTag());
+                    chest = Bukkit.createInventory(chestHolder, chestSize,
                             cm.translateColors("Clan Chest: " + chestClan.getTag()));
+                    chestHolder.setInventory(chest);
                     ItemStack[] contents = chestClan.getChestContents();
                     if (contents.length != chestSize) {
                         contents = Arrays.copyOf(contents, chestSize);

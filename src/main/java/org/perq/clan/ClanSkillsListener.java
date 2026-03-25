@@ -2,7 +2,6 @@ package org.perq.clan;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -122,7 +121,7 @@ public class ClanSkillsListener implements Listener {
         if (result == null) return;
         ItemMeta meta = result.getItemMeta();
         if (meta == null || meta.getDisplayName() == null) return;
-        String newTag = meta.getDisplayName().trim().replace(ChatColor.COLOR_CHAR, '&');
+        String newTag = meta.getDisplayName().trim();
         if (newTag.isEmpty()) return;
         player.closeInventory();
         renameSessions.remove(player.getUniqueId());
