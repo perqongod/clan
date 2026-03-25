@@ -84,7 +84,7 @@ public final class ClanQuestProgress {
     }
 
     private static final int EXTRA_QUEST_COUNT = 50;
-    private static final int FINAL_QUEST_KILLS = 1000;
+    private static final int FINAL_ZOMBIE_KILLS = 1000;
     private static final List<QuestDefinition> QUESTS;
     private static final Map<EntityType, QuestTarget> TARGETS_BY_ENTITY = new HashMap<>();
     private static final Map<String, QuestTarget> TARGETS_BY_KEY = new HashMap<>();
@@ -130,11 +130,12 @@ public final class ClanQuestProgress {
         int finalQuestIndex = EXTRA_QUEST_COUNT - 1;
         for (int i = 0; i < EXTRA_QUEST_COUNT; i++) {
             int requiredKills = baseKills + (i * killStep);
+            QuestTarget target = extendedTargets[i % extendedTargets.length];
             if (i == finalQuestIndex) {
-                requiredKills = FINAL_QUEST_KILLS;
+                requiredKills = FINAL_ZOMBIE_KILLS;
+                target = QuestTarget.ZOMBIE;
             }
             int rewardPoints = baseReward + (i * rewardStep);
-            QuestTarget target = extendedTargets[i % extendedTargets.length];
             quests.add(new QuestDefinition(level, target, requiredKills, rewardPoints));
             if ((i + 1) % 5 == 0) {
                 level++;

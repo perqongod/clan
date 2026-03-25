@@ -276,9 +276,9 @@ public class ClanSkillsListener implements Listener {
         clan.setLastRenameAt(System.currentTimeMillis());
         try {
             fileManager.saveClan(clan);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING,
-                    "[Clan] Failed to save clan data for " + newTag + ".", ignored);
+                    "[Clan] Failed to save clan data for " + newTag + ".", e);
             clan.setTag(oldTag);
             clan.setLastRenameAt(oldLastRenameAt);
             return;
@@ -289,10 +289,10 @@ public class ClanSkillsListener implements Listener {
                 md.setClanTag(newTag);
                 try {
                     fileManager.savePlayer(mem, md);
-                } catch (IOException ignored) {
+                } catch (IOException e) {
                     plugin.getLogger().log(Level.WARNING,
                             "[Clan] Failed to save player data for " + mem
-                                    + " while renaming " + oldTag + " to " + newTag + ".", ignored);
+                                    + " while renaming " + oldTag + " to " + newTag + ".", e);
                 }
             }
         }
