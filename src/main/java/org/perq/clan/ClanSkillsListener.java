@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -213,8 +214,8 @@ public class ClanSkillsListener implements Listener {
                 1,
                 ClanSkillProgress.getChestUnlockPoints(),
                 ClanSkillProgress.hasChest(points),
-                new ArrayList<>(),
-                "Clan Chest"));
+                Collections.emptyList(),
+                "Clan chest access"));
 
         entries.add(buildSkillEntry(cm,
                 Material.ENDER_EYE,
@@ -222,8 +223,8 @@ public class ClanSkillsListener implements Listener {
                 2,
                 ClanSkillProgress.getSpawnUnlockPoints(),
                 ClanSkillProgress.hasSpawn(points),
-                new ArrayList<>(),
-                "Clan Spawn"));
+                Collections.emptyList(),
+                "Clan spawn teleport"));
 
         List<String> renameUnlockedLore = new ArrayList<>();
         renameUnlockedLore.add(cm.translateColors("&7Cooldown: &f72h"));
@@ -235,7 +236,7 @@ public class ClanSkillsListener implements Listener {
                 ClanSkillProgress.getRenameUnlockPoints(),
                 ClanSkillProgress.hasRename(points),
                 renameUnlockedLore,
-                "Clan Rename"));
+                "Clan rename command"));
 
         return entries;
     }
@@ -247,7 +248,7 @@ public class ClanSkillsListener implements Listener {
                                       int unlockPoints,
                                       boolean unlocked,
                                       List<String> unlockedLore,
-                                      String rewardLabel) {
+                                      String rewardDescription) {
         List<String> lore = new ArrayList<>();
         lore.add(cm.translateColors("&7Level: &f" + level));
         lore.add(cm.translateColors("&7Unlock points: &f" + unlockPoints));
@@ -255,7 +256,7 @@ public class ClanSkillsListener implements Listener {
             lore.addAll(unlockedLore);
             lore.add(cm.translateColors("&aUnlocked"));
         } else {
-            lore.add(cm.translateColors("&7Reward: &f" + rewardLabel));
+            lore.add(cm.translateColors("&7Reward: &f" + rewardDescription));
             lore.add(cm.translateColors("&cLocked"));
         }
         return namedItem(material, cm.translateColors(name), lore);
