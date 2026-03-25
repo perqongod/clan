@@ -385,7 +385,8 @@ public class ClanSkillsListener implements Listener {
             }
         }
         if (valid.isEmpty() && size > 0) {
-            valid.add(0);
+            int fallbackSlot = Math.min(size - 1, size / 2);
+            valid.add(fallbackSlot);
         }
         return valid;
     }
