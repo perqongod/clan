@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -207,31 +208,58 @@ public class ClanSkillsListener implements Listener {
     private List<ItemStack> buildSkillEntries(int points, ConfigManager cm) {
         List<ItemStack> entries = new ArrayList<>();
 
-        List<String> chestLore = new ArrayList<>();
-        chestLore.add(cm.translateColors("&7Level: &f1"));
-        chestLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getChestUnlockPoints()));
-        chestLore.add(cm.translateColors(ClanSkillProgress.hasChest(points) ? "&aUnlocked" : "&cLocked"));
-        entries.add(namedItem(Material.CHEST, cm.translateColors("&6Clan Chest"), chestLore));
+        entries.add(buildSkillEntry(cm,
+                Material.CHEST,
+                "&6Clan Chest",
+                1,
+                ClanSkillProgress.getChestUnlockPoints(),
+                ClanSkillProgress.hasChest(points),
+                Collections.emptyList(),
+                "Clan chest access"));
 
-        List<String> spawnLore = new ArrayList<>();
-        spawnLore.add(cm.translateColors("&7Level: &f2"));
-        spawnLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getSpawnUnlockPoints()));
-        spawnLore.add(cm.translateColors(ClanSkillProgress.hasSpawn(points) ? "&aUnlocked" : "&cLocked"));
-        entries.add(namedItem(Material.ENDER_EYE, cm.translateColors("&6Clan Spawn"), spawnLore));
+        entries.add(buildSkillEntry(cm,
+                Material.ENDER_EYE,
+                "&6Clan Spawn",
+                2,
+                ClanSkillProgress.getSpawnUnlockPoints(),
+                ClanSkillProgress.hasSpawn(points),
+                Collections.emptyList(),
+                "Clan spawn teleport"));
 
-        List<String> renameLore = new ArrayList<>();
-        renameLore.add(cm.translateColors("&7Level: &f3"));
-        renameLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getRenameUnlockPoints()));
-        if (ClanSkillProgress.hasRename(points)) {
-            renameLore.add(cm.translateColors("&7Cooldown: &f72h"));
-            renameLore.add(cm.translateColors("&7Click to rename (colors enabled)"));
-            renameLore.add(cm.translateColors("&aUnlocked"));
-        } else {
-            renameLore.add(cm.translateColors("&cLocked"));
-        }
-        entries.add(namedItem(Material.NAME_TAG, cm.translateColors("&6Clan Rename"), renameLore));
+        List<String> renameUnlockedLore = new ArrayList<>();
+        renameUnlockedLore.add(cm.translateColors("&7Cooldown: &f72h"));
+        renameUnlockedLore.add(cm.translateColors("&7Click to rename (colors enabled)"));
+        entries.add(buildSkillEntry(cm,
+                Material.NAME_TAG,
+                "&6Clan Rename",
+                3,
+                ClanSkillProgress.getRenameUnlockPoints(),
+                ClanSkillProgress.hasRename(points),
+                renameUnlockedLore,
+                "Clan rename command"));
 
         return entries;
+    }
+
+    private ItemStack buildSkillEntry(ConfigManager cm,
+                                      Material material,
+                                      String name,
+                                      int level,
+                                      int unlockPoints,
+                                      boolean unlocked,
+                                      List<String> unlockedLore,
+                                      String rewardDescription) {
+        List<String> lore = new ArrayList<>();
+        lore.add(cm.translateColors("&7Level: &f" + level));
+        lore.add(cm.translateColors("&7Unlock points: &f" + unlockPoints));
+        if (unlocked) {
+            lore.addAll(unlockedLore);
+            lore.add(cm.translateColors("&aUnlocked"));
+        } else {
+            lore.add(cm.translateColors("&7Reward: &f" + rewardDescription));
+            lore.add(cm.translateColors("&cLocked"));
+        }
+        return namedItem(material, cm.translateColors(name), lore);
     }
 
     private ItemStack arrowItem(String name) {
