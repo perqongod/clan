@@ -1,6 +1,7 @@
 package org.perq.clan;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ClanSkillsListener implements Listener {
-    private static final String TITLE = "Clan Progress";
+    private static final Component TITLE = Component.text("Clan Skills", NamedTextColor.DARK_GRAY);
     private static final String RENAME_TITLE = "Clan Rename";
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
@@ -50,7 +51,7 @@ public class ClanSkillsListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        if (event.getView().title().equals(Component.text(TITLE))) {
+        if (event.getView().title().equals(TITLE)) {
             handleSkillsClick(event);
             return;
         }
@@ -144,7 +145,7 @@ public class ClanSkillsListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (event.getView().title().equals(Component.text(TITLE))) {
+        if (event.getView().title().equals(TITLE)) {
             pages.remove(event.getPlayer().getUniqueId());
             return;
         }
@@ -172,7 +173,7 @@ public class ClanSkillsListener implements Listener {
         overviewLore.add(cm.translateColors("&7Next unlock at: &f" + nextUnlock));
         overviewLore.add(cm.translateColors("&7Next reward: &f" + ClanSkillProgress.getRewardLabel(points)));
         overviewLore.add(cm.translateColors("&eProgress is automatic"));
-        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Progress"), overviewLore));
+        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Skills"), overviewLore));
 
         List<ItemStack> skillEntries = buildSkillEntries(points, cm);
         int totalPages = Math.max(1, (skillEntries.size() + SKILL_ROW_SIZE - 1) / SKILL_ROW_SIZE);
@@ -211,16 +212,19 @@ public class ClanSkillsListener implements Listener {
         List<ItemStack> entries = new ArrayList<>();
 
         List<String> chestLore = new ArrayList<>();
+        chestLore.add(cm.translateColors("&7Level: &f1"));
         chestLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getChestUnlockPoints()));
         chestLore.add(cm.translateColors(ClanSkillProgress.hasChest(points) ? "&aUnlocked" : "&cLocked"));
         entries.add(namedItem(Material.CHEST, cm.translateColors("&6Clan Chest"), chestLore));
 
         List<String> spawnLore = new ArrayList<>();
+        spawnLore.add(cm.translateColors("&7Level: &f2"));
         spawnLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getSpawnUnlockPoints()));
         spawnLore.add(cm.translateColors(ClanSkillProgress.hasSpawn(points) ? "&aUnlocked" : "&cLocked"));
         entries.add(namedItem(Material.ENDER_EYE, cm.translateColors("&6Clan Spawn"), spawnLore));
 
         List<String> renameLore = new ArrayList<>();
+        renameLore.add(cm.translateColors("&7Level: &f3"));
         renameLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getRenameUnlockPoints()));
         if (ClanSkillProgress.hasRename(points)) {
             renameLore.add(cm.translateColors("&7Cooldown: &f72h"));
