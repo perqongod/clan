@@ -77,8 +77,8 @@ public class ClanSettingsListener implements Listener {
         if (mainMenu) {
             ConfigManager cm = plugin.getConfigManager();
             if (rawSlot == MAIN_INVITE_TOGGLE_SLOT) {
-                boolean invitesEnabled = plugin.toggleInvitation(player);
-                player.sendMessage(invitesEnabled ? cm.getMessage("toggle-on") : cm.getMessage("toggle-off"));
+                boolean invitesDisabled = plugin.toggleInvitation(player);
+                player.sendMessage(invitesDisabled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
                 refreshMainMenu(event.getView().getTopInventory(), player, clan);
                 return;
             }

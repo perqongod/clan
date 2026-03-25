@@ -81,7 +81,7 @@ public final class Clan extends JavaPlugin {
         } catch (IOException e) {
             player.sendMessage(configManager.getPrefix() + "Error saving.");
         }
-        return nowEnabled;
+        return !nowEnabled;
     }
 
     public boolean isInvitesEnabled(UUID player) {

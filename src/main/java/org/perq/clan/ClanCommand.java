@@ -1035,8 +1035,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             case "toggle": {
-                boolean invitesEnabled = plugin.toggleInvitation(player);
-                player.sendMessage(invitesEnabled ? cm.getMessage("toggle-on") : cm.getMessage("toggle-off"));
+                boolean invitesDisabled = plugin.toggleInvitation(player);
+                player.sendMessage(invitesDisabled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
                 break;
             }
 
