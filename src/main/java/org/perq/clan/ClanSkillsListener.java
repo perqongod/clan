@@ -13,11 +13,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class ClanSkillsListener implements Listener {
     private static final String TITLE = "Clan Progress";
@@ -31,6 +33,8 @@ public class ClanSkillsListener implements Listener {
     private static final int SKILL_ROW_SIZE = 9;
     private static final int ANVIL_INPUT_SLOT = 0;
     private static final int ANVIL_RESULT_SLOT = 2;
+    private static final double RENAME_COOLDOWN_HOURS = 72.0;
+    private static final long RENAME_COOLDOWN_MS = (long) (RENAME_COOLDOWN_HOURS * 3_600_000L);
 
     private final Clan plugin;
     private final Map<UUID, Integer> pages = new HashMap<>();
@@ -72,8 +76,6 @@ public class ClanSkillsListener implements Listener {
             return;
         }
         if (rawSlot == OVERVIEW_SLOT) {
-            ConfigManager cm = plugin.getConfigManager();
-            player.sendMessage(cm.getMessage("skills-auto-progress"));
             return;
         }
         if (rawSlot == PREVIOUS_PAGE_SLOT || rawSlot == NEXT_PAGE_SLOT) {
@@ -98,15 +100,8 @@ public class ClanSkillsListener implements Listener {
         if (meta == null) return;
         ConfigManager cm = plugin.getConfigManager();
         if (!cm.translateColors("&6Clan Rename").equals(meta.getDisplayName())) return;
-        if (!clan.getLeader().equals(player.getUniqueId())) {
-            player.sendMessage(cm.getMessage("no-permission"));
-            return;
-        }
-        if (!ClanSkillProgress.hasRename(clan.getSkillPoints())) {
-            player.sendMessage(cm.getMessage("skills-locked-rename")
-                    .replace("%required%", String.valueOf(ClanSkillProgress.getRenameUnlockPoints())));
-            return;
-        }
+        if (!clan.getLeader().equals(player.getUniqueId())) return;
+        if (!ClanSkillProgress.hasRename(clan.getSkillPoints())) return;
         openRenameAnvil(player, clan, cm);
     }
 
@@ -130,16 +125,17 @@ public class ClanSkillsListener implements Listener {
             renameSessions.remove(player.getUniqueId());
             return;
         }
+        if (!clan.getLeader().equals(player.getUniqueId())) return;
+        if (!ClanSkillProgress.hasRename(clan.getSkillPoints())) return;
+        if (isRenameOnCooldown(clan)) return;
         boolean allowColors = player.hasPermission("clan.vip")
                 || ClanSkillProgress.hasRename(clan.getSkillPoints());
         TagValidator.ValidationResult validation = new TagValidator(plugin).validate(newTag, allowColors);
-        if (!validation.isValid()) {
-            player.sendMessage(validation.getErrorMessage());
-            return;
-        }
+        if (!validation.isValid()) return;
+        if (plugin.getFileManager().loadClan(newTag) != null) return;
         player.closeInventory();
         renameSessions.remove(player.getUniqueId());
-        player.performCommand("clan rename " + newTag);
+        applyRename(clan, newTag);
     }
 
     @EventHandler
@@ -263,6 +259,51 @@ public class ClanSkillsListener implements Listener {
         PlayerData p = plugin.getFileManager().loadPlayer(player);
         if (p == null || p.getClanTag() == null) return null;
         return plugin.getFileManager().loadClan(p.getClanTag());
+    }
+
+    private boolean isRenameOnCooldown(ClanData clan) {
+        long lastRename = clan.getLastRenameAt();
+        if (lastRename <= 0) return false;
+        long elapsed = System.currentTimeMillis() - lastRename;
+        return elapsed < RENAME_COOLDOWN_MS;
+    }
+
+    private void applyRename(ClanData clan, String newTag) {
+        FileManager fileManager = plugin.getFileManager();
+        String oldTag = clan.getTag();
+        long oldLastRenameAt = clan.getLastRenameAt();
+        clan.setTag(newTag);
+        clan.setLastRenameAt(System.currentTimeMillis());
+        try {
+            fileManager.saveClan(clan);
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING,
+                    "[Clan] Failed to save clan data for " + newTag + ".", e);
+            clan.setTag(oldTag);
+            clan.setLastRenameAt(oldLastRenameAt);
+            return;
+        }
+        boolean allPlayersSaved = true;
+        for (UUID mem : clan.getMembers()) {
+            PlayerData md = fileManager.loadPlayer(mem);
+            if (md != null) {
+                md.setClanTag(newTag);
+                try {
+                    fileManager.savePlayer(mem, md);
+                } catch (IOException e) {
+                    plugin.getLogger().log(Level.WARNING,
+                            "[Clan] Failed to save player data for " + mem
+                                    + " while renaming " + oldTag + " to " + newTag + ".", e);
+                    allPlayersSaved = false;
+                }
+            }
+        }
+        if (allPlayersSaved) {
+            fileManager.deleteClan(oldTag);
+        } else {
+            plugin.getLogger().warning("[Clan] Skipped deleting old clan data for " + oldTag
+                    + " after rename to " + newTag + " due to player save failures. Manual cleanup may be required.");
+        }
     }
 
     private void openRenameAnvil(Player player, ClanData clan, ConfigManager cm) {
