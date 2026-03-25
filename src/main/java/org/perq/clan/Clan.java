@@ -79,7 +79,7 @@ public final class Clan extends JavaPlugin {
         try {
             fileManager.savePlayer(player.getUniqueId(), data);
         } catch (IOException e) {
-            player.sendMessage(configManager.getPrefix() + "Error saving.");
+            player.sendMessage(configManager.getPrefix() + "Error saving invitation settings.");
         }
         return !nowEnabled;
     }
