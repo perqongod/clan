@@ -13,6 +13,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -275,7 +276,7 @@ public class ClanSkillsListener implements Listener {
                 md.setClanTag(newTag);
                 try {
                     fileManager.savePlayer(mem, md);
-                } catch (Exception ignored) {
+                } catch (IOException ignored) {
                     plugin.getLogger().warning("[Clan] Failed to save player data for " + mem
                             + " while renaming " + oldTag + " to " + newTag + ".");
                 }
@@ -286,7 +287,7 @@ public class ClanSkillsListener implements Listener {
         clan.setLastRenameAt(System.currentTimeMillis());
         try {
             fileManager.saveClan(clan);
-        } catch (Exception ignored) {
+        } catch (IOException ignored) {
             plugin.getLogger().warning("[Clan] Failed to save clan data for " + newTag + ".");
         }
     }
