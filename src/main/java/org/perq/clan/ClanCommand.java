@@ -5,7 +5,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -980,7 +979,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             .replace("%required%", String.valueOf((int) RENAME_COOLDOWN_HOURS)));
                     return true;
                 }
-                String newTag = args[1].replace(ChatColor.COLOR_CHAR, '&');
+                String newTag = cm.normalizeTag(args[1]);
                 boolean allowColors = player.hasPermission("clan.vip")
                         || ClanSkillProgress.hasRename(renameClan.getSkillPoints());
                 TagValidator.ValidationResult renameResult = new TagValidator(plugin).validate(newTag, allowColors);

@@ -1,7 +1,6 @@
 package org.perq.clan;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.EntityType;
@@ -199,8 +198,7 @@ public class EventListener implements Listener {
         @SuppressWarnings("deprecation")
         String title = inventory.getTitle();
         if (!title.startsWith("Clan Chest: ")) return null;
-        return title.substring("Clan Chest: ".length())
-                .replace(ChatColor.COLOR_CHAR, '&');
+        return plugin.getConfigManager().normalizeTag(title.substring("Clan Chest: ".length()));
     }
 
     private ClanData getPlayerClan(UUID player) {

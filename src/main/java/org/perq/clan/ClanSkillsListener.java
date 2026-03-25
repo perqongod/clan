@@ -121,7 +121,8 @@ public class ClanSkillsListener implements Listener {
         if (result == null) return;
         ItemMeta meta = result.getItemMeta();
         if (meta == null || meta.getDisplayName() == null) return;
-        String newTag = meta.getDisplayName().trim();
+        ConfigManager cm = plugin.getConfigManager();
+        String newTag = cm.normalizeTag(meta.getDisplayName().trim());
         if (newTag.isEmpty()) return;
         player.closeInventory();
         renameSessions.remove(player.getUniqueId());

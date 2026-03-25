@@ -321,7 +321,7 @@ public class ClanData {
             }
         }
         int legacyZombies = config.getInt("quest-zombie-kills", 0);
-        if (legacyZombies > 0) {
+        if (legacyZombies > 0 && !questKills.containsKey(ClanQuestProgress.QuestTarget.ZOMBIE)) {
             questKills.put(ClanQuestProgress.QuestTarget.ZOMBIE, legacyZombies);
         }
         return questKills;
