@@ -283,6 +283,7 @@ public class ClanSkillsListener implements Listener {
             clan.setLastRenameAt(oldLastRenameAt);
             return;
         }
+        boolean allPlayersSaved = true;
         for (UUID mem : clan.getMembers()) {
             PlayerData md = fileManager.loadPlayer(mem);
             if (md != null) {
@@ -293,10 +294,16 @@ public class ClanSkillsListener implements Listener {
                     plugin.getLogger().log(Level.WARNING,
                             "[Clan] Failed to save player data for " + mem
                                     + " while renaming " + oldTag + " to " + newTag + ".", e);
+                    allPlayersSaved = false;
                 }
             }
         }
-        fileManager.deleteClan(oldTag);
+        if (allPlayersSaved) {
+            fileManager.deleteClan(oldTag);
+        } else {
+            plugin.getLogger().warning("[Clan] Skipped deleting old clan data for " + oldTag
+                    + " after rename to " + newTag + " due to player save failures.");
+        }
     }
 
     private void openRenameAnvil(Player player, ClanData clan, ConfigManager cm) {
