@@ -160,7 +160,6 @@ public class ClanData {
         }
         config.set("members", mems);
         config.set("points", points);
-        config.set("quest-zombie-kills", getQuestKillCount(ClanQuestProgress.QuestTarget.ZOMBIE));
         Map<String, Integer> questKills = new HashMap<>();
         for (Map.Entry<ClanQuestProgress.QuestTarget, Integer> entry : questKillCounts.entrySet()) {
             questKills.put(entry.getKey().getKey(), entry.getValue());

@@ -40,8 +40,7 @@ public class EventListener implements Listener {
         String title = event.getView().getTitle();
         if (!title.startsWith("Clan Chest: ")) return;
 
-        String clanTag = title.substring("Clan Chest: ".length())
-                .replace(ChatColor.COLOR_CHAR, '&');
+        String clanTag = extractClanTag(title);
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
         if (!ClanSkillProgress.hasChest(clan.getSkillPoints())) {
@@ -76,8 +75,7 @@ public class EventListener implements Listener {
         @SuppressWarnings("deprecation")
         String title = event.getView().getTitle();
         if (!title.startsWith("Clan Chest: ")) return;
-        String clanTag = title.substring("Clan Chest: ".length())
-                .replace(ChatColor.COLOR_CHAR, '&');
+        String clanTag = extractClanTag(title);
         ClanData clan = plugin.getFileManager().loadClan(clanTag);
         if (clan == null) return;
         clan.setChestContents(event.getView().getTopInventory().getContents());
@@ -196,6 +194,11 @@ public class EventListener implements Listener {
     private String getPlayerClanTag(UUID player) {
         PlayerData p = plugin.getFileManager().loadPlayer(player);
         return (p == null) ? null : p.getClanTag();
+    }
+
+    private String extractClanTag(String title) {
+        return title.substring("Clan Chest: ".length())
+                .replace(ChatColor.COLOR_CHAR, '&');
     }
 
     private ClanData getPlayerClan(UUID player) {
