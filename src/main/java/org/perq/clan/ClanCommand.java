@@ -278,6 +278,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 leaveClan.getModerators().remove(playerUUID);
                 leaveClan.setChestPermission(playerUUID, null);
                 leaveClan.setFriendlyFirePermission(playerUUID, null);
+                leaveClan.setSkillsPermission(playerUUID, null);
+                leaveClan.setSpawnPermission(playerUUID, null);
                 leaveClan.addLog(player.getName() + " left the clan.");
                 PlayerData leaveData = plugin.getFileManager().loadPlayer(playerUUID);
                 if (leaveData != null) {
@@ -328,6 +330,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 kickClan.getModerators().remove(kickTarget.getUniqueId());
                 kickClan.setChestPermission(kickTarget.getUniqueId(), null);
                 kickClan.setFriendlyFirePermission(kickTarget.getUniqueId(), null);
+                kickClan.setSkillsPermission(kickTarget.getUniqueId(), null);
+                kickClan.setSpawnPermission(kickTarget.getUniqueId(), null);
                 kickClan.addLog(kickTarget.getName() + " was kicked by " + player.getName() + ".");
                 PlayerData kickTargetData = plugin.getFileManager().loadPlayer(kickTarget.getUniqueId());
                 if (kickTargetData != null) {
@@ -1209,6 +1213,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
+                if (getEffectiveSpawnPermission(spawnClan, playerUUID) != ClanAccessPermission.EXECUTE) {
+                    player.sendMessage(cm.getMessage("no-permission"));
+                    return true;
+                }
                 if (!ClanSkillProgress.hasSpawn(spawnClan.getSkillPoints())) {
                     player.sendMessage(cm.getMessage("skills-locked-spawn")
                             .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
@@ -1395,6 +1403,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
+                if (getEffectiveSkillsPermission(skillsClan, playerUUID) != ClanAccessPermission.EXECUTE) {
+                    player.sendMessage(cm.getMessage("no-permission"));
+                    return true;
+                }
                 plugin.getClanSkillsListener().openGui(player, skillsClan);
                 break;
             }
@@ -1444,6 +1456,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         ftClan.getModerators().remove(forceTarget.getUniqueId());
                         ftClan.setChestPermission(forceTarget.getUniqueId(), null);
                         ftClan.setFriendlyFirePermission(forceTarget.getUniqueId(), null);
+                        ftClan.setSkillsPermission(forceTarget.getUniqueId(), null);
+                        ftClan.setSpawnPermission(forceTarget.getUniqueId(), null);
                         PlayerData ftData = plugin.getFileManager().loadPlayer(forceTarget.getUniqueId());
                         if (ftData != null) {
                             ftData.setClanTag(null);
@@ -1678,6 +1692,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(Player player, ConfigManager cm) {
         ClanData clan = getPlayerClan(player.getUniqueId());
         UUID playerUUID = player.getUniqueId();
+        ClanAccessPermission skillsPermission = clan == null
+                ? ClanAccessPermission.defaultPermission()
+                : getEffectiveSkillsPermission(clan, playerUUID);
+        ClanAccessPermission spawnPermission = clan == null
+                ? ClanAccessPermission.defaultPermission()
+                : getEffectiveSpawnPermission(clan, playerUUID);
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan create <tag> &7- Create a clan"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delete &7- Disband your clan"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan invite <player> &7- Invite a player"));
@@ -1698,13 +1718,17 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest (Leader: /clan chest set, "
                     + ClanSkillProgress.getChestUnlockPoints() + "+ Punkte)"));
         }
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delspawn &7- Remove clan spawn"));
+        if (clan == null || spawnPermission != ClanAccessPermission.DENY) {
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delspawn &7- Remove clan spawn"));
+        }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan skills"));
+        if (clan == null || skillsPermission != ClanAccessPermission.DENY) {
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan skills"));
+        }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan quest &7- Open clan quests"));
         if (clan != null) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Open clan settings"));
@@ -1736,6 +1760,22 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         bookMeta.pages(pages);
         book.setItemMeta(bookMeta);
         player.openBook(book);
+    }
+
+    private ClanAccessPermission getEffectiveSkillsPermission(ClanData clan, UUID member) {
+        if (clan == null || member == null) return ClanAccessPermission.defaultPermission();
+        if (member.equals(clan.getLeader())) {
+            return ClanAccessPermission.leaderDefault();
+        }
+        return clan.getSkillsPermission(member);
+    }
+
+    private ClanAccessPermission getEffectiveSpawnPermission(ClanData clan, UUID member) {
+        if (clan == null || member == null) return ClanAccessPermission.defaultPermission();
+        if (member.equals(clan.getLeader())) {
+            return ClanAccessPermission.leaderDefault();
+        }
+        return clan.getSpawnPermission(member);
     }
 
     private int getMaxMembers(ClanData clan, ConfigManager cm) {
@@ -1771,7 +1811,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     && clan.getChestPermission(playerUUID) == ClanChestPermission.DENY) {
                 subs.remove("chest");
             }
+            if (clan != null && getEffectiveSkillsPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
+                subs.remove("skills");
+            }
             if (clan == null || !ClanSkillProgress.hasSpawn(clan.getSkillPoints())) {
+                subs.remove("spawn");
+                subs.remove("setspawn");
+                subs.remove("delspawn");
+            } else if (clan != null && getEffectiveSpawnPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
                 subs.remove("spawn");
                 subs.remove("setspawn");
                 subs.remove("delspawn");

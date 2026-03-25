@@ -98,6 +98,8 @@ messages:
   leader-received: "%prefix%&aYou are now the leader of clan %tag%."
   settings-leader-chest: "%prefix%&cDer Clan-Leader hat immer Zugriff auf die Clan Chest."
   settings-leader-friendly-fire: "%prefix%&cThe clan leader always has friendly fire enabled."
+  settings-leader-skills: "%prefix%&cDer Clan-Leader hat immer Zugriff auf die Clan Skills."
+  settings-leader-spawn: "%prefix%&cDer Clan-Leader hat immer Zugriff auf den Clan Spawn."
   invite-cooldown: "%prefix%&cPlease wait %seconds% more seconds before sending another invite."
   invite-max-open: "%prefix%&cThis player already has an open invitation."
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"
