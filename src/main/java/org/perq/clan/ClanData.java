@@ -323,8 +323,11 @@ public class ClanData {
             }
         }
         int legacyZombies = config.getInt("quest-zombie-kills", 0);
-        if (legacyZombies > 0 && !questKills.containsKey(ClanQuestProgress.QuestTarget.ZOMBIE)) {
-            questKills.put(ClanQuestProgress.QuestTarget.ZOMBIE, legacyZombies);
+        if (legacyZombies > 0) {
+            int current = questKills.getOrDefault(ClanQuestProgress.QuestTarget.ZOMBIE, 0);
+            if (legacyZombies > current) {
+                questKills.put(ClanQuestProgress.QuestTarget.ZOMBIE, legacyZombies);
+            }
         }
         return questKills;
     }

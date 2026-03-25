@@ -124,6 +124,19 @@ public class ClanSkillsListener implements Listener {
         ConfigManager cm = plugin.getConfigManager();
         String newTag = cm.normalizeTag(meta.getDisplayName().trim());
         if (newTag.isEmpty()) return;
+        ClanData clan = getPlayerClan(player.getUniqueId());
+        if (clan == null) {
+            player.closeInventory();
+            renameSessions.remove(player.getUniqueId());
+            return;
+        }
+        boolean allowColors = player.hasPermission("clan.vip")
+                || ClanSkillProgress.hasRename(clan.getSkillPoints());
+        TagValidator.ValidationResult validation = new TagValidator(plugin).validate(newTag, allowColors);
+        if (!validation.isValid()) {
+            player.sendMessage(validation.getErrorMessage());
+            return;
+        }
         player.closeInventory();
         renameSessions.remove(player.getUniqueId());
         player.performCommand("clan rename " + newTag);

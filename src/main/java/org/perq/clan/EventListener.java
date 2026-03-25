@@ -192,13 +192,8 @@ public class EventListener implements Listener {
     }
 
     private String getClanTagFromInventory(Inventory inventory) {
-        if (inventory.getHolder() instanceof ClanChestHolder) {
-            return ((ClanChestHolder) inventory.getHolder()).getClanTag();
-        }
-        @SuppressWarnings("deprecation")
-        String title = inventory.getTitle();
-        if (!title.startsWith("Clan Chest: ")) return null;
-        return plugin.getConfigManager().normalizeTag(title.substring("Clan Chest: ".length()));
+        if (!(inventory.getHolder() instanceof ClanChestHolder)) return null;
+        return ((ClanChestHolder) inventory.getHolder()).getClanTag();
     }
 
     private ClanData getPlayerClan(UUID player) {
