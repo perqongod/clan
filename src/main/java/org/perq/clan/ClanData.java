@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
@@ -312,11 +313,12 @@ public class ClanData {
 
     private Map<ClanQuestProgress.QuestTarget, Integer> loadQuestKills(YamlConfiguration config) {
         Map<ClanQuestProgress.QuestTarget, Integer> questKills = ClanQuestProgress.createEmptyKillCounts();
-        if (config.isConfigurationSection("quest-kills")) {
-            for (String key : config.getConfigurationSection("quest-kills").getKeys(false)) {
+        ConfigurationSection questSection = config.getConfigurationSection("quest-kills");
+        if (questSection != null) {
+            for (String key : questSection.getKeys(false)) {
                 ClanQuestProgress.QuestTarget target = ClanQuestProgress.getQuestTargetByKey(key);
                 if (target != null) {
-                    questKills.put(target, config.getInt("quest-kills." + key));
+                    questKills.put(target, questSection.getInt(key));
                 }
             }
         }
