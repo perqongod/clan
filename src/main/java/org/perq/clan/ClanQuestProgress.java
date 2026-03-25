@@ -125,10 +125,13 @@ public final class ClanQuestProgress {
         int killStep = 17;
         int baseReward = 60;
         int rewardStep = 3;
-        for (int i = 0; i < 50; i++) {
+        int extraQuestCount = 50;
+        int finalQuestIndex = extraQuestCount - 1;
+        int finalQuestKills = 1000;
+        for (int i = 0; i < extraQuestCount; i++) {
             int requiredKills = baseKills + (i * killStep);
-            if (i == 49) {
-                requiredKills = 1000;
+            if (i == finalQuestIndex) {
+                requiredKills = finalQuestKills;
             }
             int rewardPoints = baseReward + (i * rewardStep);
             QuestTarget target = extendedTargets[i % extendedTargets.length];

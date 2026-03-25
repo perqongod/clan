@@ -31,7 +31,8 @@ public class ClanSkillsListener implements Listener {
     private static final int SKILL_ROW_SIZE = 9;
     private static final int ANVIL_INPUT_SLOT = 0;
     private static final int ANVIL_RESULT_SLOT = 2;
-    private static final long RENAME_COOLDOWN_MS = 72L * 3_600_000L;
+    private static final double RENAME_COOLDOWN_HOURS = 72.0;
+    private static final long RENAME_COOLDOWN_MS = (long) (RENAME_COOLDOWN_HOURS * 3_600_000L);
 
     private final Clan plugin;
     private final Map<UUID, Integer> pages = new HashMap<>();
@@ -267,6 +268,7 @@ public class ClanSkillsListener implements Listener {
 
     private void applyRename(ClanData clan, String newTag) {
         FileManager fileManager = plugin.getFileManager();
+        String oldTag = clan.getTag();
         for (UUID mem : clan.getMembers()) {
             PlayerData md = fileManager.loadPlayer(mem);
             if (md != null) {
@@ -274,6 +276,8 @@ public class ClanSkillsListener implements Listener {
                 try {
                     fileManager.savePlayer(mem, md);
                 } catch (Exception ignored) {
+                    plugin.getLogger().warning("[Clan] Failed to save player data for " + mem
+                            + " while renaming " + oldTag + " to " + newTag + ".");
                 }
             }
         }
@@ -283,6 +287,7 @@ public class ClanSkillsListener implements Listener {
         try {
             fileManager.saveClan(clan);
         } catch (Exception ignored) {
+            plugin.getLogger().warning("[Clan] Failed to save clan data for " + newTag + ".");
         }
     }
 
