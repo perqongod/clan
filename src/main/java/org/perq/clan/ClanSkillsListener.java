@@ -27,13 +27,12 @@ import java.util.logging.Level;
 public class ClanSkillsListener implements Listener {
     private static final Component TITLE = Component.text("Clan Skills", NamedTextColor.DARK_GRAY);
     private static final String RENAME_TITLE = "Clan Rename";
-    private static final int INVENTORY_SIZE = 27;
-    private static final int OVERVIEW_SLOT = 22;
-    private static final int MEMBERS_SLOT = 24;
-    private static final int PREVIOUS_PAGE_SLOT = 0;
-    private static final int NEXT_PAGE_SLOT = 8;
-    private static final int SKILL_ROW_START = 9;
-    private static final int SKILL_ROW_SIZE = 9;
+    private static final int INVENTORY_SIZE = 45;
+    private static final int OVERVIEW_SLOT = 40;
+    private static final int MEMBERS_SLOT = 42;
+    private static final int PREVIOUS_PAGE_SLOT = 36;
+    private static final int NEXT_PAGE_SLOT = 44;
+    private static final int[] SKILL_SLOTS = {10, 19, 28};
     private static final int ANVIL_INPUT_SLOT = 0;
     private static final int ANVIL_RESULT_SLOT = 2;
     private static final double RENAME_COOLDOWN_HOURS = 72.0;
@@ -105,8 +104,7 @@ public class ClanSkillsListener implements Listener {
         String displayName = meta.getDisplayName();
         if (displayName == null) return;
         String strippedName = ChatColor.stripColor(displayName);
-        if (!"Level 3 - Clan Rename".equals(strippedName)
-                && !"Level 3 - Clan Rename (Locked)".equals(strippedName)) {
+        if (!"Clan Rename".equals(strippedName)) {
             return;
         }
         if (!clan.getLeader().equals(player.getUniqueId())) return;
@@ -162,9 +160,15 @@ public class ClanSkillsListener implements Listener {
         inv.clear();
         ConfigManager cm = plugin.getConfigManager();
 
-        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < inv.getSize(); i++) {
-            inv.setItem(i, filler);
+        ItemStack filler = namedItem(Material.RED_STAINED_GLASS_PANE, " ");
+        ItemStack border = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
+        int rows = inv.getSize() / 9;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < 9; col++) {
+                int slot = (row * 9) + col;
+                boolean isBorder = row == 0 || row == rows - 1 || col == 0 || col == 8;
+                inv.setItem(slot, isBorder ? border : filler);
+            }
         }
 
         int points = clan.getSkillPoints();
@@ -180,25 +184,19 @@ public class ClanSkillsListener implements Listener {
         inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Skills"), overviewLore));
 
         List<ItemStack> skillEntries = buildSkillEntries(points, cm);
-        int totalPages = Math.max(1, (skillEntries.size() + SKILL_ROW_SIZE - 1) / SKILL_ROW_SIZE);
+        int totalPages = Math.max(1, (skillEntries.size() + SKILL_SLOTS.length - 1) / SKILL_SLOTS.length);
         int page = Math.min(pages.getOrDefault(viewer, 0), totalPages - 1);
         pages.put(viewer, page);
 
-        int startIndex = page * SKILL_ROW_SIZE;
-        for (int i = 0; i < SKILL_ROW_SIZE; i++) {
+        int startIndex = page * SKILL_SLOTS.length;
+        for (int i = 0; i < SKILL_SLOTS.length; i++) {
             int index = startIndex + i;
             if (index >= skillEntries.size()) break;
-            inv.setItem(SKILL_ROW_START + i, skillEntries.get(index));
+            inv.setItem(SKILL_SLOTS[i], skillEntries.get(index));
         }
 
-        if (totalPages > 1) {
-            if (page > 0) {
-                inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(cm.translateColors("&ePrevious")));
-            }
-            if (page < totalPages - 1) {
-                inv.setItem(NEXT_PAGE_SLOT, arrowItem(cm.translateColors("&eNext")));
-            }
-        }
+        inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(cm.translateColors("&ePrevious")));
+        inv.setItem(NEXT_PAGE_SLOT, arrowItem(cm.translateColors("&eNext")));
 
         List<String> memberLore = new ArrayList<>();
         memberLore.add(cm.translateColors("&7Bonus slots: &f+" + bonusSlots));
@@ -209,7 +207,7 @@ public class ClanSkillsListener implements Listener {
 
     private int getTotalPages(ClanData clan, ConfigManager cm) {
         int skillCount = buildSkillEntries(clan.getSkillPoints(), cm).size();
-        return Math.max(1, (skillCount + SKILL_ROW_SIZE - 1) / SKILL_ROW_SIZE);
+        return Math.max(1, (skillCount + SKILL_SLOTS.length - 1) / SKILL_SLOTS.length);
     }
 
     private List<ItemStack> buildSkillEntries(int points, ConfigManager cm) {
@@ -256,21 +254,13 @@ public class ClanSkillsListener implements Listener {
                                       boolean unlocked,
                                       List<String> unlockedLore,
                                       String rewardDescription) {
-        List<String> lore = new ArrayList<>();
-        lore.add(cm.translateColors("&7Level: &f" + level));
-        lore.add(cm.translateColors("&7Unlock points: &f" + unlockPoints));
-        if (unlocked) {
-            lore.addAll(unlockedLore);
-            lore.add(cm.translateColors("&aUnlocked"));
-        } else {
-            lore.add(cm.translateColors("&7Reward: &f" + rewardDescription));
-            lore.add(cm.translateColors("&cLocked"));
+        if (!unlocked) {
+            return namedItem(Material.RED_STAINED_GLASS_PANE, cm.translateColors("&cLevel " + level));
         }
-        String displayName = String.format("&6Level %d - %s%s",
-                level,
-                name,
-                unlocked ? "" : " &7(&cLocked&7)");
-        return namedItem(material, cm.translateColors(displayName), lore);
+        List<String> lore = new ArrayList<>();
+        lore.add(cm.translateColors("&7" + rewardDescription));
+        lore.addAll(unlockedLore);
+        return namedItem(material, cm.translateColors("&6" + name), lore);
     }
 
     private ItemStack arrowItem(String name) {
