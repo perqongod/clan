@@ -123,6 +123,7 @@ public class ConfigManager {
                     + "&f/clan spawn\n"
                     + "&f/clan setspawn\n"
                     + "&f/clan delspawn\n"
+                    + "&f/clan settings\n"
                     + "&f/clan skills\n"
                     + "&f/clan quest\n"
                     + "&f/clan logs");
