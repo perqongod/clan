@@ -1814,11 +1814,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             if (clan != null && getEffectiveSkillsPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
                 subs.remove("skills");
             }
-            if (clan == null || !ClanSkillProgress.hasSpawn(clan.getSkillPoints())) {
-                subs.remove("spawn");
-                subs.remove("setspawn");
-                subs.remove("delspawn");
-            } else if (getEffectiveSpawnPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
+            if (clan == null || !ClanSkillProgress.hasSpawn(clan.getSkillPoints())
+                    || getEffectiveSpawnPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
                 subs.remove("spawn");
                 subs.remove("setspawn");
                 subs.remove("delspawn");
