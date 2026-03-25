@@ -110,6 +110,60 @@ messages:
   admin-points-remove: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte entfernt. Neuer Stand: %total%."
   admin-points-set: "%prefix%Du hast die Punkte des [%tag%] Clans auf %amount% gesetzt."
 
+skills-gui:
+  rows: 5
+  title: "&8Clan Skills"
+  filler:
+    material: GRAY_STAINED_GLASS_PANE
+    name: " "
+  accent:
+    material: RED_STAINED_GLASS_PANE
+    name: " "
+  overview:
+    slot: 40
+    material: NETHER_STAR
+    name: "&6Clan Skills"
+    lore:
+      - "&7Unlock Points: &f%skill_points%"
+      - "&7Leaderboard Points: &f%clan_points%"
+      - "&7Next unlock at: &f%next_unlock%"
+      - "&7Next reward: &f%next_reward%"
+      - "&7Bonus slots: &f+%bonus_slots%"
+      - "&7Gain +1 member slot every %bonus_step% points after %spawn_unlock%"
+      - "&eProgress is automatic"
+  navigation:
+    previous:
+      slot: 36
+      material: ARROW
+      name: "&ePrevious"
+    next:
+      slot: 44
+      material: ARROW
+      name: "&eNext"
+  skills:
+    slots: [21, 22, 23]
+    locked:
+      material: RED_STAINED_GLASS_PANE
+      name: "&cLevel %level%"
+    chest:
+      material: CHEST
+      name: "&6Clan Chest"
+      lore:
+        - "&7%reward%"
+    spawn:
+      material: ENDER_EYE
+      name: "&6Clan Spawn"
+      lore:
+        - "&7%reward%"
+    rename:
+      material: NAME_TAG
+      name: "&6Clan Rename"
+      lore:
+        - "&7%reward%"
+      unlocked-lore:
+        - "&7Cooldown: &f72h"
+        - "&7Click to rename (colors enabled)"
+
 ranks:
   Bronze: 0
   Silver: 5
