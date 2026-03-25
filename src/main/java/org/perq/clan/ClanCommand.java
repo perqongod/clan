@@ -1818,7 +1818,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 subs.remove("spawn");
                 subs.remove("setspawn");
                 subs.remove("delspawn");
-            } else if (clan != null && getEffectiveSpawnPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
+            } else if (getEffectiveSpawnPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
                 subs.remove("spawn");
                 subs.remove("setspawn");
                 subs.remove("delspawn");

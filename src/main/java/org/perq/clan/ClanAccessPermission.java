@@ -1,5 +1,9 @@
 package org.perq.clan;
 
+/**
+ * Access levels for clan feature commands.
+ * VIEW shows the command but blocks execution, EXECUTE allows use, and DENY blocks usage entirely.
+ */
 public enum ClanAccessPermission {
     VIEW,
     EXECUTE,
