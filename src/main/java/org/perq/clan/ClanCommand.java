@@ -54,7 +54,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private final Map<UUID, Long> inviteCooldowns = new HashMap<>();
     private static final long DELETE_CONFIRM_TIMEOUT_MS = 30_000L;
     private static final long INVITE_COOLDOWN_MS = 10_000L;
-    private static final double RENAME_MIN_HOURS = 48.0;
+    private static final double RENAME_COOLDOWN_HOURS = 72.0;
+    private static final long RENAME_COOLDOWN_MS = (long) (RENAME_COOLDOWN_HOURS * 3_600_000L);
     private static final int SPAWN_PARTICLE_COUNT = 60;
     private static final double SPAWN_PARTICLE_OFFSET_X = 0.6;
     private static final double SPAWN_PARTICLE_OFFSET_Y = 0.8;
@@ -148,7 +149,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     pData.setClanTag(tag);
                     pData.setRole("LEADER");
                     plugin.getFileManager().savePlayer(playerUUID, pData);
-                    player.sendMessage(cm.getMessage("clan-created").replace("%tag%", tag));
+                    player.sendMessage(cm.getMessage("clan-created")
+                            .replace("%tag%", cm.translateColors(tag)));
                 } catch (Exception e) {
                     player.sendMessage(cm.getPrefix() + "Error saving.");
                 }
@@ -184,7 +186,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         }
                     }
                     plugin.getFileManager().deleteClan(dissolvedTag);
-                    String broadcastMsg = cm.getMessage("clan-dissolved").replace("%tag%", dissolvedTag);
+                    String broadcastMsg = cm.getMessage("clan-dissolved")
+                            .replace("%tag%", cm.translateColors(dissolvedTag));
                     for (Player p : Bukkit.getOnlinePlayers()) {
                         p.sendMessage(broadcastMsg);
                     }
@@ -193,7 +196,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("delete-denied"));
                 } else {
                     pendingDeletes.put(playerUUID, System.currentTimeMillis());
-                    player.sendMessage(cm.getMessage("delete-pending").replace("%tag%", disbandClan.getTag()));
+                    player.sendMessage(cm.getMessage("delete-pending")
+                            .replace("%tag%", cm.translateColors(disbandClan.getTag())));
                     player.sendMessage(cm.getMessage("delete-confirm"));
                     player.sendMessage(
                             Component.text("[Accept]")
@@ -231,7 +235,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         return true;
                     } else {
                         pendingAdminLeaves.put(playerUUID, System.currentTimeMillis());
-                        player.sendMessage(cm.getMessage("delete-pending").replace("%tag%", leaveClan.getTag()));
+                        player.sendMessage(cm.getMessage("delete-pending")
+                                .replace("%tag%", cm.translateColors(leaveClan.getTag())));
                         player.sendMessage(cm.getMessage("delete-confirm"));
                         player.sendMessage(
                                 Component.text("[Accept]")
@@ -498,7 +503,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         if (newLeaderData != null) plugin.getFileManager().savePlayer(newLeaderPlayer.getUniqueId(), newLeaderData);
                         plugin.getFileManager().saveClan(freshClan);
                         player.sendMessage(cm.getPrefix() + "You are now MOD. " + newLeaderPlayer.getName() + " is the new leader.");
-                        newLeaderPlayer.sendMessage(cm.getPrefix() + "You are now the new leader of clan [" + freshClan.getTag() + "]!");
+                        newLeaderPlayer.sendMessage(cm.getPrefix() + "You are now the new leader of clan ["
+                                + cm.translateColors(freshClan.getTag()) + "]!");
                     } catch (Exception e) {
                         player.sendMessage(cm.getPrefix() + "Error saving.");
                     }
@@ -592,7 +598,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     invTarget.sendMessage(
                             cm.getMessage("invitation-received")
                                     .replace("%inviter%", player.getName())
-                                    .replace("%tag%", inviteClan.getTag())
+                                    .replace("%tag%", cm.translateColors(inviteClan.getTag()))
                     );
                     invTarget.sendMessage(
                             Component.text("[Accept]")
@@ -643,7 +649,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     plugin.getFileManager().saveClan(acceptClan);
                     plugin.getFileManager().savePlayer(playerUUID, acceptPd);
                     plugin.getFileManager().deleteSpecificInvite(playerUUID, acceptTag);
-                    player.sendMessage(cm.getMessage("invitation-accepted").replace("%tag%", acceptTag));
+                    player.sendMessage(cm.getMessage("invitation-accepted")
+                            .replace("%tag%", cm.translateColors(acceptTag)));
                 } catch (Exception e) {
                     player.sendMessage(cm.getPrefix() + "Error saving.");
                 }
@@ -714,7 +721,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     plugin.getFileManager().saveClan(joinClan);
                     plugin.getFileManager().savePlayer(playerUUID, joinPd);
                     plugin.getFileManager().deleteSpecificInvite(playerUUID, joinTag);
-                    player.sendMessage(cm.getMessage("invitation-accepted").replace("%tag%", joinTag));
+                    player.sendMessage(cm.getMessage("invitation-accepted")
+                            .replace("%tag%", cm.translateColors(joinTag)));
                 } catch (Exception e) {
                     player.sendMessage(cm.getPrefix() + "Error saving.");
                 }
@@ -746,7 +754,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         }
                         plugin.getFileManager().deleteClan(oldTag);
                         for (Player p : Bukkit.getOnlinePlayers()) {
-                            p.sendMessage(cm.getMessage("clan-dissolved").replace("%tag%", oldTag));
+                            p.sendMessage(cm.getMessage("clan-dissolved")
+                                    .replace("%tag%", cm.translateColors(oldTag)));
                         }
                     }
                     ClanData targetReqClan = plugin.getFileManager().loadClan(pendingReqTag);
@@ -761,7 +770,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     targetReqClan.getPendingRequests().add(playerUUID);
                     try {
                         plugin.getFileManager().saveClan(targetReqClan);
-                        player.sendMessage(cm.getMessage("request-sent").replace("%tag%", pendingReqTag));
+                        player.sendMessage(cm.getMessage("request-sent")
+                                .replace("%tag%", cm.translateColors(pendingReqTag)));
                         notifyLeaderOfRequest(targetReqClan, player, cm);
                     } catch (Exception e) {
                         player.sendMessage(cm.getPrefix() + "Error saving.");
@@ -795,7 +805,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 reqClan.getPendingRequests().add(playerUUID);
                 try {
                     plugin.getFileManager().saveClan(reqClan);
-                    player.sendMessage(cm.getMessage("request-sent").replace("%tag%", reqTag));
+                    player.sendMessage(cm.getMessage("request-sent")
+                            .replace("%tag%", cm.translateColors(reqTag)));
                     notifyLeaderOfRequest(reqClan, player, cm);
                 } catch (Exception e) {
                     player.sendMessage(cm.getPrefix() + "Error saving.");
@@ -888,7 +899,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getPrefix() + arPlayerName + " has been added to the clan.");
                     Player arOnline = Bukkit.getPlayer(arUUID);
                     if (arOnline != null) {
-                        arOnline.sendMessage(cm.getMessage("invitation-accepted").replace("%tag%", arClan.getTag()));
+                        arOnline.sendMessage(cm.getMessage("invitation-accepted")
+                                .replace("%tag%", cm.translateColors(arClan.getTag())));
                     }
                 } catch (Exception e) {
                     player.sendMessage(cm.getPrefix() + "Error saving.");
@@ -960,15 +972,17 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             .replace("%required%", String.valueOf(ClanSkillProgress.getRenameUnlockPoints())));
                     return true;
                 }
-                if (renameClan.getOnlineTime() < RENAME_MIN_HOURS) {
+                double hoursRemaining = getRenameCooldownHoursRemaining(renameClan);
+                if (hoursRemaining > 0) {
                     player.sendMessage(cm.getMessage("rename-too-soon")
-                            .replace("%hours%", String.format("%.1f", renameClan.getOnlineTime()))
-                            .replace("%required%", String.valueOf((int) RENAME_MIN_HOURS)));
+                            .replace("%hours%", String.format("%.1f", hoursRemaining))
+                            .replace("%required%", String.valueOf((int) RENAME_COOLDOWN_HOURS)));
                     return true;
                 }
                 String newTag = args[1];
-                boolean isVipRename = player.hasPermission("clan.vip");
-                TagValidator.ValidationResult renameResult = new TagValidator(plugin).validate(newTag, isVipRename);
+                boolean allowColors = player.hasPermission("clan.vip")
+                        || ClanSkillProgress.hasRename(renameClan.getSkillPoints());
+                TagValidator.ValidationResult renameResult = new TagValidator(plugin).validate(newTag, allowColors);
                 if (!renameResult.isValid()) {
                     player.sendMessage(renameResult.getErrorMessage());
                     return true;
@@ -986,9 +1000,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 plugin.getFileManager().deleteClan(renameClan.getTag());
                 renameClan.setTag(newTag);
+                renameClan.setLastRenameAt(System.currentTimeMillis());
                 try {
                     plugin.getFileManager().saveClan(renameClan);
-                    player.sendMessage(cm.getMessage("renamed").replace("%tag%", newTag));
+                    player.sendMessage(cm.getMessage("renamed")
+                            .replace("%tag%", cm.translateColors(newTag)));
                 } catch (Exception e) {
                     player.sendMessage(cm.getPrefix() + "Error saving.");
                 }
@@ -1003,7 +1019,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 String prefix = cm.getPrefix();
                 player.sendMessage(cm.getMessage("clan-info-header"));
-                player.sendMessage(prefix + "Tag: " + infoClan.getTag());
+                player.sendMessage(prefix + "Tag: " + cm.translateColors(infoClan.getTag()));
                 player.sendMessage(prefix + "Points: " + infoClan.getPoints());
                 player.sendMessage(prefix + "Rank: " + infoClan.getRank());
                 player.sendMessage(prefix + "Members: " + infoClan.getMembers().size() + "/" + getMaxMembers(infoClan, cm));
@@ -1090,7 +1106,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     ClanData cd = entry.getValue();
                     String leaderName = Bukkit.getOfflinePlayer(cd.getLeader()).getName();
                     if (leaderName == null) leaderName = "?";
-                    player.sendMessage("#" + rankNum + ". [" + cd.getTag() + "] Leader: " + leaderName
+                    player.sendMessage("#" + rankNum + ". [" + cm.translateColors(cd.getTag()) + "] Leader: " + leaderName
                             + " | Members: " + cd.getMembers().size()
                             + " | Points: " + cd.getPoints()
                             + " [" + cd.getRank() + "]");
@@ -1167,7 +1183,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 int chestSize = CHEST_SIZE;
                 Inventory chest = clanChests.get(chestClan.getTag());
                 if (chest == null || chest.getSize() != chestSize) {
-                    chest = Bukkit.createInventory(null, chestSize, "Clan Chest: " + chestClan.getTag());
+                    chest = Bukkit.createInventory(null, chestSize,
+                            cm.translateColors("Clan Chest: " + chestClan.getTag()));
                     ItemStack[] contents = chestClan.getChestContents();
                     if (contents.length != chestSize) {
                         contents = Arrays.copyOf(contents, chestSize);
@@ -1363,7 +1380,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 BookMeta bookMeta = (BookMeta) book.getItemMeta();
                 if (bookMeta == null) break;
                 bookMeta.setTitle("Clan Logs");
-                bookMeta.setAuthor(logClan.getTag());
+                bookMeta.setAuthor(cm.translateColors(logClan.getTag()));
                 List<String> allLogs = new ArrayList<>(logEntries);
                 Collections.reverse(allLogs);
                 List<Component> pages = new ArrayList<>();
@@ -1505,7 +1522,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         plugin.getFileManager().deleteClan(pendingTag);
                         player.sendMessage(cm.getMessage("clan-deleted"));
                         for (Player p : Bukkit.getOnlinePlayers()) {
-                            p.sendMessage(cm.getMessage("clan-dissolved").replace("%tag%", pendingTag));
+                            p.sendMessage(cm.getMessage("clan-dissolved")
+                                    .replace("%tag%", cm.translateColors(pendingTag)));
                         }
                     } else if (fdArg.equalsIgnoreCase("deny")) {
                         pendingForceDeletes.remove(playerUUID);
@@ -1518,7 +1536,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         }
                         pendingForceDeletes.put(playerUUID, fdArg);
                         player.sendMessage(
-                                Component.text(cm.getMessage("force-delete-confirm").replace("%tag%", fdArg) + " ")
+                                Component.text(cm.getMessage("force-delete-confirm")
+                                        .replace("%tag%", cm.translateColors(fdArg)) + " ")
                                         .append(Component.text("[Accept]")
                                                 .color(TextColor.color(0x55FF55))
                                                 .clickEvent(ClickEvent.runCommand("/clan force delete confirm")))
@@ -1605,19 +1624,19 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (pointsSub.equals("add")) {
                     newPoints = Math.min(currentPoints + amount, maxPoints);
                     successMsg = cm.getMessage("admin-points-add")
-                            .replace("%tag%", targetClan.getTag())
+                            .replace("%tag%", cm.translateColors(targetClan.getTag()))
                             .replace("%amount%", String.valueOf(amount))
                             .replace("%total%", String.valueOf(newPoints));
                 } else if (pointsSub.equals("remove")) {
                     newPoints = Math.max(currentPoints - amount, cm.getMinPoints());
                     successMsg = cm.getMessage("admin-points-remove")
-                            .replace("%tag%", targetClan.getTag())
+                            .replace("%tag%", cm.translateColors(targetClan.getTag()))
                             .replace("%amount%", String.valueOf(amount))
                             .replace("%total%", String.valueOf(newPoints));
                 } else {
                     newPoints = Math.max(cm.getMinPoints(), Math.min(amount, maxPoints));
                     successMsg = cm.getMessage("admin-points-set")
-                            .replace("%tag%", targetClan.getTag())
+                            .replace("%tag%", cm.translateColors(targetClan.getTag()))
                             .replace("%amount%", String.valueOf(newPoints));
                 }
                 targetClan.setPoints(newPoints);
@@ -1647,6 +1666,15 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     }
 
     // --- Helper methods ---
+
+    private double getRenameCooldownHoursRemaining(ClanData clan) {
+        long lastRename = clan.getLastRenameAt();
+        if (lastRename <= 0) return 0.0;
+        long elapsed = System.currentTimeMillis() - lastRename;
+        long remaining = RENAME_COOLDOWN_MS - elapsed;
+        if (remaining <= 0) return 0.0;
+        return remaining / 3_600_000.0;
+    }
 
     private void notifyLeaderOfRequest(ClanData clan, Player requester, ConfigManager cm) {
         Player leaderOnline = Bukkit.getPlayer(clan.getLeader());

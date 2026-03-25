@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class ClanData {
     private List<UUID> moderators;
     private List<UUID> members;
     private int points;
-    private int questZombieKillCount;
+    private Map<ClanQuestProgress.QuestTarget, Integer> questKillCounts;
     private String rank;
     private String created;
     private double onlineTime;
@@ -40,6 +41,7 @@ public class ClanData {
     private Location chestLocation;
     private List<ItemStack> chestItems;
     private int skillLevel;
+    private long lastRenameAt;
     /** Log entries in format "[HH:MM DD.MM.YYYY] message" */
     private List<String> logs;
     /** UUIDs of players who requested to join this clan */
@@ -60,7 +62,7 @@ public class ClanData {
         this.members = new ArrayList<>();
         this.members.add(leader);
         this.points = 0;
-        this.questZombieKillCount = 0;
+        this.questKillCounts = ClanQuestProgress.createEmptyKillCounts();
         this.rank = "Bronze";
         this.created = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         this.onlineTime = 0.0;
@@ -87,11 +89,12 @@ public class ClanData {
             members.add(UUID.fromString(mem));
         }
         this.points = config.getInt("points");
-        this.questZombieKillCount = config.getInt("quest-zombie-kills", 0);
+        this.questKillCounts = loadQuestKills(config);
         this.rank = config.getString("rank");
         this.created = config.getString("created");
         this.onlineTime = config.getDouble("online-time");
         this.skillLevel = config.getInt("skill-level", 0);
+        this.lastRenameAt = config.getLong("last-rename-at", 0L);
         if (config.contains("spawn")) {
             String world = config.getString("spawn.world");
             double x = config.getDouble("spawn.x");
@@ -157,11 +160,17 @@ public class ClanData {
         }
         config.set("members", mems);
         config.set("points", points);
-        config.set("quest-zombie-kills", questZombieKillCount);
+        config.set("quest-zombie-kills", getQuestKillCount(ClanQuestProgress.QuestTarget.ZOMBIE));
+        Map<String, Integer> questKills = new HashMap<>();
+        for (Map.Entry<ClanQuestProgress.QuestTarget, Integer> entry : questKillCounts.entrySet()) {
+            questKills.put(entry.getKey().getKey(), entry.getValue());
+        }
+        config.set("quest-kills", questKills);
         config.set("rank", rank);
         config.set("created", created);
         config.set("online-time", onlineTime);
         config.set("skill-level", skillLevel);
+        config.set("last-rename-at", lastRenameAt);
         if (spawn != null) {
             config.set("spawn.world", spawn.getWorld().getName());
             config.set("spawn.x", spawn.getX());
@@ -230,14 +239,25 @@ public class ClanData {
     public int getPoints() { return points; }
     public void setPoints(int points) { this.points = points; }
 
-    public int getQuestZombieKillCount() { return questZombieKillCount; }
-    public void setQuestZombieKillCount(int questZombieKillCount) { this.questZombieKillCount = questZombieKillCount; }
+    public int getQuestKillCount(ClanQuestProgress.QuestTarget target) {
+        return questKillCounts.getOrDefault(target, 0);
+    }
+
+    public int addQuestKill(ClanQuestProgress.QuestTarget target) {
+        int updated = getQuestKillCount(target) + 1;
+        questKillCounts.put(target, updated);
+        return updated;
+    }
+
+    public Map<ClanQuestProgress.QuestTarget, Integer> getQuestKillCounts() {
+        return new EnumMap<>(questKillCounts);
+    }
 
     public String getRank() { return rank; }
     public void setRank(String rank) { this.rank = rank; }
 
     public int getQuestSkillPoints() {
-        return ClanQuestProgress.getQuestSkillPoints(questZombieKillCount);
+        return ClanQuestProgress.getQuestSkillPoints(questKillCounts);
     }
 
     public int getSkillPoints() {
@@ -282,11 +302,31 @@ public class ClanData {
     public int getSkillLevel() { return skillLevel; }
     public void setSkillLevel(int skillLevel) { this.skillLevel = skillLevel; }
 
+    public long getLastRenameAt() { return lastRenameAt; }
+    public void setLastRenameAt(long lastRenameAt) { this.lastRenameAt = lastRenameAt; }
+
     public List<String> getLogs() { return logs; }
     public void setLogs(List<String> logs) { this.logs = logs; }
 
     public List<UUID> getPendingRequests() { return pendingRequests; }
     public void setPendingRequests(List<UUID> pendingRequests) { this.pendingRequests = pendingRequests; }
+
+    private Map<ClanQuestProgress.QuestTarget, Integer> loadQuestKills(YamlConfiguration config) {
+        Map<ClanQuestProgress.QuestTarget, Integer> questKills = ClanQuestProgress.createEmptyKillCounts();
+        if (config.isConfigurationSection("quest-kills")) {
+            for (String key : config.getConfigurationSection("quest-kills").getKeys(false)) {
+                ClanQuestProgress.QuestTarget target = ClanQuestProgress.getQuestTargetByKey(key);
+                if (target != null) {
+                    questKills.put(target, config.getInt("quest-kills." + key));
+                }
+            }
+        }
+        int legacyZombies = config.getInt("quest-zombie-kills", 0);
+        if (legacyZombies > 0) {
+            questKills.put(ClanQuestProgress.QuestTarget.ZOMBIE, legacyZombies);
+        }
+        return questKills;
+    }
 
     public ClanChestPermission getChestPermission(UUID member) {
         return chestPermissions.getOrDefault(member, ClanChestPermission.VIEW);

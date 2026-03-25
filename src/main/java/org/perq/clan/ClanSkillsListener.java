@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 public class ClanSkillsListener implements Listener {
     private static final String TITLE = "Clan Progress";
+    private static final String RENAME_TITLE = "Clan Rename";
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
     private static final int MEMBERS_SLOT = 24;
@@ -27,9 +29,12 @@ public class ClanSkillsListener implements Listener {
     private static final int NEXT_PAGE_SLOT = 8;
     private static final int SKILL_ROW_START = 9;
     private static final int SKILL_ROW_SIZE = 9;
+    private static final int ANVIL_INPUT_SLOT = 0;
+    private static final int ANVIL_RESULT_SLOT = 2;
 
     private final Clan plugin;
     private final Map<UUID, Integer> pages = new HashMap<>();
+    private final Map<UUID, String> renameSessions = new HashMap<>();
 
     public ClanSkillsListener(Clan plugin) {
         this.plugin = plugin;
@@ -45,8 +50,16 @@ public class ClanSkillsListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        if (!event.getView().title().equals(Component.text(TITLE))) return;
+        if (event.getView().title().equals(Component.text(TITLE))) {
+            handleSkillsClick(event);
+            return;
+        }
+        if (event.getView().title().equals(Component.text(RENAME_TITLE))) {
+            handleRenameClick(event);
+        }
+    }
 
+    private void handleSkillsClick(InventoryClickEvent event) {
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
 
@@ -76,13 +89,54 @@ public class ClanSkillsListener implements Listener {
             }
             pages.put(player.getUniqueId(), currentPage);
             populateSkillsInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
+            return;
         }
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getType() != Material.NAME_TAG) return;
+        ItemMeta meta = clicked.getItemMeta();
+        if (meta == null) return;
+        ConfigManager cm = plugin.getConfigManager();
+        if (!cm.translateColors("&6Clan Rename").equals(meta.getDisplayName())) return;
+        if (!clan.getLeader().equals(player.getUniqueId())) {
+            player.sendMessage(cm.getMessage("no-permission"));
+            return;
+        }
+        if (!ClanSkillProgress.hasRename(clan.getSkillPoints())) {
+            player.sendMessage(cm.getMessage("skills-locked-rename")
+                    .replace("%required%", String.valueOf(ClanSkillProgress.getRenameUnlockPoints())));
+            return;
+        }
+        openRenameAnvil(player, clan, cm);
+    }
+
+    private void handleRenameClick(InventoryClickEvent event) {
+        int rawSlot = event.getRawSlot();
+        if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
+        event.setCancelled(true);
+        if (rawSlot != ANVIL_RESULT_SLOT) return;
+        Player player = (Player) event.getWhoClicked();
+        if (!renameSessions.containsKey(player.getUniqueId())) return;
+        ItemStack result = event.getView().getTopInventory().getItem(ANVIL_RESULT_SLOT);
+        if (result == null) return;
+        ItemMeta meta = result.getItemMeta();
+        if (meta == null || meta.getDisplayName() == null) return;
+        String newTag = meta.getDisplayName().trim();
+        if (newTag.isEmpty()) return;
+        player.closeInventory();
+        renameSessions.remove(player.getUniqueId());
+        player.performCommand("clan rename " + newTag);
     }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!event.getView().title().equals(Component.text(TITLE))) return;
-        pages.remove(event.getPlayer().getUniqueId());
+        if (event.getView().title().equals(Component.text(TITLE))) {
+            pages.remove(event.getPlayer().getUniqueId());
+            return;
+        }
+        if (event.getView().title().equals(Component.text(RENAME_TITLE))) {
+            renameSessions.remove(event.getPlayer().getUniqueId());
+        }
     }
 
     private void populateSkillsInventory(Inventory inv, ClanData clan, UUID viewer) {
@@ -154,7 +208,13 @@ public class ClanSkillsListener implements Listener {
 
         List<String> renameLore = new ArrayList<>();
         renameLore.add(cm.translateColors("&7Unlock points: &f" + ClanSkillProgress.getRenameUnlockPoints()));
-        renameLore.add(cm.translateColors(ClanSkillProgress.hasRename(points) ? "&aUnlocked" : "&cLocked"));
+        if (ClanSkillProgress.hasRename(points)) {
+            renameLore.add(cm.translateColors("&7Cooldown: &f72h"));
+            renameLore.add(cm.translateColors("&7Click to rename (colors enabled)"));
+            renameLore.add(cm.translateColors("&aUnlocked"));
+        } else {
+            renameLore.add(cm.translateColors("&cLocked"));
+        }
         entries.add(namedItem(Material.NAME_TAG, cm.translateColors("&6Clan Rename"), renameLore));
 
         return entries;
@@ -189,5 +249,13 @@ public class ClanSkillsListener implements Listener {
         PlayerData p = plugin.getFileManager().loadPlayer(player);
         if (p == null || p.getClanTag() == null) return null;
         return plugin.getFileManager().loadClan(p.getClanTag());
+    }
+
+    private void openRenameAnvil(Player player, ClanData clan, ConfigManager cm) {
+        Inventory anvil = Bukkit.createInventory(player, InventoryType.ANVIL, RENAME_TITLE);
+        ItemStack tagItem = namedItem(Material.NAME_TAG, cm.translateColors("&f" + clan.getTag()));
+        anvil.setItem(ANVIL_INPUT_SLOT, tagItem);
+        renameSessions.put(player.getUniqueId(), clan.getTag());
+        player.openInventory(anvil);
     }
 }

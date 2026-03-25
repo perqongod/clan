@@ -33,7 +33,9 @@ public class ClanStatsListener implements Listener {
     }
 
     public void openGui(Player player, ClanData clan) {
-        Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE, TITLE_PREFIX + clan.getTag());
+        ConfigManager cm = plugin.getConfigManager();
+        Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE,
+                cm.translateColors(TITLE_PREFIX + clan.getTag()));
         populateInventory(inv, clan);
         player.openInventory(inv);
     }

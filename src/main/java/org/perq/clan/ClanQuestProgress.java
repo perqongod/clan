@@ -1,25 +1,172 @@
 package org.perq.clan;
 
+import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public final class ClanQuestProgress {
-    private static final int LEVEL_2_ZOMBIE_KILLS = 100;
-    private static final int ZOMBIE_KILL_SKILL_POINTS = 2;
+    public enum QuestTarget {
+        ZOMBIE(EntityType.ZOMBIE, Material.ZOMBIE_HEAD, "Zombies", "zombie"),
+        SKELETON(EntityType.SKELETON, Material.BONE, "Skeletons", "skeleton"),
+        SPIDER(EntityType.SPIDER, Material.SPIDER_EYE, "Spiders", "spider"),
+        CREEPER(EntityType.CREEPER, Material.CREEPER_HEAD, "Creepers", "creeper"),
+        ENDERMAN(EntityType.ENDERMAN, Material.ENDER_PEARL, "Endermen", "enderman"),
+        WITCH(EntityType.WITCH, Material.POTION, "Witches", "witch"),
+        BLAZE(EntityType.BLAZE, Material.BLAZE_ROD, "Blazes", "blaze"),
+        SLIME(EntityType.SLIME, Material.SLIME_BALL, "Slimes", "slime"),
+        PIGLIN(EntityType.PIGLIN, Material.GOLD_INGOT, "Piglins", "piglin"),
+        WITHER_SKELETON(EntityType.WITHER_SKELETON, Material.WITHER_SKELETON_SKULL, "Wither Skeletons", "wither-skeleton"),
+        GUARDIAN(EntityType.GUARDIAN, Material.PRISMARINE_SHARD, "Guardians", "guardian");
+
+        private final EntityType entityType;
+        private final Material icon;
+        private final String displayName;
+        private final String key;
+
+        QuestTarget(EntityType entityType, Material icon, String displayName, String key) {
+            this.entityType = entityType;
+            this.icon = icon;
+            this.displayName = displayName;
+            this.key = key;
+        }
+
+        public EntityType getEntityType() {
+            return entityType;
+        }
+
+        public Material getIcon() {
+            return icon;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public String getKey() {
+            return key;
+        }
+    }
+
+    public static final class QuestDefinition {
+        private final int level;
+        private final QuestTarget target;
+        private final int requiredKills;
+        private final int rewardPoints;
+
+        private QuestDefinition(int level, QuestTarget target, int requiredKills, int rewardPoints) {
+            this.level = level;
+            this.target = target;
+            this.requiredKills = requiredKills;
+            this.rewardPoints = rewardPoints;
+        }
+
+        public int getLevel() {
+            return level;
+        }
+
+        public QuestTarget getTarget() {
+            return target;
+        }
+
+        public int getRequiredKills() {
+            return requiredKills;
+        }
+
+        public int getRewardPoints() {
+            return rewardPoints;
+        }
+    }
+
+    private static final List<QuestDefinition> QUESTS;
+    private static final Map<EntityType, QuestTarget> TARGETS_BY_ENTITY = new HashMap<>();
+    private static final Map<String, QuestTarget> TARGETS_BY_KEY = new HashMap<>();
+
+    static {
+        List<QuestDefinition> quests = new ArrayList<>();
+        quests.add(new QuestDefinition(2, QuestTarget.ZOMBIE, 50, 10));
+        quests.add(new QuestDefinition(2, QuestTarget.SPIDER, 30, 10));
+        quests.add(new QuestDefinition(2, QuestTarget.CREEPER, 20, 15));
+        quests.add(new QuestDefinition(3, QuestTarget.SKELETON, 50, 30));
+        quests.add(new QuestDefinition(3, QuestTarget.ZOMBIE, 60, 15));
+        quests.add(new QuestDefinition(3, QuestTarget.ENDERMAN, 25, 20));
+        quests.add(new QuestDefinition(4, QuestTarget.CREEPER, 40, 25));
+        quests.add(new QuestDefinition(4, QuestTarget.SPIDER, 70, 20));
+        quests.add(new QuestDefinition(4, QuestTarget.WITCH, 20, 30));
+        quests.add(new QuestDefinition(5, QuestTarget.SKELETON, 80, 35));
+        quests.add(new QuestDefinition(5, QuestTarget.ZOMBIE, 90, 25));
+        quests.add(new QuestDefinition(5, QuestTarget.ENDERMAN, 35, 30));
+        quests.add(new QuestDefinition(6, QuestTarget.BLAZE, 50, 40));
+        quests.add(new QuestDefinition(6, QuestTarget.SPIDER, 100, 30));
+        quests.add(new QuestDefinition(6, QuestTarget.SLIME, 30, 30));
+        quests.add(new QuestDefinition(7, QuestTarget.PIGLIN, 60, 45));
+        quests.add(new QuestDefinition(7, QuestTarget.WITHER_SKELETON, 15, 50));
+        quests.add(new QuestDefinition(7, QuestTarget.GUARDIAN, 10, 55));
+        QUESTS = Collections.unmodifiableList(quests);
+        for (QuestTarget target : QuestTarget.values()) {
+            TARGETS_BY_ENTITY.put(target.getEntityType(), target);
+            TARGETS_BY_KEY.put(target.getKey(), target);
+        }
+    }
 
     private ClanQuestProgress() {
     }
 
-    public static int getLevel2ZombieKills() {
-        return LEVEL_2_ZOMBIE_KILLS;
+    public static List<QuestDefinition> getQuestDefinitions() {
+        return QUESTS;
     }
 
-    public static int getZombieKillSkillPoints() {
-        return ZOMBIE_KILL_SKILL_POINTS;
+    public static QuestTarget getQuestTarget(EntityType entityType) {
+        return TARGETS_BY_ENTITY.get(entityType);
     }
 
-    public static int getQuestSkillPoints(int zombieKills) {
-        return zombieKills * ZOMBIE_KILL_SKILL_POINTS;
+    public static QuestTarget getQuestTargetByKey(String key) {
+        return TARGETS_BY_KEY.get(key);
     }
 
-    public static int getQuestLevel(int zombieKills) {
-        return zombieKills >= LEVEL_2_ZOMBIE_KILLS ? 2 : 1;
+    public static int getQuestSkillPoints(Map<QuestTarget, Integer> killCounts) {
+        int points = 0;
+        for (QuestDefinition quest : QUESTS) {
+            int kills = killCounts.getOrDefault(quest.getTarget(), 0);
+            if (kills >= quest.getRequiredKills()) {
+                points += quest.getRewardPoints();
+            }
+        }
+        return points;
+    }
+
+    public static int getQuestLevel(Map<QuestTarget, Integer> killCounts) {
+        int level = 1;
+        for (QuestDefinition quest : QUESTS) {
+            int kills = killCounts.getOrDefault(quest.getTarget(), 0);
+            if (kills >= quest.getRequiredKills()) {
+                level = Math.max(level, quest.getLevel());
+            }
+        }
+        return level;
+    }
+
+    public static int getCompletedQuestCount(Map<QuestTarget, Integer> killCounts) {
+        int count = 0;
+        for (QuestDefinition quest : QUESTS) {
+            int kills = killCounts.getOrDefault(quest.getTarget(), 0);
+            if (kills >= quest.getRequiredKills()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static int getTotalQuestCount() {
+        return QUESTS.size();
+    }
+
+    public static Map<QuestTarget, Integer> createEmptyKillCounts() {
+        return new EnumMap<>(QuestTarget.class);
     }
 }
