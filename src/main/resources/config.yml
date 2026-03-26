@@ -144,7 +144,7 @@ skills-gui:
       material: ARROW
       name: "&eNext"
   skills:
-    slots: [21, 22, 23, 24]
+    slots: [10, 19, 28, 29, 30, 21, 12, 13, 14, 23, 31, 32, 33]
     locked:
       material: RED_STAINED_GLASS_PANE
       name: "&cLevel %level%"
@@ -153,11 +153,17 @@ skills-gui:
       name: "&6Clan Chest"
       lore:
         - "&7%reward%"
+      locked:
+        lore:
+          - "&7use clan chest"
     spawn:
       material: ENDER_EYE
       name: "&6Clan Spawn"
       lore:
         - "&7%reward%"
+      locked:
+        lore:
+          - "&7use clan spawn"
     rename:
       material: NAME_TAG
       name: "&6Clan Rename"
@@ -166,11 +172,18 @@ skills-gui:
       unlocked-lore:
         - "&7Cooldown: &f72h"
         - "&7Click to rename (colors enabled)"
+      locked:
+        lore:
+          - "&7use clan rename"
+          - "&7with colors"
     enderpearl:
       material: ENDER_PEARL
       name: "&6Ender Pearl Shield"
       lore:
         - "&7%reward%"
+      locked:
+        lore:
+          - "&7enderperle shield"
 
 quest-gui:
   title: "Clan Quests"
