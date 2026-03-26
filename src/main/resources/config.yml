@@ -3,6 +3,9 @@ clansystem-prefix: "&4[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7| "
 # Points awarded to a clan per kill (ranking/points)
 kill-points: 1
 online-save-interval: 60
+quest-redeem:
+  cost: 100
+  reward: 10
 
 # Clan tag validation
 clan-tag-settings:
@@ -83,7 +86,12 @@ messages:
   skills-locked-spawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-setspawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-rename: "%prefix%&cClan Rename ist gesperrt. Benötigt %required% Punkte."
-  quest-info: "%prefix%Quest points affect clan skills, not ranking."
+  quest-info: "%prefix%Quest points affect clan skills. Click the nether star to redeem %quest_cost% quest points for %clan_reward% clan points."
+  quest-redeem-not-enough: "%prefix%&cDu brauchst %required% Questpunkte zum Einlösen. Du hast %available%."
+  quest-redeem-disabled: "%prefix%&cQuestpunkte einlösen ist derzeit deaktiviert."
+  quest-redeem-max: "%prefix%&cDie Clanpunkte sind bereits am Maximum (%max%)."
+  quest-redeem-failed: "%prefix%&cQuestpunkte konnten nicht eingelöst werden. Bitte versuche es erneut."
+  quest-redeem-success: "%prefix%&a%quest_points% Questpunkte eingelöst und %clan_points% Clanpunkte erhalten. Neuer Stand: %total%."
   chest-set: "%prefix%&aClan Chest gesetzt!"
   chest-not-set: "%prefix%&cClan Chest wurde noch nicht gesetzt."
   spawn-set: "%prefix%&aClan Spawn gesetzt!"

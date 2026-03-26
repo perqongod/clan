@@ -35,6 +35,7 @@ public class ClanData {
     private List<UUID> members;
     private int points;
     private Map<ClanQuestProgress.QuestTarget, Integer> questKillCounts;
+    private int questPointsRedeemed;
     private String rank;
     private String created;
     private double onlineTime;
@@ -68,6 +69,7 @@ public class ClanData {
         this.members.add(leader);
         this.points = 0;
         this.questKillCounts = ClanQuestProgress.createEmptyKillCounts();
+        this.questPointsRedeemed = 0;
         this.rank = "Bronze";
         this.created = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         this.onlineTime = 0.0;
@@ -97,6 +99,7 @@ public class ClanData {
         }
         this.points = config.getInt("points");
         this.questKillCounts = loadQuestKills(config);
+        this.questPointsRedeemed = Math.max(0, config.getInt("quest-points-redeemed", 0));
         this.rank = config.getString("rank");
         this.created = config.getString("created");
         this.onlineTime = config.getDouble("online-time");
@@ -208,6 +211,7 @@ public class ClanData {
             questKills.put(entry.getKey().getKey(), entry.getValue());
         }
         config.set("quest-kills", questKills);
+        config.set("quest-points-redeemed", questPointsRedeemed);
         config.set("rank", rank);
         config.set("created", created);
         config.set("online-time", onlineTime);
@@ -316,6 +320,21 @@ public class ClanData {
 
     public int getQuestSkillPoints() {
         return ClanQuestProgress.getQuestSkillPoints(questKillCounts);
+    }
+
+    public int getQuestPointsRedeemed() {
+        return questPointsRedeemed;
+    }
+
+    public void setQuestPointsRedeemed(int questPointsRedeemed) {
+        this.questPointsRedeemed = Math.max(0, questPointsRedeemed);
+    }
+
+    /**
+     * Returns quest points available for redemption (total quest skill points minus redeemed points).
+     */
+    public int getRedeemableQuestPoints() {
+        return Math.max(0, getQuestSkillPoints() - questPointsRedeemed);
     }
 
     public int getSkillPoints() {
