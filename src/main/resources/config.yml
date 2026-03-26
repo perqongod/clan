@@ -86,12 +86,12 @@ messages:
   skills-locked-spawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-setspawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-rename: "%prefix%&cClan Rename ist gesperrt. Benötigt %required% Punkte."
-  quest-info: "%prefix%Quest points affect clan skills. Click the nether star to redeem %quest_cost% quest points for %clan_reward% clan points."
-  quest-redeem-not-enough: "%prefix%&cDu brauchst %required% Questpunkte zum Einlösen. Du hast %available%."
-  quest-redeem-disabled: "%prefix%&cQuestpunkte einlösen ist derzeit deaktiviert."
-  quest-redeem-max: "%prefix%&cDie Clanpunkte sind bereits am Maximum (%max%)."
-  quest-redeem-failed: "%prefix%&cQuestpunkte konnten nicht eingelöst werden. Bitte versuche es erneut."
-  quest-redeem-success: "%prefix%&a%quest_points% Questpunkte eingelöst und %clan_points% Clanpunkte erhalten. Neuer Stand: %total%."
+  quest-info: "%prefix%click to redeem %quest_cost% points for %clan_reward% clan points."
+  quest-redeem-not-enough: "%prefix%&cyou need %required% quest points to redeem. you have %available%."
+  quest-redeem-disabled: "%prefix%&cquest point redemption is currently disabled."
+  quest-redeem-max: "%prefix%&cclan points are already at the maximum (%max%)."
+  quest-redeem-failed: "%prefix%&cquest points could not be redeemed. please try again."
+  quest-redeem-success: "%prefix%&a%quest_points% quest points redeemed for %clan_points% clan points. new total: %total%."
   chest-set: "%prefix%&aClan Chest gesetzt!"
   chest-not-set: "%prefix%&cClan Chest wurde noch nicht gesetzt."
   spawn-set: "%prefix%&aClan Spawn gesetzt!"
@@ -197,14 +197,14 @@ skills-gui:
           - "&7enderperle shield"
 
 quest-gui:
-  title: "Clan Quests"
+  title: "clan quests"
   overview:
-    name: "&6Clan Quests"
+    name: "&6clan quests"
   navigation:
     previous:
-      name: "&ePrevious"
+      name: "&eprevious"
     next:
-      name: "&eNext"
+      name: "&enext"
 
 settings-gui:
   titles:
