@@ -59,7 +59,7 @@ final class GuiConfigHelper {
             }
         }
         if (valid.isEmpty() && size > 0) {
-            valid.add(Math.min(size - 1, size / 2));
+            valid.add(size / 2);
         }
         return new ArrayList<>(valid);
     }

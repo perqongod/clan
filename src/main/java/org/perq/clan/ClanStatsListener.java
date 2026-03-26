@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ClanStatsListener implements Listener {
-    private static final String DEFAULT_TITLE_TEMPLATE = "Clan stats of %tag%";
+    private static final String DEFAULT_TITLE_FORMAT = "Clan stats of %tag%";
     private static final String EMPTY_DISPLAY_NAME = " ";
     private static final String PLAYTIME_FORMAT = "%.1f";
     private static final int DEFAULT_ROWS = 3;
@@ -176,7 +176,7 @@ public class ClanStatsListener implements Listener {
     }
 
     private String formatStatsTitle(ConfigManager cm, ClanData clan) {
-        String template = plugin.getConfig().getString("stats-gui.title", DEFAULT_TITLE_TEMPLATE);
+        String template = plugin.getConfig().getString("stats-gui.title", DEFAULT_TITLE_FORMAT);
         String withTag = GuiConfigHelper.applyPlaceholders(template, Map.of("%tag%", clan.getTag()));
         return cm.translateColors(withTag);
     }
