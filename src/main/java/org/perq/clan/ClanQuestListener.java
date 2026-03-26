@@ -71,12 +71,12 @@ public class ClanQuestListener implements Listener {
             int questRedeemCost = cm.getQuestRedeemCost();
             int clanPointsReward = cm.getQuestRedeemReward();
             int currentPoints = clan.getPoints();
-            int newPoints = Math.max(minPoints, Math.min(maxPoints, currentPoints + clanPointsReward));
-            if (newPoints <= currentPoints) {
+            if (currentPoints >= maxPoints) {
                 player.sendMessage(cm.getMessage("quest-redeem-max")
                         .replace("%max%", String.valueOf(maxPoints)));
                 return;
             }
+            int newPoints = Math.max(minPoints, Math.min(maxPoints, currentPoints + clanPointsReward));
             int redeemablePoints = clan.getRedeemableQuestPoints();
             if (redeemablePoints < questRedeemCost) {
                 String message = cm.getMessage("quest-redeem-not-enough")
@@ -104,7 +104,7 @@ public class ClanQuestListener implements Listener {
             }
             String message = cm.getMessage("quest-redeem-success")
                     .replace("%quest_points%", String.valueOf(questRedeemCost))
-                    .replace("%clan_points%", String.valueOf(clanPointsReward))
+                    .replace("%clan_points%", String.valueOf(newPoints - previousPoints))
                     .replace("%total%", String.valueOf(newPoints));
             player.sendMessage(message);
             populateQuestInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
