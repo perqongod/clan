@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class ClanStatsListener implements Listener {
     private static final String DEFAULT_TITLE_TEMPLATE = "Clan stats of %tag%";
@@ -31,6 +33,7 @@ public class ClanStatsListener implements Listener {
     private static final int TAG_SLOT = 16;
 
     private final Clan plugin;
+    private final Map<UUID, String> openTitles = new HashMap<>();
 
     public ClanStatsListener(Clan plugin) {
         this.plugin = plugin;
@@ -39,7 +42,9 @@ public class ClanStatsListener implements Listener {
     public void openGui(Player player, ClanData clan) {
         ConfigManager cm = plugin.getConfigManager();
         StatsGuiLayout layout = loadStatsGuiLayout(cm);
-        Inventory inv = Bukkit.createInventory(null, layout.size, formatStatsTitle(cm, clan));
+        String title = formatStatsTitle(cm, clan);
+        Inventory inv = Bukkit.createInventory(null, layout.size, title);
+        openTitles.put(player.getUniqueId(), title);
         populateInventory(inv, clan, layout);
         player.openInventory(inv);
     }
@@ -47,14 +52,28 @@ public class ClanStatsListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
+        Player player = (Player) event.getWhoClicked();
         @SuppressWarnings("deprecation")
         String title = event.getView().getTitle();
-        if (!matchesStatsTitle(title, plugin.getConfigManager())) return;
+        String openTitle = openTitles.get(player.getUniqueId());
+        if (openTitle == null || !openTitle.equals(title)) return;
 
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
 
         event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player)) return;
+        @SuppressWarnings("deprecation")
+        String title = event.getView().getTitle();
+        UUID playerId = event.getPlayer().getUniqueId();
+        String openTitle = openTitles.get(playerId);
+        if (openTitle != null && openTitle.equals(title)) {
+            openTitles.remove(playerId);
+        }
     }
 
     private void populateInventory(Inventory inv, ClanData clan, StatsGuiLayout layout) {
@@ -160,17 +179,6 @@ public class ClanStatsListener implements Listener {
         String template = plugin.getConfig().getString("stats-gui.title", DEFAULT_TITLE_TEMPLATE);
         String withTag = GuiConfigHelper.applyPlaceholders(template, Map.of("%tag%", clan.getTag()));
         return cm.translateColors(withTag);
-    }
-
-    private boolean matchesStatsTitle(String title, ConfigManager cm) {
-        String template = plugin.getConfig().getString("stats-gui.title", DEFAULT_TITLE_TEMPLATE);
-        int index = template.indexOf("%tag%");
-        if (index < 0) {
-            return title.equals(cm.translateColors(template));
-        }
-        String prefix = cm.translateColors(template.substring(0, index));
-        String suffix = cm.translateColors(template.substring(index + "%tag%".length()));
-        return title.startsWith(prefix) && title.endsWith(suffix);
     }
 
     private static class StatsGuiLayout {
