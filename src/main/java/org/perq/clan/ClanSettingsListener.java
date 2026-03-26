@@ -245,7 +245,7 @@ public class ClanSettingsListener implements Listener {
         if (!title.equals(getSettingsTitle(cm, "settings-gui.titles.main", DEFAULT_MAIN_TITLE))
                 && !title.equals(getSettingsTitle(cm, "settings-gui.titles.chest", DEFAULT_CHEST_TITLE))
                 && !title.equals(getSettingsTitle(cm, "settings-gui.titles.friendly-fire",
-                DEFAULT_FRIENDLY_FIRE_TITLE))
+                        DEFAULT_FRIENDLY_FIRE_TITLE))
                 && !title.equals(getSettingsTitle(cm, "settings-gui.titles.skills", DEFAULT_SKILLS_TITLE))
                 && !title.equals(getSettingsTitle(cm, "settings-gui.titles.spawn", DEFAULT_SPAWN_TITLE))) {
             return;

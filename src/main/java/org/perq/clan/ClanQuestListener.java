@@ -131,13 +131,13 @@ public class ClanQuestListener implements Listener {
         }
 
         if (totalPages > 1) {
+            String previousName = getQuestNavigationName(cm, CONFIG_NAV_PREVIOUS_NAME, DEFAULT_PREVIOUS_NAME);
+            String nextName = getQuestNavigationName(cm, CONFIG_NAV_NEXT_NAME, DEFAULT_NEXT_NAME);
             if (page > 0) {
-                inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(getQuestNavigationName(cm,
-                        CONFIG_NAV_PREVIOUS_NAME, DEFAULT_PREVIOUS_NAME)));
+                inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(previousName));
             }
             if (page < totalPages - 1) {
-                inv.setItem(NEXT_PAGE_SLOT, arrowItem(getQuestNavigationName(cm,
-                        CONFIG_NAV_NEXT_NAME, DEFAULT_NEXT_NAME)));
+                inv.setItem(NEXT_PAGE_SLOT, arrowItem(nextName));
             }
         }
     }
