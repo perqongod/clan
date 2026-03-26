@@ -20,8 +20,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -171,19 +173,14 @@ public class ClanSkillsListener implements Listener {
 
         ItemStack filler = layout.filler;
         ItemStack accent = layout.accent;
-        int rows = inv.getSize() / 9;
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < 9; col++) {
-                inv.setItem((row * 9) + col, filler);
+        for (Integer slot : layout.fillerSlots) {
+            if (slot >= 0 && slot < inv.getSize()) {
+                inv.setItem(slot, filler);
             }
         }
-        for (int row = 1; row <= rows - 2; row++) {
-            inv.setItem((row * 9) + 1, accent);
-            inv.setItem((row * 9) + 7, accent);
-        }
-        for (int row = 2; row <= rows - 2; row++) {
-            for (int col = 3; col <= 5; col++) {
-                inv.setItem((row * 9) + col, accent);
+        for (Integer slot : layout.accentSlots) {
+            if (slot >= 0 && slot < inv.getSize()) {
+                inv.setItem(slot, accent);
             }
         }
 
@@ -334,6 +331,14 @@ public class ClanSkillsListener implements Listener {
                 " ",
                 Collections.emptyList(),
                 Collections.emptyMap());
+        List<Integer> fillerSlots = resolveOptionalSlots(config, "skills-gui.filler.slots", size);
+        if (fillerSlots == null) {
+            fillerSlots = buildDefaultFillerSlots(size);
+        }
+        List<Integer> accentSlots = resolveOptionalSlots(config, "skills-gui.accent.slots", size);
+        if (accentSlots == null) {
+            accentSlots = buildDefaultAccentSlots(rows);
+        }
         ItemStack previousItem = buildConfiguredItem(cm,
                 config.getConfigurationSection("skills-gui.navigation.previous"),
                 Material.ARROW,
@@ -348,7 +353,7 @@ public class ClanSkillsListener implements Listener {
                 Collections.emptyMap());
 
         return new SkillsGuiLayout(size, title, overviewSlot, previousSlot, nextSlot, skillSlots,
-                filler, accent, previousItem, nextItem);
+                filler, accent, fillerSlots, accentSlots, previousItem, nextItem);
     }
 
     private Component getSkillsTitle(ConfigManager cm) {
@@ -389,6 +394,48 @@ public class ClanSkillsListener implements Listener {
             valid.add(fallbackSlot);
         }
         return valid;
+    }
+
+    private List<Integer> resolveOptionalSlots(FileConfiguration config, String path, int size) {
+        List<Integer> slots = config.getIntegerList(path);
+        if (slots == null || slots.isEmpty()) return null;
+        Set<Integer> valid = new LinkedHashSet<>();
+        for (Integer slot : slots) {
+            if (slot == null) continue;
+            if (slot >= 0 && slot < size) {
+                valid.add(slot);
+            }
+        }
+        return valid.isEmpty() ? null : new ArrayList<>(valid);
+    }
+
+    private List<Integer> buildDefaultFillerSlots(int size) {
+        List<Integer> slots = new ArrayList<>();
+        for (int slot = 0; slot < size; slot++) {
+            slots.add(slot);
+        }
+        return slots;
+    }
+
+    private List<Integer> buildDefaultAccentSlots(int rows) {
+        List<Integer> slots = new ArrayList<>();
+        int size = rows * 9;
+        for (int row = 1; row <= rows - 2; row++) {
+            addSlotIfValid(slots, (row * 9) + 1, size);
+            addSlotIfValid(slots, (row * 9) + 7, size);
+        }
+        for (int row = 2; row <= rows - 2; row++) {
+            for (int col = 3; col <= 5; col++) {
+                addSlotIfValid(slots, (row * 9) + col, size);
+            }
+        }
+        return slots;
+    }
+
+    private void addSlotIfValid(List<Integer> slots, int slot, int size) {
+        if (slot >= 0 && slot < size) {
+            slots.add(slot);
+        }
     }
 
     private ItemStack buildOverviewItem(ConfigManager cm,
@@ -478,6 +525,8 @@ public class ClanSkillsListener implements Listener {
         private final List<Integer> skillSlots;
         private final ItemStack filler;
         private final ItemStack accent;
+        private final List<Integer> fillerSlots;
+        private final List<Integer> accentSlots;
         private final ItemStack previousItem;
         private final ItemStack nextItem;
 
@@ -489,6 +538,8 @@ public class ClanSkillsListener implements Listener {
                                 List<Integer> skillSlots,
                                 ItemStack filler,
                                 ItemStack accent,
+                                List<Integer> fillerSlots,
+                                List<Integer> accentSlots,
                                 ItemStack previousItem,
                                 ItemStack nextItem) {
             this.size = size;
@@ -499,6 +550,8 @@ public class ClanSkillsListener implements Listener {
             this.skillSlots = skillSlots;
             this.filler = filler;
             this.accent = accent;
+            this.fillerSlots = fillerSlots;
+            this.accentSlots = accentSlots;
             this.previousItem = previousItem;
             this.nextItem = nextItem;
         }

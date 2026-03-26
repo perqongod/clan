@@ -116,9 +116,11 @@ skills-gui:
   filler:
     material: GRAY_STAINED_GLASS_PANE
     name: " "
+    slots: []
   accent:
     material: RED_STAINED_GLASS_PANE
     name: " "
+    slots: []
   overview:
     slot: 40
     material: NETHER_STAR
