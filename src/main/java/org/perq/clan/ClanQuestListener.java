@@ -1,7 +1,6 @@
 package org.perq.clan;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -24,8 +23,7 @@ public class ClanQuestListener implements Listener {
     private static final String DEFAULT_OVERVIEW_NAME = "&6Clan Quests";
     private static final String DEFAULT_PREVIOUS_NAME = "&ePrevious";
     private static final String DEFAULT_NEXT_NAME = "&eNext";
-    private static final String CONFIG_NAV_PREVIOUS_NAME = "quest-gui.navigation.previous.name";
-    private static final String CONFIG_NAV_NEXT_NAME = "quest-gui.navigation.next.name";
+    private static final String CONFIG_NAVIGATION_BASE = "quest-gui.navigation";
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
     private static final int PREVIOUS_PAGE_SLOT = 0;
@@ -131,8 +129,10 @@ public class ClanQuestListener implements Listener {
         }
 
         if (totalPages > 1) {
-            String previousName = getQuestNavigationName(cm, CONFIG_NAV_PREVIOUS_NAME, DEFAULT_PREVIOUS_NAME);
-            String nextName = getQuestNavigationName(cm, CONFIG_NAV_NEXT_NAME, DEFAULT_NEXT_NAME);
+            String previousName = getQuestNavigationName(cm, CONFIG_NAVIGATION_BASE + ".previous.name",
+                    DEFAULT_PREVIOUS_NAME);
+            String nextName = getQuestNavigationName(cm, CONFIG_NAVIGATION_BASE + ".next.name",
+                    DEFAULT_NEXT_NAME);
             if (page > 0) {
                 inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(previousName));
             }
@@ -173,8 +173,7 @@ public class ClanQuestListener implements Listener {
     }
 
     private Component getQuestTitle(ConfigManager cm) {
-        String title = plugin.getConfig().getString("quest-gui.title", DEFAULT_TITLE);
-        return LegacyComponentSerializer.legacySection().deserialize(cm.translateColors(title));
+        return cm.getComponent("quest-gui.title", DEFAULT_TITLE);
     }
 
     private String getQuestOverviewName(ConfigManager cm) {

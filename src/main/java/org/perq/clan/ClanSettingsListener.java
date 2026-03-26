@@ -1,7 +1,6 @@
 package org.perq.clan;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -617,8 +616,7 @@ public class ClanSettingsListener implements Listener {
     }
 
     private Component getSettingsTitle(ConfigManager cm, String path, String defaultTitle) {
-        String title = plugin.getConfig().getString(path, defaultTitle);
-        return LegacyComponentSerializer.legacySection().deserialize(cm.translateColors(title));
+        return cm.getComponent(path, defaultTitle);
     }
 
     private String getSettingsItemName(ConfigManager cm, String path, String defaultName) {
