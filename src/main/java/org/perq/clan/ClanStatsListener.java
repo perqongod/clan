@@ -152,7 +152,7 @@ public class ClanStatsListener implements Listener {
                 List.of(),
                 Map.of());
         List<Integer> fillerSlots = GuiConfigHelper.resolveOptionalSlots(config, "stats-gui.filler.slots", size);
-        if (fillerSlots == null) {
+        if (fillerSlots.isEmpty()) {
             fillerSlots = GuiConfigHelper.buildDefaultSlots(size);
         }
         return new StatsGuiLayout(size, filler, fillerSlots);

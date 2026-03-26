@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -621,7 +622,7 @@ public class ClanSettingsListener implements Listener {
                 List.of(),
                 Map.of());
         List<Integer> fillerSlots = GuiConfigHelper.resolveOptionalSlots(config, "settings-gui.main.filler.slots", size);
-        if (fillerSlots == null) {
+        if (fillerSlots.isEmpty()) {
             fillerSlots = buildDefaultMainFillerSlots(rows);
         }
         ItemStack accent = GuiConfigHelper.buildConfiguredItem(cm,
@@ -631,7 +632,7 @@ public class ClanSettingsListener implements Listener {
                 List.of(),
                 Map.of());
         List<Integer> accentSlots = GuiConfigHelper.resolveOptionalSlots(config, "settings-gui.main.accent.slots", size);
-        if (accentSlots == null) {
+        if (accentSlots.isEmpty()) {
             accentSlots = buildDefaultMainAccentSlots(rows);
         }
 
@@ -657,7 +658,7 @@ public class ClanSettingsListener implements Listener {
                 List.of(),
                 Map.of());
         List<Integer> fillerSlots = GuiConfigHelper.resolveOptionalSlots(config, basePath + ".filler.slots", size);
-        if (fillerSlots == null) {
+        if (fillerSlots.isEmpty()) {
             fillerSlots = buildDefaultSubmenuFillerSlots(size);
         }
         ItemStack emptyMemberItem = GuiConfigHelper.buildConfiguredItem(cm,
@@ -673,9 +674,9 @@ public class ClanSettingsListener implements Listener {
     }
 
     private List<Integer> buildDefaultMainFillerSlots(int rows) {
-        List<Integer> slots = new ArrayList<>();
+        LinkedHashSet<Integer> slots = new LinkedHashSet<>();
         int size = rows * 9;
-        if (rows <= 0) return slots;
+        if (rows <= 0) return new ArrayList<>();
         for (int col = 0; col < 9; col++) {
             slots.add(col);
             int bottom = size - 9 + col;
@@ -683,7 +684,7 @@ public class ClanSettingsListener implements Listener {
                 slots.add(bottom);
             }
         }
-        return slots;
+        return new ArrayList<>(slots);
     }
 
     private List<Integer> buildDefaultMainAccentSlots(int rows) {

@@ -311,7 +311,7 @@ public class ClanQuestListener implements Listener {
                 List.of(),
                 Map.of());
         List<Integer> fillerSlots = GuiConfigHelper.resolveOptionalSlots(config, "quest-gui.filler.slots", size);
-        if (fillerSlots == null) {
+        if (fillerSlots.isEmpty()) {
             fillerSlots = GuiConfigHelper.buildDefaultSlots(size);
         }
         int overviewSlot = GuiConfigHelper.resolveSlot(config, "quest-gui.overview.slot", DEFAULT_OVERVIEW_SLOT, size);

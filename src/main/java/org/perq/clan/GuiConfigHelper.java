@@ -35,7 +35,7 @@ final class GuiConfigHelper {
 
     static List<Integer> resolveOptionalSlots(FileConfiguration config, String path, int size) {
         List<Integer> slots = config.getIntegerList(path);
-        if (slots == null || slots.isEmpty()) return null;
+        if (slots == null || slots.isEmpty()) return Collections.emptyList();
         Set<Integer> valid = new LinkedHashSet<>();
         for (Integer slot : slots) {
             if (slot == null) continue;
@@ -43,7 +43,7 @@ final class GuiConfigHelper {
                 valid.add(slot);
             }
         }
-        return valid.isEmpty() ? null : new ArrayList<>(valid);
+        return valid.isEmpty() ? Collections.emptyList() : new ArrayList<>(valid);
     }
 
     static List<Integer> resolveSlots(FileConfiguration config, String path, List<Integer> defaults, int size) {
