@@ -1345,7 +1345,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 long lastRally = rallyClan.getLastRallyAt();
                 long remaining = RALLY_COOLDOWN_MS - (now - lastRally);
                 if (lastRally > 0 && remaining > 0) {
-                    long minutesRemaining = (remaining / 60_000L) + 1;
+                    long minutesRemaining = (remaining + 59_999L) / 60_000L;
                     player.sendMessage(cm.getMessage("rally-cooldown")
                             .replace("%minutes%", String.valueOf(minutesRemaining)));
                     return true;
