@@ -870,22 +870,33 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("clan-full").replace("%max%", String.valueOf(requestMaxMembers)));
                     return true;
                 }
-                arClan.getPendingRequests().remove(arUUID);
-                arClan.getMembers().add(arUUID);
                 String arPlayerName = Bukkit.getOfflinePlayer(arUUID).getName();
                 if (arPlayerName == null) arPlayerName = arUUID.toString().substring(0, 8);
-                arClan.addLog(arPlayerName + " joined the clan via request.");
                 PlayerData arPd = plugin.getFileManager().loadPlayer(arUUID);
                 if (arPd == null) arPd = new PlayerData(arPlayerName);
                 String previousTag = arPd.getClanTag();
                 if (previousTag != null && !previousTag.equalsIgnoreCase(arClan.getTag())) {
                     ClanData previousClan = plugin.getFileManager().loadClan(previousTag);
                     if (previousClan != null) {
+                        if (previousClan.getLeader().equals(arUUID)) {
+                            player.sendMessage(cm.formatPlain(cm.getPrefix() + arPlayerName
+                                    + " is a clan leader and must transfer leadership or delete their clan first."));
+                            Player arOnline = Bukkit.getPlayer(arUUID);
+                            if (arOnline != null) {
+                                arOnline.sendMessage(cm.getMessage("leader-cannot-join"));
+                            }
+                            return true;
+                        }
                         previousClan.getMembers().remove(arUUID);
                         previousClan.getModerators().remove(arUUID);
-                        try { plugin.getFileManager().saveClan(previousClan); } catch (Exception ignored) { /* continue */ }
+                        try { plugin.getFileManager().saveClan(previousClan); } catch (Exception e) {
+                            plugin.getLogger().warning("Failed to save previous clan data for " + previousTag + ": " + e.getMessage());
+                        }
                     }
                 }
+                arClan.getPendingRequests().remove(arUUID);
+                arClan.getMembers().add(arUUID);
+                arClan.addLog(arPlayerName + " joined the clan via request.");
                 arPd.setClanTag(arClan.getTag());
                 arPd.setRole("MEMBER");
                 try {
