@@ -100,8 +100,8 @@ public class ClanQuestListener implements Listener {
                 clan.setQuestPointsRedeemed(previousRedeemed);
                 clan.setPoints(currentPoints);
                 clan.setRank(previousRank);
-                Bukkit.getLogger().log(java.util.logging.Level.WARNING,
-                        "[Clan] Failed to redeem quest points for " + clan.getTag(), e);
+                Bukkit.getLogger().log(java.util.logging.Level.WARNING, e,
+                        () -> "[Clan] Failed to redeem quest points for " + clan.getTag());
                 player.sendMessage(cm.getMessage("quest-redeem-failed"));
                 populateQuestInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
                 return;
