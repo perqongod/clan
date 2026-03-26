@@ -20,8 +20,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -172,13 +174,11 @@ public class ClanSkillsListener implements Listener {
         ItemStack filler = layout.filler;
         ItemStack accent = layout.accent;
         for (Integer slot : layout.fillerSlots) {
-            if (slot == null) continue;
             if (slot >= 0 && slot < inv.getSize()) {
                 inv.setItem(slot, filler);
             }
         }
         for (Integer slot : layout.accentSlots) {
-            if (slot == null) continue;
             if (slot >= 0 && slot < inv.getSize()) {
                 inv.setItem(slot, accent);
             }
@@ -399,12 +399,14 @@ public class ClanSkillsListener implements Listener {
     private List<Integer> resolveOptionalSlots(FileConfiguration config, String path, int size) {
         List<Integer> slots = config.getIntegerList(path);
         if (slots == null || slots.isEmpty()) return null;
-        List<Integer> valid = new ArrayList<>();
+        Set<Integer> valid = new LinkedHashSet<>();
         for (Integer slot : slots) {
             if (slot == null) continue;
-            addSlotIfValid(valid, slot, size);
+            if (slot >= 0 && slot < size) {
+                valid.add(slot);
+            }
         }
-        return valid.isEmpty() ? null : valid;
+        return valid.isEmpty() ? null : new ArrayList<>(valid);
     }
 
     private List<Integer> buildDefaultFillerSlots(int size) {
@@ -431,7 +433,7 @@ public class ClanSkillsListener implements Listener {
     }
 
     private void addSlotIfValid(List<Integer> slots, int slot, int size) {
-        if (slot >= 0 && slot < size && !slots.contains(slot)) {
+        if (slot >= 0 && slot < size) {
             slots.add(slot);
         }
     }
