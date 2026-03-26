@@ -55,6 +55,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private static final long INVITE_COOLDOWN_MS = 10_000L;
     private static final double RENAME_COOLDOWN_HOURS = 72.0;
     private static final long RENAME_COOLDOWN_MS = (long) (RENAME_COOLDOWN_HOURS * 3_600_000L);
+    private static final long MILLIS_PER_MINUTE = 60_000L;
+    private static final long RALLY_ROUNDING_OFFSET_MS = MILLIS_PER_MINUTE - 1L;
+    private static final long RALLY_COOLDOWN_MS = ClanSkillProgress.getRallyCooldownMinutes() * MILLIS_PER_MINUTE;
     private static final int SPAWN_PARTICLE_COUNT = 60;
     private static final double SPAWN_PARTICLE_OFFSET_X = 0.6;
     private static final double SPAWN_PARTICLE_OFFSET_Y = 0.8;
@@ -66,7 +69,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "create", "delete", "invite", "accept", "deny", "join", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
-            "accept-request", "deny-request", "logs", "skills", "quest", "settings", "war", "force", "admin",
+            "accept-request", "deny-request", "logs", "skills", "quest", "settings", "rally", "war", "force", "admin",
             "points", "reload"
     ));
 
@@ -1373,6 +1376,52 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 break;
             }
 
+            case "rally": {
+                ClanData rallyClan = getPlayerClan(playerUUID);
+                if (rallyClan == null) {
+                    player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
+                }
+                if (!rallyClan.getLeader().equals(playerUUID)) {
+                    player.sendMessage(cm.getMessage("not-clan-leader"));
+                    return true;
+                }
+                if (!ClanSkillProgress.hasRally(rallyClan.getSkillPoints())) {
+                    player.sendMessage(cm.getMessage("skills-locked-rally")
+                            .replace("%required%", String.valueOf(ClanSkillProgress.getRallyUnlockPoints())));
+                    return true;
+                }
+                long now = System.currentTimeMillis();
+                long lastRally = rallyClan.getLastRallyAt();
+                long remaining = RALLY_COOLDOWN_MS - (now - lastRally);
+                if (lastRally > 0 && remaining > 0) {
+                    long minutesRemaining = (remaining + RALLY_ROUNDING_OFFSET_MS) / MILLIS_PER_MINUTE;
+                    player.sendMessage(cm.getMessage("rally-cooldown")
+                            .replace("%minutes%", String.valueOf(minutesRemaining)));
+                    return true;
+                }
+                int teleported = 0;
+                Location rallyLocation = player.getLocation().clone();
+                for (UUID mem : rallyClan.getMembers()) {
+                    if (mem.equals(playerUUID)) continue;
+                    Player target = Bukkit.getPlayer(mem);
+                    if (target != null && target.teleport(rallyLocation)) {
+                        target.sendMessage(cm.getMessage("rally-teleported")
+                                .replace("%leader%", cm.formatPlain(player.getName())));
+                        teleported++;
+                    }
+                }
+                rallyClan.setLastRallyAt(now);
+                try {
+                    plugin.getFileManager().saveClan(rallyClan);
+                } catch (Exception e) {
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
+                }
+                player.sendMessage(cm.getMessage("rally-triggered")
+                        .replace("%count%", String.valueOf(teleported)));
+                break;
+            }
+
             case "setspawn": {
                 ClanData ssClan = getPlayerClan(playerUUID);
                 if (ssClan == null) {
@@ -1809,6 +1858,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delspawn &7- Remove clan spawn"));
         }
+        if (clan != null && clan.getLeader().equals(playerUUID)) {
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rally &7- Teleport all clan members to you ("
+                    + ClanSkillProgress.getRallyUnlockPoints() + "+ Punkte, "
+                    + ClanSkillProgress.getRallyCooldownMinutes() + "m CD)"));
+        }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
@@ -1889,7 +1943,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     "create", "delete", "invite", "accept", "deny", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
-                    "logs", "skills", "quest", "settings"
+                    "logs", "skills", "quest", "settings", "rally"
             ));
             if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillPoints())) {
                 subs.remove("chest");
@@ -1905,6 +1959,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 subs.remove("spawn");
                 subs.remove("setspawn");
                 subs.remove("delspawn");
+            }
+            if (clan == null || !clan.getLeader().equals(playerUUID)
+                    || !ClanSkillProgress.hasRally(clan.getSkillPoints())) {
+                subs.remove("rally");
             }
             if (player.hasPermission("clan.admin")) {
                 subs.add("force");
