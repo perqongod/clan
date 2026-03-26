@@ -19,7 +19,12 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ClanQuestListener implements Listener {
-    private static final String TITLE = "Clan Quests";
+    private static final String DEFAULT_TITLE = "Clan Quests";
+    private static final String DEFAULT_OVERVIEW_NAME = "&6Clan Quests";
+    private static final String DEFAULT_PREVIOUS_NAME = "&ePrevious";
+    private static final String DEFAULT_NEXT_NAME = "&eNext";
+    private static final String CONFIG_NAV_PREVIOUS_NAME = "quest-gui.navigation.previous.name";
+    private static final String CONFIG_NAV_NEXT_NAME = "quest-gui.navigation.next.name";
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
     private static final int PREVIOUS_PAGE_SLOT = 0;
@@ -35,7 +40,9 @@ public class ClanQuestListener implements Listener {
     }
 
     public void openGui(Player player, ClanData clan) {
-        Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE, TITLE);
+        ConfigManager cm = plugin.getConfigManager();
+        Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE,
+                cm.getComponent("quest-gui.title", DEFAULT_TITLE));
         pages.put(player.getUniqueId(), 0);
         populateQuestInventory(inv, clan, player.getUniqueId());
         player.openInventory(inv);
@@ -44,7 +51,8 @@ public class ClanQuestListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        if (!event.getView().title().equals(Component.text(TITLE))) return;
+        ConfigManager cm = plugin.getConfigManager();
+        if (!event.getView().title().equals(cm.getComponent("quest-gui.title", DEFAULT_TITLE))) return;
 
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
@@ -78,7 +86,8 @@ public class ClanQuestListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!event.getView().title().equals(Component.text(TITLE))) return;
+        ConfigManager cm = plugin.getConfigManager();
+        if (!event.getView().title().equals(cm.getComponent("quest-gui.title", DEFAULT_TITLE))) return;
         pages.remove(event.getPlayer().getUniqueId());
     }
 
@@ -107,7 +116,8 @@ public class ClanQuestListener implements Listener {
         overviewLore.add(cm.translateColors("&7Completed quests: &f" + completedQuests + "/" + totalQuests));
         overviewLore.add(cm.translateColors("&7Quest skill points: &f" + questPoints));
         overviewLore.add(questInfo);
-        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Quests"), overviewLore));
+        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR,
+                cm.getConfigString("quest-gui.overview.name", DEFAULT_OVERVIEW_NAME), overviewLore));
 
         List<ItemStack> questEntries = buildQuestEntries(clan, cm);
         int totalPages = Math.max(1, (questEntries.size() + QUEST_ROW_SIZE - 1) / QUEST_ROW_SIZE);
@@ -122,11 +132,13 @@ public class ClanQuestListener implements Listener {
         }
 
         if (totalPages > 1) {
+            String previousName = cm.getConfigString(CONFIG_NAV_PREVIOUS_NAME, DEFAULT_PREVIOUS_NAME);
+            String nextName = cm.getConfigString(CONFIG_NAV_NEXT_NAME, DEFAULT_NEXT_NAME);
             if (page > 0) {
-                inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(cm.translateColors("&ePrevious")));
+                inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(previousName));
             }
             if (page < totalPages - 1) {
-                inv.setItem(NEXT_PAGE_SLOT, arrowItem(cm.translateColors("&eNext")));
+                inv.setItem(NEXT_PAGE_SLOT, arrowItem(nextName));
             }
         }
     }

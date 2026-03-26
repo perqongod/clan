@@ -1,5 +1,7 @@
 package org.perq.clan;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -48,6 +50,16 @@ public class ConfigManager {
 
     public String translateColors(String message) {
         return ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(message));
+    }
+
+    public Component getComponent(String path, String defaultValue) {
+        String value = config.getString(path, defaultValue);
+        return LegacyComponentSerializer.legacySection().deserialize(translateColors(value));
+    }
+
+    public String getConfigString(String path, String defaultValue) {
+        String value = config.getString(path, defaultValue);
+        return translateColors(value);
     }
 
     public String normalizeTag(String tag) {

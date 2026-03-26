@@ -22,11 +22,16 @@ import java.util.UUID;
 
 public class ClanSettingsListener implements Listener {
 
-    private static final String MAIN_TITLE = "Clan Settings";
-    private static final String CHEST_TITLE = "Clan Chest Settings";
-    private static final String FRIENDLY_FIRE_TITLE = "Clan Friendly Fire Settings";
-    private static final String SKILLS_TITLE = "Clan Skills Settings";
-    private static final String SPAWN_TITLE = "Clan Spawn Settings";
+    private static final String DEFAULT_MAIN_TITLE = "Clan Settings";
+    private static final String DEFAULT_CHEST_TITLE = "Clan Chest Settings";
+    private static final String DEFAULT_FRIENDLY_FIRE_TITLE = "Clan Friendly Fire Settings";
+    private static final String DEFAULT_SKILLS_TITLE = "Clan Skills Settings";
+    private static final String DEFAULT_SPAWN_TITLE = "Clan Spawn Settings";
+    private static final String DEFAULT_CHEST_NAME = "&6Clan Chest";
+    private static final String DEFAULT_FRIENDLY_FIRE_NAME = "&6Friendly Fire";
+    private static final String DEFAULT_SKILLS_NAME = "&6Clan Skills";
+    private static final String DEFAULT_SPAWN_NAME = "&6Clan Spawn";
+    private static final String DEFAULT_INVITATIONS_NAME = "&6Invitations";
     private static final int MAIN_INVENTORY_SIZE = 27;
     private static final int CHEST_INVENTORY_SIZE = 54;
     private static final int FRIENDLY_FIRE_INVENTORY_SIZE = 54;
@@ -50,7 +55,9 @@ public class ClanSettingsListener implements Listener {
     }
 
     public void openGui(Player player, ClanData clan) {
-        Inventory inv = Bukkit.createInventory(null, MAIN_INVENTORY_SIZE, MAIN_TITLE);
+        ConfigManager cm = plugin.getConfigManager();
+        Inventory inv = Bukkit.createInventory(null, MAIN_INVENTORY_SIZE,
+                cm.getComponent("settings-gui.titles.main", DEFAULT_MAIN_TITLE));
         SettingsSession session = new SettingsSession(clan.getTag(), new ArrayList<>(clan.getMembers()));
         sessions.put(player.getUniqueId(), session);
         populateMainMenu(inv, player, clan);
@@ -64,12 +71,14 @@ public class ClanSettingsListener implements Listener {
 
         SettingsSession session = sessions.get(player.getUniqueId());
         if (session == null) return;
+        ConfigManager cm = plugin.getConfigManager();
         Component title = event.getView().title();
-        boolean mainMenu = title.equals(Component.text(MAIN_TITLE));
-        boolean chestMenu = title.equals(Component.text(CHEST_TITLE));
-        boolean friendlyMenu = title.equals(Component.text(FRIENDLY_FIRE_TITLE));
-        boolean skillsMenu = title.equals(Component.text(SKILLS_TITLE));
-        boolean spawnMenu = title.equals(Component.text(SPAWN_TITLE));
+        boolean mainMenu = title.equals(cm.getComponent("settings-gui.titles.main", DEFAULT_MAIN_TITLE));
+        boolean chestMenu = title.equals(cm.getComponent("settings-gui.titles.chest", DEFAULT_CHEST_TITLE));
+        boolean friendlyMenu = title.equals(cm.getComponent("settings-gui.titles.friendly-fire",
+                DEFAULT_FRIENDLY_FIRE_TITLE));
+        boolean skillsMenu = title.equals(cm.getComponent("settings-gui.titles.skills", DEFAULT_SKILLS_TITLE));
+        boolean spawnMenu = title.equals(cm.getComponent("settings-gui.titles.spawn", DEFAULT_SPAWN_TITLE));
         if (!mainMenu && !chestMenu && !friendlyMenu && !skillsMenu && !spawnMenu) return;
 
         int rawSlot = event.getRawSlot();
@@ -85,7 +94,6 @@ public class ClanSettingsListener implements Listener {
         }
 
         if (mainMenu) {
-            ConfigManager cm = plugin.getConfigManager();
             if (rawSlot == MAIN_INVITE_TOGGLE_SLOT) {
                 boolean invitesDisabled = plugin.toggleInvitation(player);
                 player.sendMessage(invitesDisabled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
@@ -101,7 +109,7 @@ public class ClanSettingsListener implements Listener {
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
                 }
-                openChestSettings(player, clan, session);
+                openChestSettings(player, clan, session, cm);
             }
             if (rawSlot == MAIN_FRIENDLY_FIRE_SLOT) {
                 if (!clan.getLeader().equals(player.getUniqueId())) {
@@ -112,7 +120,7 @@ public class ClanSettingsListener implements Listener {
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
                 }
-                openFriendlyFireSettings(player, clan, session);
+                openFriendlyFireSettings(player, clan, session, cm);
             }
             if (rawSlot == MAIN_SKILLS_SLOT) {
                 if (!clan.getLeader().equals(player.getUniqueId())) {
@@ -123,7 +131,7 @@ public class ClanSettingsListener implements Listener {
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
                 }
-                openSkillsSettings(player, clan, session);
+                openSkillsSettings(player, clan, session, cm);
             }
             if (rawSlot == MAIN_SPAWN_SLOT) {
                 if (!clan.getLeader().equals(player.getUniqueId())) {
@@ -134,7 +142,7 @@ public class ClanSettingsListener implements Listener {
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
                 }
-                openSpawnSettings(player, clan, session);
+                openSpawnSettings(player, clan, session, cm);
             }
             return;
         }
@@ -231,12 +239,14 @@ public class ClanSettingsListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
+        ConfigManager cm = plugin.getConfigManager();
         Component title = event.getView().title();
-        if (!title.equals(Component.text(MAIN_TITLE))
-                && !title.equals(Component.text(CHEST_TITLE))
-                && !title.equals(Component.text(FRIENDLY_FIRE_TITLE))
-                && !title.equals(Component.text(SKILLS_TITLE))
-                && !title.equals(Component.text(SPAWN_TITLE))) {
+        if (!title.equals(cm.getComponent("settings-gui.titles.main", DEFAULT_MAIN_TITLE))
+                && !title.equals(cm.getComponent("settings-gui.titles.chest", DEFAULT_CHEST_TITLE))
+                && !title.equals(cm.getComponent("settings-gui.titles.friendly-fire",
+                        DEFAULT_FRIENDLY_FIRE_TITLE))
+                && !title.equals(cm.getComponent("settings-gui.titles.skills", DEFAULT_SKILLS_TITLE))
+                && !title.equals(cm.getComponent("settings-gui.titles.spawn", DEFAULT_SPAWN_TITLE))) {
             return;
         }
         SettingsSession session = sessions.get(event.getPlayer().getUniqueId());
@@ -377,30 +387,34 @@ public class ClanSettingsListener implements Listener {
         }
     }
 
-    private void openChestSettings(Player player, ClanData clan, SettingsSession session) {
+    private void openChestSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm) {
         session.switching = true;
-        Inventory inv = Bukkit.createInventory(null, CHEST_INVENTORY_SIZE, CHEST_TITLE);
+        Inventory inv = Bukkit.createInventory(null, CHEST_INVENTORY_SIZE,
+                cm.getComponent("settings-gui.titles.chest", DEFAULT_CHEST_TITLE));
         populateChestSettings(inv, clan, session);
         player.openInventory(inv);
     }
 
-    private void openFriendlyFireSettings(Player player, ClanData clan, SettingsSession session) {
+    private void openFriendlyFireSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm) {
         session.switching = true;
-        Inventory inv = Bukkit.createInventory(null, FRIENDLY_FIRE_INVENTORY_SIZE, FRIENDLY_FIRE_TITLE);
+        Inventory inv = Bukkit.createInventory(null, FRIENDLY_FIRE_INVENTORY_SIZE,
+                cm.getComponent("settings-gui.titles.friendly-fire", DEFAULT_FRIENDLY_FIRE_TITLE));
         populateFriendlyFireSettings(inv, clan, session);
         player.openInventory(inv);
     }
 
-    private void openSkillsSettings(Player player, ClanData clan, SettingsSession session) {
+    private void openSkillsSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm) {
         session.switching = true;
-        Inventory inv = Bukkit.createInventory(null, SKILLS_INVENTORY_SIZE, SKILLS_TITLE);
+        Inventory inv = Bukkit.createInventory(null, SKILLS_INVENTORY_SIZE,
+                cm.getComponent("settings-gui.titles.skills", DEFAULT_SKILLS_TITLE));
         populateSkillsSettings(inv, clan, session);
         player.openInventory(inv);
     }
 
-    private void openSpawnSettings(Player player, ClanData clan, SettingsSession session) {
+    private void openSpawnSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm) {
         session.switching = true;
-        Inventory inv = Bukkit.createInventory(null, SPAWN_INVENTORY_SIZE, SPAWN_TITLE);
+        Inventory inv = Bukkit.createInventory(null, SPAWN_INVENTORY_SIZE,
+                cm.getComponent("settings-gui.titles.spawn", DEFAULT_SPAWN_TITLE));
         populateSpawnSettings(inv, clan, session);
         player.openInventory(inv);
     }
@@ -486,7 +500,7 @@ public class ClanSettingsListener implements Listener {
         ItemStack item = new ItemStack(Material.CHEST);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(cm.translateColors("&6Clan Chest"));
+            meta.setDisplayName(cm.getConfigString("settings-gui.items.clan-chest.name", DEFAULT_CHEST_NAME));
             List<String> lore = new ArrayList<>();
             lore.add(cm.translateColors("&7Click to configure"));
             if (selectedMember != null) {
@@ -508,7 +522,8 @@ public class ClanSettingsListener implements Listener {
         ItemStack item = new ItemStack(Material.IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(cm.translateColors("&6Friendly Fire"));
+            meta.setDisplayName(cm.getConfigString("settings-gui.items.friendly-fire.name",
+                    DEFAULT_FRIENDLY_FIRE_NAME));
             List<String> lore = new ArrayList<>();
             lore.add(cm.translateColors("&7Click to configure"));
             if (selectedMember != null) {
@@ -529,7 +544,7 @@ public class ClanSettingsListener implements Listener {
         ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(cm.translateColors("&6Clan Skills"));
+            meta.setDisplayName(cm.getConfigString("settings-gui.items.clan-skills.name", DEFAULT_SKILLS_NAME));
             List<String> lore = new ArrayList<>();
             lore.add(cm.translateColors("&7Click to configure"));
             if (selectedMember != null) {
@@ -551,7 +566,7 @@ public class ClanSettingsListener implements Listener {
         ItemStack item = new ItemStack(Material.ENDER_EYE);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(cm.translateColors("&6Clan Spawn"));
+            meta.setDisplayName(cm.getConfigString("settings-gui.items.clan-spawn.name", DEFAULT_SPAWN_NAME));
             List<String> lore = new ArrayList<>();
             lore.add(cm.translateColors("&7Click to configure"));
             if (selectedMember != null) {
@@ -574,7 +589,7 @@ public class ClanSettingsListener implements Listener {
         ItemStack item = new ItemStack(Material.BELL);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(cm.translateColors("&6Invitations"));
+            meta.setDisplayName(cm.getConfigString("settings-gui.items.invitations.name", DEFAULT_INVITATIONS_NAME));
             List<String> lore = new ArrayList<>();
             lore.add(cm.translateColors("&7Click to toggle"));
             lore.add(cm.translateColors("&7Status: " + (invitesEnabled ? "&aEnabled" : "&cDisabled")));
