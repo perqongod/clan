@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 public class ConfigManager {
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%[^%]+%");
     private final Clan plugin;
     private FileConfiguration config;
 
@@ -49,7 +50,100 @@ public class ConfigManager {
     }
 
     public String translateColors(String message) {
-        return ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(message));
+        return formatMessage(message, true);
+    }
+
+    public String formatPlain(String message) {
+        return formatMessage(message, false);
+    }
+
+    private String formatMessage(String message, boolean preservePlaceholders) {
+        if (message == null) return null;
+        String translated = ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(message));
+        String stripped = ChatColor.stripColor(translated);
+        return preservePlaceholders ? toSmallCapsPreservingPlaceholders(stripped) : toSmallCaps(stripped);
+    }
+
+    private static String toSmallCapsPreservingPlaceholders(String input) {
+        if (input == null) return null;
+        Matcher matcher = PLACEHOLDER_PATTERN.matcher(input);
+        StringBuilder builder = new StringBuilder(input.length());
+        int lastIndex = 0;
+        while (matcher.find()) {
+            builder.append(toSmallCaps(input.substring(lastIndex, matcher.start())));
+            builder.append(input, matcher.start(), matcher.end());
+            lastIndex = matcher.end();
+        }
+        builder.append(toSmallCaps(input.substring(lastIndex)));
+        return builder.toString();
+    }
+
+    private static String toSmallCaps(String input) {
+        if (input == null) return null;
+        StringBuilder builder = new StringBuilder(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            builder.append(toSmallCapsChar(input.charAt(i)));
+        }
+        return builder.toString();
+    }
+
+    private static String toSmallCapsChar(char value) {
+        switch (Character.toLowerCase(value)) {
+            case 'a':
+                return "ᴀ";
+            case 'b':
+                return "ʙ";
+            case 'c':
+                return "ᴄ";
+            case 'd':
+                return "ᴅ";
+            case 'e':
+                return "ᴇ";
+            case 'f':
+                return "ꜰ";
+            case 'g':
+                return "ɢ";
+            case 'h':
+                return "ʜ";
+            case 'i':
+                return "ɪ";
+            case 'j':
+                return "ᴊ";
+            case 'k':
+                return "ᴋ";
+            case 'l':
+                return "ʟ";
+            case 'm':
+                return "ᴍ";
+            case 'n':
+                return "ɴ";
+            case 'o':
+                return "ᴏ";
+            case 'p':
+                return "ᴘ";
+            case 'q':
+                return "ǫ";
+            case 'r':
+                return "ʀ";
+            case 's':
+                return "ꜱ";
+            case 't':
+                return "ᴛ";
+            case 'u':
+                return "ᴜ";
+            case 'v':
+                return "ᴠ";
+            case 'w':
+                return "ᴡ";
+            case 'x':
+                return "x";
+            case 'y':
+                return "ʏ";
+            case 'z':
+                return "ᴢ";
+            default:
+                return String.valueOf(value);
+        }
     }
 
     public Component getComponent(String path, String defaultValue) {
@@ -69,7 +163,7 @@ public class ConfigManager {
 
     public String getMessage(String key) {
         String msg = config.getString("messages." + key);
-        if (msg == null) return getPrefix() + "§cMissing message: " + key;
+        if (msg == null) return formatPlain(getPrefix() + "Missing message: " + key);
         msg = msg.replace("%prefix%", getPrefix());
         msg = msg.replace("%csprefix%", getClanSystemPrefix());
         return translateColors(msg);
@@ -111,7 +205,7 @@ public class ConfigManager {
     }
 
     public String getClanChatFormat() {
-        return config.getString("messages.clan-chat-format", "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &f%player%&7: &f%message%");
+        return translateColors(config.getString("messages.clan-chat-format", "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &f%player%&7: &f%message%"));
     }
 
     public String getHelpBookTitle() {

@@ -2,7 +2,6 @@ package org.perq.clan;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -78,7 +77,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("This command can only be used by players.");
+            sender.sendMessage(plugin.getConfigManager().formatPlain("This command can only be used by players."));
             return true;
         }
 
@@ -99,11 +98,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             String chatMessage = String.join(" ", args);
-            String format = cm.translateColors(
-                    cm.getClanChatFormat()
-                            .replace("%player%", player.getName())
-                            .replace("%message%", chatMessage)
-            );
+            String format = cm.getClanChatFormat()
+                    .replace("%player%", cm.formatPlain(player.getName()))
+                    .replace("%message%", cm.formatPlain(chatMessage));
             for (UUID mem : chatClan.getMembers()) {
                 Player p = Bukkit.getPlayer(mem);
                 if (p != null) p.sendMessage(format);
@@ -122,7 +119,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
             case "create": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan create <tag>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan create <tag>"));
                     return true;
                 }
                 String tag = args[1];
@@ -152,7 +149,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("clan-created")
                             .replace("%tag%", cm.translateColors(tag)));
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
@@ -200,13 +197,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             .replace("%tag%", cm.translateColors(disbandClan.getTag())));
                     player.sendMessage(cm.getMessage("delete-confirm"));
                     player.sendMessage(
-                            Component.text("[Accept]")
-                                    .color(TextColor.color(0x55FF55))
+                            Component.text(cm.formatPlain("[Accept]"))
                                     .clickEvent(ClickEvent.runCommand(confirmCmd))
                     );
                     player.sendMessage(
-                            Component.text("[Deny]")
-                                    .color(TextColor.color(0xFF5555))
+                            Component.text(cm.formatPlain("[Deny]"))
                                     .clickEvent(ClickEvent.runCommand(denyCmd))
                     );
                 }
@@ -239,13 +234,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                                 .replace("%tag%", cm.translateColors(leaveClan.getTag())));
                         player.sendMessage(cm.getMessage("delete-confirm"));
                         player.sendMessage(
-                                Component.text("[Accept]")
-                                        .color(TextColor.color(0x55FF55))
+                                Component.text(cm.formatPlain("[Accept]"))
                                         .clickEvent(ClickEvent.runCommand(confirmCmd))
                         );
                         player.sendMessage(
-                                Component.text("[Deny]")
-                                        .color(TextColor.color(0xFF5555))
+                                Component.text(cm.formatPlain("[Deny]"))
                                         .clickEvent(ClickEvent.runCommand(denyCmd))
                         );
                         return true;
@@ -296,7 +289,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
             case "kick": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan kick <player>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan kick <player>"));
                     return true;
                 }
                 ClanData kickClan = getPlayerClan(playerUUID);
@@ -315,7 +308,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (kickTarget.getUniqueId().equals(playerUUID)) {
-                    player.sendMessage(cm.getPrefix() + "You cannot kick yourself.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "You cannot kick yourself."));
                     return true;
                 }
                 if (kickClan.getLeader().equals(kickTarget.getUniqueId())) {
@@ -323,7 +316,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!kickClan.getMembers().contains(kickTarget.getUniqueId())) {
-                    player.sendMessage(cm.getPrefix() + "Player is not in the clan.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player is not in the clan."));
                     return true;
                 }
                 kickClan.getMembers().remove(kickTarget.getUniqueId());
@@ -342,14 +335,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         plugin.getFileManager().saveClan(kickClan);
                     } catch (Exception ignored) { /* continue */ }
                 }
-                player.sendMessage(cm.getMessage("kicked").replace("%player%", kickTarget.getName()));
+                player.sendMessage(cm.getMessage("kicked").replace("%player%", cm.formatPlain(kickTarget.getName())));
                 kickTarget.sendMessage(cm.getMessage("kicked"));
                 break;
             }
 
             case "promote": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan promote <player>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan promote <player>"));
                     return true;
                 }
                 ClanData promoteClan = getPlayerClan(playerUUID);
@@ -367,12 +360,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!promoteClan.getMembers().contains(promoteTarget.getUniqueId())) {
-                    player.sendMessage(cm.getPrefix() + "Player is not in the clan.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player is not in the clan."));
                     return true;
                 }
                 PlayerData promoteData = plugin.getFileManager().loadPlayer(promoteTarget.getUniqueId());
                 if (promoteData == null) {
-                    player.sendMessage(cm.getPrefix() + "Player data not found.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player data not found."));
                     return true;
                 }
                 if ("MEMBER".equals(promoteData.getRole())) {
@@ -384,9 +377,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     try {
                         plugin.getFileManager().savePlayer(promoteTarget.getUniqueId(), promoteData);
                         plugin.getFileManager().saveClan(promoteClan);
-                        player.sendMessage(cm.getMessage("promoted").replace("%player%", promoteTarget.getName()));
+                        player.sendMessage(cm.getMessage("promoted").replace("%player%", cm.formatPlain(promoteTarget.getName())));
                     } catch (Exception e) {
-                        player.sendMessage(cm.getPrefix() + "Error saving.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                     }
                 } else {
                     // Already MOD: use /clan leader <player> for leadership transfer
@@ -403,7 +396,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 PlayerData actorData = plugin.getFileManager().loadPlayer(playerUUID);
                 if (actorData == null) {
-                    player.sendMessage(cm.getPrefix() + "Player data not found.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player data not found."));
                     return true;
                 }
                 if (args.length < 2) {
@@ -414,13 +407,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         try {
                             plugin.getFileManager().savePlayer(playerUUID, actorData);
                             plugin.getFileManager().saveClan(demoteClan);
-                            player.sendMessage(cm.getMessage("demoted").replace("%player%", player.getName()));
+                            player.sendMessage(cm.getMessage("demoted").replace("%player%", cm.formatPlain(player.getName())));
                         } catch (Exception e) {
-                            player.sendMessage(cm.getPrefix() + "Error saving.");
+                            player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                         }
                         return true;
                     }
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan demote <player>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan demote <player>"));
                     return true;
                 }
                 if (!demoteClan.getLeader().equals(playerUUID)) {
@@ -437,12 +430,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!demoteClan.getMembers().contains(demoteTarget.getUniqueId())) {
-                    player.sendMessage(cm.getPrefix() + "Player is not in the clan.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player is not in the clan."));
                     return true;
                 }
                 PlayerData demoteData = plugin.getFileManager().loadPlayer(demoteTarget.getUniqueId());
                 if (demoteData == null) {
-                    player.sendMessage(cm.getPrefix() + "Player data not found.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player data not found."));
                     return true;
                 }
                 if ("MOD".equals(demoteData.getRole())) {
@@ -452,19 +445,19 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     try {
                         plugin.getFileManager().savePlayer(demoteTarget.getUniqueId(), demoteData);
                         plugin.getFileManager().saveClan(demoteClan);
-                        player.sendMessage(cm.getMessage("demoted").replace("%player%", demoteTarget.getName()));
+                        player.sendMessage(cm.getMessage("demoted").replace("%player%", cm.formatPlain(demoteTarget.getName())));
                     } catch (Exception e) {
-                        player.sendMessage(cm.getPrefix() + "Error saving.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                     }
                 } else {
-                    player.sendMessage(cm.getPrefix() + "Player cannot be demoted.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player cannot be demoted."));
                 }
                 break;
             }
 
             case "leader": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan leader <player>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan leader <player>"));
                     return true;
                 }
                 ClanData leaderClan = getPlayerClan(playerUUID);
@@ -489,7 +482,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                     ClanData freshClan = getPlayerClan(playerUUID);
                     if (freshClan == null || !freshClan.getMembers().contains(newLeaderPlayer.getUniqueId())) {
-                        player.sendMessage(cm.getPrefix() + "Player is not in the clan.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player is not in the clan."));
                         return true;
                     }
                     freshClan.getModerators().remove(newLeaderPlayer.getUniqueId());
@@ -506,11 +499,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         if (oldLeaderData != null) plugin.getFileManager().savePlayer(playerUUID, oldLeaderData);
                         if (newLeaderData != null) plugin.getFileManager().savePlayer(newLeaderPlayer.getUniqueId(), newLeaderData);
                         plugin.getFileManager().saveClan(freshClan);
-                        player.sendMessage(cm.getPrefix() + "You are now MOD. " + newLeaderPlayer.getName() + " is the new leader.");
-                        newLeaderPlayer.sendMessage(cm.getPrefix() + "You are now the new leader of clan ["
-                                + cm.translateColors(freshClan.getTag()) + "]!");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "You are now MOD. " + newLeaderPlayer.getName() + " is the new leader."));
+                        newLeaderPlayer.sendMessage(cm.formatPlain(cm.getPrefix() + "You are now the new leader of clan ["
+                                + cm.translateColors(freshClan.getTag()) + "]!"));
                     } catch (Exception e) {
-                        player.sendMessage(cm.getPrefix() + "Error saving.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                     }
                     return true;
                 }
@@ -525,23 +518,21 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!leaderClan.getMembers().contains(transferTarget.getUniqueId())) {
-                    player.sendMessage(cm.getPrefix() + "Player is not in the clan.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player is not in the clan."));
                     return true;
                 }
                 if (transferTarget.getUniqueId().equals(playerUUID)) {
-                    player.sendMessage(cm.getPrefix() + "You are already the leader.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "You are already the leader."));
                     return true;
                 }
                 pendingLeaderTransfers.put(playerUUID, transferTarget.getName());
-                player.sendMessage(cm.getPrefix() + "Do you want to transfer leadership to " + transferTarget.getName() + "?");
+                player.sendMessage(cm.formatPlain(cm.getPrefix() + "Do you want to transfer leadership to " + transferTarget.getName() + "?"));
                 player.sendMessage(
-                        Component.text("[Accept]")
-                                .color(TextColor.color(0x55FF55))
+                        Component.text(cm.formatPlain("[Accept]"))
                                 .clickEvent(ClickEvent.runCommand("/clan leader confirm"))
                 );
                 player.sendMessage(
-                        Component.text("[Deny]")
-                                .color(TextColor.color(0xFF5555))
+                        Component.text(cm.formatPlain("[Deny]"))
                                 .clickEvent(ClickEvent.runCommand("/clan leader deny"))
                 );
                 break;
@@ -549,7 +540,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
             case "invite": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan invite <player>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan invite <player>"));
                     return true;
                 }
                 ClanData inviteClan = getPlayerClan(playerUUID);
@@ -565,7 +556,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 Long lastInvite = inviteCooldowns.get(playerUUID);
                 if (lastInvite != null && System.currentTimeMillis() - lastInvite < INVITE_COOLDOWN_MS) {
                     long remSec = (INVITE_COOLDOWN_MS - (System.currentTimeMillis() - lastInvite)) / 1000 + 1;
-                    player.sendMessage(cm.getPrefix() + "Please wait " + remSec + " more seconds.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Please wait " + remSec + " more seconds."));
                     return true;
                 }
                 int inviteMaxMembers = getMaxMembers(inviteClan, cm);
@@ -581,7 +572,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 PlayerData invTargetData = plugin.getFileManager().loadPlayer(invTarget.getUniqueId());
                 if (invTargetData == null) invTargetData = new PlayerData(invTarget.getName());
                 if (invTargetData.getClanTag() != null) {
-                    player.sendMessage(cm.getMessage("target-in-clan-inviter").replace("%player%", invTarget.getName()));
+                    player.sendMessage(cm.getMessage("target-in-clan-inviter").replace("%player%", cm.formatPlain(invTarget.getName())));
                     invTarget.sendMessage(cm.getMessage("target-in-clan-notify"));
                     return true;
                 }
@@ -591,37 +582,35 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 List<InviteData> existingInvites = plugin.getFileManager().loadAllInvites(invTarget.getUniqueId());
                 if (!existingInvites.isEmpty()) {
-                    player.sendMessage(cm.getPrefix() + invTarget.getName() + " already has an open invitation.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + invTarget.getName() + " already has an open invitation."));
                     return true;
                 }
                 InviteData invite = new InviteData(inviteClan.getTag());
                 try {
                     plugin.getFileManager().saveInvite(invTarget.getUniqueId(), invite);
                     inviteCooldowns.put(playerUUID, System.currentTimeMillis());
-                    player.sendMessage(cm.getMessage("invitation-sent").replace("%player%", invTarget.getName()));
+                    player.sendMessage(cm.getMessage("invitation-sent").replace("%player%", cm.formatPlain(invTarget.getName())));
                     invTarget.sendMessage(
                             cm.getMessage("invitation-received")
-                                    .replace("%inviter%", player.getName())
+                                    .replace("%inviter%", cm.formatPlain(player.getName()))
                                     .replace("%tag%", cm.translateColors(inviteClan.getTag()))
                     );
                     invTarget.sendMessage(
-                            Component.text("[Accept]")
-                                    .color(TextColor.color(0x55FF55))
+                            Component.text(cm.formatPlain("[Accept]"))
                                     .clickEvent(ClickEvent.runCommand("/clan join " + inviteClan.getTag()))
-                                    .append(Component.text(" / ").color(TextColor.color(0xAAAAAA)))
-                                    .append(Component.text("[Deny]")
-                                            .color(TextColor.color(0xFF5555))
+                                    .append(Component.text(" / "))
+                                    .append(Component.text(cm.formatPlain("[Deny]"))
                                             .clickEvent(ClickEvent.runCommand("/clan deny " + inviteClan.getTag())))
                     );
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
 
             case "accept": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan accept <tag>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan accept <tag>"));
                     return true;
                 }
                 String acceptTag = args[1];
@@ -631,7 +620,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     if (acceptTag.equals(i.getFromClan())) { acceptInv = i; break; }
                 }
                 if (acceptInv == null) {
-                    player.sendMessage(cm.getPrefix() + "No invitation found.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "No invitation found."));
                     return true;
                 }
                 ClanData acceptClan = plugin.getFileManager().loadClan(acceptTag);
@@ -656,14 +645,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("invitation-accepted")
                             .replace("%tag%", cm.translateColors(acceptTag)));
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
 
             case "deny": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan deny <tag>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan deny <tag>"));
                     return true;
                 }
                 String denyTag = args[1];
@@ -673,7 +662,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     if (denyTag.equals(i.getFromClan())) { foundDeny = true; break; }
                 }
                 if (!foundDeny) {
-                    player.sendMessage(cm.getPrefix() + "No invitation found.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "No invitation found."));
                     return true;
                 }
                 try {
@@ -685,7 +674,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
             case "join": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan join <tag>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan join <tag>"));
                     return true;
                 }
                 String joinTag = args[1];
@@ -728,14 +717,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("invitation-accepted")
                             .replace("%tag%", cm.translateColors(joinTag)));
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
 
             case "request": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan request <tag>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan request <tag>"));
                     return true;
                 }
                 String reqTag = args[1];
@@ -778,7 +767,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                                 .replace("%tag%", cm.translateColors(pendingReqTag)));
                         notifyLeaderOfRequest(targetReqClan, player, cm);
                     } catch (Exception e) {
-                        player.sendMessage(cm.getPrefix() + "Error saving.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                     }
                     return true;
                 }
@@ -813,7 +802,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             .replace("%tag%", cm.translateColors(reqTag)));
                     notifyLeaderOfRequest(reqClan, player, cm);
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
@@ -833,14 +822,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("requests-empty"));
                     return true;
                 }
-                player.sendMessage(cm.getPrefix() + "Pending join requests:");
+                player.sendMessage(cm.formatPlain(cm.getPrefix() + "Pending join requests:"));
                 for (UUID reqUUID : new ArrayList<>(pendingReqs)) {
                     String reqName = Bukkit.getOfflinePlayer(reqUUID).getName();
                     if (reqName == null) reqName = reqUUID.toString().substring(0, 8);
                     player.sendMessage(
-                            Component.text(cm.getPrefix() + reqName + " ")
-                                    .append(Component.text("[Accept]")
-                                            .color(TextColor.color(0x55FF55))
+                            Component.text(cm.formatPlain(cm.getPrefix() + reqName + " "))
+                                    .append(Component.text(cm.formatPlain("[Accept]"))
                                             .clickEvent(ClickEvent.runCommand("/clan accept-request " + reqName)))
                     );
                 }
@@ -849,7 +837,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
             case "accept-request": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan accept-request <player>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan accept-request <player>"));
                     return true;
                 }
                 ClanData arClan = getPlayerClan(playerUUID);
@@ -876,11 +864,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                 }
                 if (arUUID == null) {
-                    player.sendMessage(cm.getPrefix() + "No request from that player found.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "No request from that player found."));
                     return true;
                 }
                 if (!arClan.getPendingRequests().contains(arUUID)) {
-                    player.sendMessage(cm.getPrefix() + "No request from that player found.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "No request from that player found."));
                     return true;
                 }
                 int requestMaxMembers = getMaxMembers(arClan, cm);
@@ -900,21 +888,21 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 try {
                     plugin.getFileManager().saveClan(arClan);
                     plugin.getFileManager().savePlayer(arUUID, arPd);
-                    player.sendMessage(cm.getPrefix() + arPlayerName + " has been added to the clan.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + arPlayerName + " has been added to the clan."));
                     Player arOnline = Bukkit.getPlayer(arUUID);
                     if (arOnline != null) {
                         arOnline.sendMessage(cm.getMessage("invitation-accepted")
                                 .replace("%tag%", cm.translateColors(arClan.getTag())));
                     }
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
 
             case "deny-request": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan deny-request <player>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan deny-request <player>"));
                     return true;
                 }
                 ClanData drClan = getPlayerClan(playerUUID);
@@ -940,26 +928,26 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                 }
                 if (drUUID == null || !drClan.getPendingRequests().contains(drUUID)) {
-                    player.sendMessage(cm.getPrefix() + "No request from that player found.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "No request from that player found."));
                     return true;
                 }
                 drClan.getPendingRequests().remove(drUUID);
                 try {
                     plugin.getFileManager().saveClan(drClan);
-                    player.sendMessage(cm.getPrefix() + "Request denied.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Request denied."));
                     Player drOnline = Bukkit.getPlayer(drUUID);
                     if (drOnline != null) {
-                        drOnline.sendMessage(cm.getPrefix() + "Your join request was denied.");
+                        drOnline.sendMessage(cm.formatPlain(cm.getPrefix() + "Your join request was denied."));
                     }
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
 
             case "rename": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan rename <newTag>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan rename <newTag>"));
                     return true;
                 }
                 ClanData renameClan = getPlayerClan(playerUUID);
@@ -1010,7 +998,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("renamed")
                             .replace("%tag%", cm.translateColors(newTag)));
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
@@ -1023,28 +1011,28 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 String prefix = cm.getPrefix();
                 player.sendMessage(cm.getMessage("clan-info-header"));
-                player.sendMessage(prefix + "Tag: " + cm.translateColors(infoClan.getTag()));
-                player.sendMessage(prefix + "Points: " + infoClan.getPoints());
-                player.sendMessage(prefix + "Rank: " + infoClan.getRank());
-                player.sendMessage(prefix + "Members: " + infoClan.getMembers().size() + "/" + getMaxMembers(infoClan, cm));
-                player.sendMessage(prefix + "Created: " + infoClan.getCreated());
+                player.sendMessage(cm.formatPlain(prefix + "Tag: " + cm.translateColors(infoClan.getTag())));
+                player.sendMessage(cm.formatPlain(prefix + "Points: " + infoClan.getPoints()));
+                player.sendMessage(cm.formatPlain(prefix + "Rank: " + infoClan.getRank()));
+                player.sendMessage(cm.formatPlain(prefix + "Members: " + infoClan.getMembers().size() + "/" + getMaxMembers(infoClan, cm)));
+                player.sendMessage(cm.formatPlain(prefix + "Created: " + infoClan.getCreated()));
                 player.sendMessage(cm.getMessage("clan-info-playtime")
                         .replace("%hours%", String.format("%.1f", infoClan.getOnlineTime())));
-                player.sendMessage(prefix + "Leader: " + Bukkit.getOfflinePlayer(infoClan.getLeader()).getName());
+                player.sendMessage(cm.formatPlain(prefix + "Leader: " + Bukkit.getOfflinePlayer(infoClan.getLeader()).getName()));
                 String modsStr = infoClan.getModerators().isEmpty() ? "None"
                         : infoClan.getModerators().stream()
                         .map(u -> Bukkit.getOfflinePlayer(u).getName())
                         .filter(Objects::nonNull)
                         .reduce((a, b) -> a + ", " + b).orElse("None");
-                player.sendMessage(prefix + "Moderators: " + modsStr);
-                player.sendMessage(prefix + "Member list:");
+                player.sendMessage(cm.formatPlain(prefix + "Moderators: " + modsStr));
+                player.sendMessage(cm.formatPlain(prefix + "Member list:"));
                 for (UUID mem : infoClan.getMembers()) {
                     String memName = Bukkit.getOfflinePlayer(mem).getName();
                     PlayerData md = plugin.getFileManager().loadPlayer(mem);
                     String role = md != null ? md.getRole() : "MEMBER";
                     String online = Bukkit.getPlayer(mem) != null ? "online" : "offline";
                     double time = md != null ? md.getOnlineTime() : 0.0;
-                    player.sendMessage(prefix + "  - " + memName + " (" + role + ") " + online + " (" + String.format("%.1f", time) + "h)");
+                    player.sendMessage(cm.formatPlain(prefix + "  - " + memName + " (" + role + ") " + online + " (" + String.format("%.1f", time) + "h)"));
                 }
                 break;
             }
@@ -1114,16 +1102,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 List<Map.Entry<String, ClanData>> sorted = new ArrayList<>(allClans.entrySet());
                 sorted.sort((a, b) -> Integer.compare(b.getValue().getPoints(), a.getValue().getPoints()));
-                player.sendMessage(cm.getPrefix() + "ᴄʟᴀɴ ʀᴀɴᴋɪɴɢ:");
+                player.sendMessage(cm.formatPlain(cm.getPrefix() + "ᴄʟᴀɴ ʀᴀɴᴋɪɴɢ:"));
                 int rankNum = 1;
                 for (Map.Entry<String, ClanData> entry : sorted) {
                     ClanData cd = entry.getValue();
                     String leaderName = Bukkit.getOfflinePlayer(cd.getLeader()).getName();
                     if (leaderName == null) leaderName = "?";
-                    player.sendMessage("#" + rankNum + ". [" + cm.translateColors(cd.getTag()) + "] Leader: " + leaderName
+                    player.sendMessage(cm.formatPlain("#" + rankNum + ". [" + cm.translateColors(cd.getTag()) + "] Leader: " + leaderName
                             + " | Members: " + cd.getMembers().size()
                             + " | Points: " + cd.getPoints()
-                            + " [" + cd.getRank() + "]");
+                            + " [" + cd.getRank() + "]"));
                     rankNum++;
                     if (rankNum > 10) break;
                 }
@@ -1150,7 +1138,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     if (args.length < 3) {
-                        player.sendMessage(cm.getPrefix() + "Usage: /clan chest invite <player>");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan chest invite <player>"));
                         return true;
                     }
                     Player chestInviteTarget = Bukkit.getPlayer(args[2]);
@@ -1159,16 +1147,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     if (!chestClan.getMembers().contains(chestInviteTarget.getUniqueId())) {
-                        player.sendMessage(cm.getPrefix() + "Player is not in your clan.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Player is not in your clan."));
                         return true;
                     }
                     chestClan.setChestPermission(chestInviteTarget.getUniqueId(), ClanChestPermission.EXECUTE);
                     try {
                         plugin.getFileManager().saveClan(chestClan);
-                        player.sendMessage(cm.getPrefix() + chestInviteTarget.getName() + " now has access to the clan chest.");
-                        chestInviteTarget.sendMessage(cm.getPrefix() + "You have been granted access to the clan chest.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + chestInviteTarget.getName() + " now has access to the clan chest."));
+                        chestInviteTarget.sendMessage(cm.formatPlain(cm.getPrefix() + "You have been granted access to the clan chest."));
                     } catch (Exception e) {
-                        player.sendMessage(cm.getPrefix() + "Error saving.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                     }
                     return true;
                 }
@@ -1185,7 +1173,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         plugin.getFileManager().saveClan(chestClan);
                         player.sendMessage(cm.getMessage("chest-set"));
                     } catch (Exception e) {
-                        player.sendMessage(cm.getPrefix() + "Error saving.");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                     }
                 }
                 // All clan members can open the chest (VIEW = see only, EXECUTE = interact)
@@ -1336,7 +1324,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     plugin.getFileManager().saveClan(ssClan);
                     player.sendMessage(cm.getMessage("spawn-set"));
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
@@ -1365,7 +1353,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     plugin.getFileManager().saveClan(dsClan);
                     player.sendMessage(cm.getMessage("spawn-deleted"));
                 } catch (Exception e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                 }
                 break;
             }
@@ -1378,13 +1366,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 }
                 List<String> logEntries = logClan.getLogs();
                 if (logEntries.isEmpty()) {
-                    player.sendMessage(cm.getPrefix() + "No log entries available.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "No log entries available."));
                     return true;
                 }
                 ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
                 BookMeta bookMeta = (BookMeta) book.getItemMeta();
                 if (bookMeta == null) break;
-                bookMeta.setTitle("Clan Logs");
+                bookMeta.setTitle(cm.formatPlain("Clan Logs"));
                 bookMeta.setAuthor(cm.translateColors(logClan.getTag()));
                 List<String> allLogs = new ArrayList<>(logEntries);
                 Collections.reverse(allLogs);
@@ -1396,7 +1384,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 while (lineIdx < allLogs.size() && pageCount < maxPages) {
                     StringBuilder page = new StringBuilder();
                     for (int l = 0; l < linesPerPage && lineIdx < allLogs.size(); l++, lineIdx++) {
-                        page.append(allLogs.get(lineIdx)).append("\n");
+                        page.append(cm.formatPlain(allLogs.get(lineIdx))).append("\n");
                     }
                     pages.add(Component.text(page.toString()));
                     pageCount++;
@@ -1437,12 +1425,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (args.length < 2) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan force kick <player> | /clan force delete <tag>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan force kick <player> | /clan force delete <tag>"));
                     return true;
                 }
                 if (args[1].equalsIgnoreCase("kick") || args[1].equalsIgnoreCase("leave")) {
                     if (args.length < 3) {
-                        player.sendMessage(cm.getPrefix() + "Usage: /clan force kick <player>");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan force kick <player>"));
                         return true;
                     }
                     String fkArg = args[2];
@@ -1477,7 +1465,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                                 plugin.getFileManager().saveClan(ftClan);
                             } catch (Exception ignored) { /* continue */ }
                         }
-                        player.sendMessage(cm.getMessage("force-leave-success").replace("%player%", forceTarget.getName()));
+                        player.sendMessage(cm.getMessage("force-leave-success").replace("%player%", cm.formatPlain(forceTarget.getName())));
                         forceTarget.sendMessage(cm.getMessage("left-clan"));
                     } else if (fkArg.equalsIgnoreCase("deny")) {
                         pendingForceKicks.remove(playerUUID);
@@ -1495,19 +1483,17 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         }
                         pendingForceKicks.put(playerUUID, fkArg);
                         player.sendMessage(
-                                Component.text(cm.getMessage("force-kick-confirm").replace("%player%", forceTarget.getName()) + " ")
-                                        .append(Component.text("[Accept]")
-                                                .color(TextColor.color(0x55FF55))
+                                Component.text(cm.getMessage("force-kick-confirm").replace("%player%", cm.formatPlain(forceTarget.getName())) + " ")
+                                        .append(Component.text(cm.formatPlain("[Accept]"))
                                                 .clickEvent(ClickEvent.runCommand("/clan force kick confirm")))
-                                        .append(Component.text(" / ").color(TextColor.color(0xAAAAAA)))
-                                        .append(Component.text("[Deny]")
-                                                .color(TextColor.color(0xFF5555))
+                                        .append(Component.text(" / "))
+                                        .append(Component.text(cm.formatPlain("[Deny]"))
                                                 .clickEvent(ClickEvent.runCommand("/clan force kick deny")))
                         );
                     }
                 } else if (args[1].equalsIgnoreCase("delete")) {
                     if (args.length < 3) {
-                        player.sendMessage(cm.getPrefix() + "Usage: /clan force delete <tag>");
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan force delete <tag>"));
                         return true;
                     }
                     String fdArg = args[2];
@@ -1549,17 +1535,15 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         player.sendMessage(
                                 Component.text(cm.getMessage("force-delete-confirm")
                                         .replace("%tag%", cm.translateColors(fdArg)) + " ")
-                                        .append(Component.text("[Accept]")
-                                                .color(TextColor.color(0x55FF55))
+                                        .append(Component.text(cm.formatPlain("[Accept]"))
                                                 .clickEvent(ClickEvent.runCommand("/clan force delete confirm")))
-                                        .append(Component.text(" / ").color(TextColor.color(0xAAAAAA)))
-                                        .append(Component.text("[Deny]")
-                                                .color(TextColor.color(0xFF5555))
+                                        .append(Component.text(" / "))
+                                        .append(Component.text(cm.formatPlain("[Deny]"))
                                                 .clickEvent(ClickEvent.runCommand("/clan force delete deny")))
                         );
                     }
                 } else {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan force kick <player> | /clan force delete <tag>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan force kick <player> | /clan force delete <tag>"));
                 }
                 break;
             }
@@ -1582,12 +1566,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (args.length < 4) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan points <add|remove|set> <player> <amount>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan points <add|remove|set> <player> <amount>"));
                     return true;
                 }
                 String pointsSub = args[1].toLowerCase();
                 if (!pointsSub.equals("add") && !pointsSub.equals("remove") && !pointsSub.equals("set")) {
-                    player.sendMessage(cm.getPrefix() + "Usage: /clan points <add|remove|set> <player> <amount>");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan points <add|remove|set> <player> <amount>"));
                     return true;
                 }
                 String targetName = args[2];
@@ -1595,11 +1579,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 try {
                     amount = Integer.parseInt(args[3]);
                 } catch (NumberFormatException e) {
-                    player.sendMessage(cm.getPrefix() + "Amount must be a valid integer.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Amount must be a valid integer."));
                     return true;
                 }
                 if (amount < 0 || (amount == 0 && !pointsSub.equals("set"))) {
-                    player.sendMessage(cm.getPrefix() + "Amount must be a positive integer.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Amount must be a positive integer."));
                     return true;
                 }
                 // Resolve target player (online first, then cached offline)
@@ -1657,7 +1641,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 try {
                     plugin.getFileManager().saveClan(targetClan);
                 } catch (IOException e) {
-                    player.sendMessage(cm.getPrefix() + "Error saving clan data.");
+                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving clan data."));
                     return true;
                 }
                 player.sendMessage(successMsg);
@@ -1668,7 +1652,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             default: {
-                player.sendMessage(cm.getPrefix() + "Unknown subcommand. Use /clan for help.");
+                player.sendMessage(cm.formatPlain(cm.getPrefix() + "Unknown subcommand. Use /clan for help."));
                 break;
             }
         }
@@ -1691,9 +1675,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         Player leaderOnline = Bukkit.getPlayer(clan.getLeader());
         if (leaderOnline != null) {
             leaderOnline.sendMessage(
-                    Component.text(cm.getMessage("request-received").replace("%player%", requester.getName()) + " ")
-                            .append(Component.text("[View requests]")
-                                    .color(TextColor.color(0x55FFFF))
+                    Component.text(cm.getMessage("request-received").replace("%player%", cm.formatPlain(requester.getName())) + " ")
+                            .append(Component.text(cm.formatPlain("[View requests]"))
                                     .clickEvent(ClickEvent.runCommand("/clan requests")))
             );
         }
@@ -1748,14 +1731,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
         BookMeta bookMeta = (BookMeta) book.getItemMeta();
         if (bookMeta == null) {
-            player.sendMessage(cm.getPrefix() + "Unable to open the help book.");
+            player.sendMessage(cm.formatPlain(cm.getPrefix() + "Unable to open the help book."));
             return;
         }
         bookMeta.setTitle(cm.getHelpBookTitle());
         bookMeta.setAuthor(cm.getHelpBookAuthor());
         List<String> rawPages = cm.getHelpBookPages();
         if (rawPages.isEmpty()) {
-            player.sendMessage(cm.getPrefix() + "Help book is empty.");
+            player.sendMessage(cm.formatPlain(cm.getPrefix() + "Help book is empty."));
             return;
         }
         List<Component> pages = new ArrayList<>();

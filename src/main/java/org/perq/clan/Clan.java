@@ -80,7 +80,7 @@ public final class Clan extends JavaPlugin {
         try {
             fileManager.savePlayer(player.getUniqueId(), data);
         } catch (IOException e) {
-            player.sendMessage(configManager.getPrefix() + "Error saving invitation settings.");
+            player.sendMessage(configManager.formatPlain(configManager.getPrefix() + "Error saving invitation settings."));
             getLogger().log(Level.WARNING, "Failed to save invitation settings for " + player.getName(), e);
         }
         return !nowEnabled;

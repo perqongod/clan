@@ -16,8 +16,9 @@ public class ClanChatCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        ConfigManager configManager = plugin.getConfigManager();
         if (!(sender instanceof Player)) {
-            sender.sendMessage("This command can only be used by players.");
+            sender.sendMessage(configManager.formatPlain("This command can only be used by players."));
             return true;
         }
 
@@ -29,12 +30,14 @@ public class ClanChatCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "Usage: /c <message>");
+            player.sendMessage(configManager.formatPlain(configManager.getPrefix() + "Usage: /c <message>"));
             return true;
         }
 
         String message = String.join(" ", args);
-        String format = plugin.getConfigManager().getClanChatFormat().replace("%player%", player.getName()).replace("%message%", message);
+        String format = configManager.getClanChatFormat()
+                .replace("%player%", configManager.formatPlain(player.getName()))
+                .replace("%message%", configManager.formatPlain(message));
 
         for (UUID mem : clan.getMembers()) {
             Player p = plugin.getServer().getPlayer(mem);

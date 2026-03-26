@@ -426,7 +426,7 @@ public class ClanSettingsListener implements Listener {
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "Error saving.");
+            player.sendMessage(plugin.getConfigManager().formatPlain(plugin.getConfigManager().getPrefix() + "Error saving."));
         }
     }
 
@@ -437,7 +437,7 @@ public class ClanSettingsListener implements Listener {
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "Error saving.");
+            player.sendMessage(plugin.getConfigManager().formatPlain(plugin.getConfigManager().getPrefix() + "Error saving."));
         }
     }
 
@@ -448,7 +448,7 @@ public class ClanSettingsListener implements Listener {
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "Error saving.");
+            player.sendMessage(plugin.getConfigManager().formatPlain(plugin.getConfigManager().getPrefix() + "Error saving."));
         }
     }
 
@@ -459,7 +459,7 @@ public class ClanSettingsListener implements Listener {
         try {
             plugin.getFileManager().saveClan(clan);
         } catch (IOException e) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "Error saving.");
+            player.sendMessage(plugin.getConfigManager().formatPlain(plugin.getConfigManager().getPrefix() + "Error saving."));
         }
     }
 
