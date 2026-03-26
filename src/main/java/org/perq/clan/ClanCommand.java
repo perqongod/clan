@@ -792,6 +792,20 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     if (reqTag.equalsIgnoreCase(reqPd.getClanTag())) {
                         player.sendMessage(cm.getMessage("already-in-clan"));
                     } else {
+                        ClanData currentClan = plugin.getFileManager().loadClan(reqPd.getClanTag());
+                        if (currentClan != null && currentClan.getLeader().equals(playerUUID)) {
+                            pendingLeaderRequests.put(playerUUID, reqTag);
+                            player.sendMessage(cm.getMessage("leader-request-confirm"));
+                            player.sendMessage(
+                                    Component.text(cm.formatPlain("[Accept]"))
+                                            .clickEvent(ClickEvent.runCommand("/clan request confirm"))
+                            );
+                            player.sendMessage(
+                                    Component.text(cm.formatPlain("[Deny]"))
+                                            .clickEvent(ClickEvent.runCommand("/clan request deny"))
+                            );
+                            return true;
+                        }
                         player.sendMessage(cm.getMessage("request-betrayal"));
                     }
                     return true;
