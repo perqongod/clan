@@ -86,6 +86,11 @@ public class ClanQuestListener implements Listener {
             }
             int newPoints = Math.max(minPoints, Math.min(maxPoints, currentPoints + clanPointsReward));
             int awardedPoints = newPoints - currentPoints;
+            if (awardedPoints <= 0) {
+                player.sendMessage(cm.getMessage("quest-redeem-max")
+                        .replace("%max%", String.valueOf(maxPoints)));
+                return;
+            }
             int previousPoints = clan.getPoints();
             int previousRedeemed = clan.getQuestPointsRedeemed();
             String previousRank = clan.getRank();
