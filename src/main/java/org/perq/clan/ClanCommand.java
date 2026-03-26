@@ -214,6 +214,54 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
+                boolean isLeader = leaveClan.getLeader().equals(playerUUID);
+                boolean isSoloLeader = isLeader && leaveClan.getMembers().size() <= 1;
+                if (isSoloLeader) {
+                    String confirmCmd = "/clan leave confirm";
+                    String denyCmd = "/clan leave deny";
+                    if (args.length >= 2 && args[1].equalsIgnoreCase("confirm")) {
+                        Long pending = pendingAdminLeaves.get(playerUUID);
+                        if (pending == null || System.currentTimeMillis() - pending > DELETE_CONFIRM_TIMEOUT_MS) {
+                            player.sendMessage(cm.getMessage("clan-deleted-cancelled"));
+                            return true;
+                        }
+                        pendingAdminLeaves.remove(playerUUID);
+                        String dissolvedTag = leaveClan.getTag();
+                        for (UUID mem : new ArrayList<>(leaveClan.getMembers())) {
+                            PlayerData pd = plugin.getFileManager().loadPlayer(mem);
+                            if (pd != null) {
+                                pd.setClanTag(null);
+                                pd.setRole("MEMBER");
+                                try { plugin.getFileManager().savePlayer(mem, pd); } catch (Exception ignored) { /* continue */ }
+                            }
+                        }
+                        plugin.getFileManager().deleteClan(dissolvedTag);
+                        String broadcastMsg = cm.getMessage("clan-dissolved")
+                                .replace("%tag%", cm.translateColors(dissolvedTag));
+                        for (Player p : Bukkit.getOnlinePlayers()) {
+                            p.sendMessage(broadcastMsg);
+                        }
+                        return true;
+                    } else if (args.length >= 2 && args[1].equalsIgnoreCase("deny")) {
+                        pendingAdminLeaves.remove(playerUUID);
+                        player.sendMessage(cm.getMessage("delete-denied"));
+                        return true;
+                    } else {
+                        pendingAdminLeaves.put(playerUUID, System.currentTimeMillis());
+                        player.sendMessage(cm.getMessage("delete-pending")
+                                .replace("%tag%", cm.translateColors(leaveClan.getTag())));
+                        player.sendMessage(cm.getMessage("delete-confirm"));
+                        player.sendMessage(
+                                Component.text(cm.formatPlain("[Accept]"))
+                                        .clickEvent(ClickEvent.runCommand(confirmCmd))
+                        );
+                        player.sendMessage(
+                                Component.text(cm.formatPlain("[Deny]"))
+                                        .clickEvent(ClickEvent.runCommand(denyCmd))
+                        );
+                        return true;
+                    }
+                }
                 if (player.hasPermission("clan.admin")) {
                     String confirmCmd = "/clan leave confirm";
                     String denyCmd = "/clan leave deny";
@@ -244,7 +292,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         return true;
                     }
                 }
-                if (leaveClan.getLeader().equals(playerUUID)) {
+                if (isLeader) {
                     if (leaveClan.getMembers().size() > 1) {
                         UUID newLeader = null;
                         if (!leaveClan.getModerators().isEmpty()) {
