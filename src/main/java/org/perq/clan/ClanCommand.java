@@ -887,14 +887,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             }
                             return true;
                         }
-                        if (previousClan.getMembers().contains(arUUID)) {
-                            previousClan.getMembers().remove(arUUID);
-                        }
-                        if (previousClan.getModerators().contains(arUUID)) {
-                            previousClan.getModerators().remove(arUUID);
-                        }
-                        try { plugin.getFileManager().saveClan(previousClan); } catch (IOException e) {
-                            plugin.getLogger().warning("Failed to save previous clan data for " + previousTag + ": " + e.getMessage());
+                        boolean inPreviousClan = previousClan.getMembers().contains(arUUID)
+                                || previousClan.getModerators().contains(arUUID);
+                        if (inPreviousClan) {
+                            player.sendMessage(cm.getMessage("request-in-clan-leader")
+                                    .replace("%player%", cm.formatPlain(arPlayerName)));
+                            Player arOnline = Bukkit.getPlayer(arUUID);
+                            if (arOnline != null) {
+                                arOnline.sendMessage(cm.getMessage("request-in-clan-player"));
+                            }
+                            return true;
                         }
                     }
                 }
