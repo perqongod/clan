@@ -70,7 +70,7 @@ public class ClanQuestListener implements Listener {
             int questRedeemCost = cm.getQuestRedeemCost();
             int clanPointsReward = cm.getQuestRedeemReward();
             if (clanPointsReward <= 0) {
-                player.sendMessage(cm.getMessage("quest-redeem-failed"));
+                player.sendMessage(cm.getMessage("quest-redeem-disabled"));
                 return;
             }
             int currentPoints = clan.getPoints();
@@ -89,7 +89,6 @@ public class ClanQuestListener implements Listener {
             }
             int newPoints = Math.min(maxPoints, currentPoints + clanPointsReward);
             int awardedPoints = newPoints - currentPoints;
-            int previousPoints = clan.getPoints();
             int previousRedeemed = clan.getQuestPointsRedeemed();
             String previousRank = clan.getRank();
             clan.setQuestPointsRedeemed(previousRedeemed + questRedeemCost);
@@ -99,7 +98,7 @@ public class ClanQuestListener implements Listener {
                 plugin.getFileManager().saveClan(clan);
             } catch (Exception e) {
                 clan.setQuestPointsRedeemed(previousRedeemed);
-                clan.setPoints(previousPoints);
+                clan.setPoints(currentPoints);
                 clan.setRank(previousRank);
                 Bukkit.getLogger().log(java.util.logging.Level.WARNING,
                         "[Clan] Failed to redeem quest points for " + clan.getTag(), e);

@@ -88,6 +88,7 @@ messages:
   skills-locked-rename: "%prefix%&cClan Rename ist gesperrt. Benötigt %required% Punkte."
   quest-info: "%prefix%Quest points affect clan skills. Click the nether star to redeem %quest_cost% quest points for %clan_reward% clan points."
   quest-redeem-not-enough: "%prefix%&cDu brauchst %required% Questpunkte zum Einlösen. Du hast %available%."
+  quest-redeem-disabled: "%prefix%&cQuestpunkte einlösen ist derzeit deaktiviert."
   quest-redeem-max: "%prefix%&cDie Clanpunkte sind bereits am Maximum (%max%)."
   quest-redeem-failed: "%prefix%&cQuestpunkte konnten nicht eingelöst werden. Bitte versuche es erneut."
   quest-redeem-success: "%prefix%&a%quest_points% Questpunkte eingelöst und %clan_points% Clanpunkte erhalten. Neuer Stand: %total%."
