@@ -878,23 +878,22 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (previousTag != null && !previousTag.equalsIgnoreCase(arClan.getTag())) {
                     ClanData previousClan = plugin.getFileManager().loadClan(previousTag);
                     if (previousClan != null) {
-                        if (previousClan.getLeader().equals(arUUID)) {
-                            player.sendMessage(cm.getMessage("request-leader-blocked")
-                                    .replace("%player%", cm.formatPlain(arPlayerName)));
-                            Player arOnline = Bukkit.getPlayer(arUUID);
-                            if (arOnline != null) {
-                                arOnline.sendMessage(cm.getMessage("leader-cannot-join"));
-                            }
-                            return true;
-                        }
-                        boolean inPreviousClan = previousClan.getMembers().contains(arUUID)
+                        boolean isLeader = previousClan.getLeader().equals(arUUID);
+                        boolean hasActiveMembership = isLeader
+                                || previousClan.getMembers().contains(arUUID)
                                 || previousClan.getModerators().contains(arUUID);
-                        if (inPreviousClan) {
-                            player.sendMessage(cm.getMessage("request-in-clan-leader")
-                                    .replace("%player%", cm.formatPlain(arPlayerName)));
+                        if (hasActiveMembership) {
                             Player arOnline = Bukkit.getPlayer(arUUID);
+                            if (isLeader) {
+                                player.sendMessage(cm.getMessage("request-leader-blocked")
+                                        .replace("%player%", cm.formatPlain(arPlayerName)));
+                            } else {
+                                player.sendMessage(cm.getMessage("request-player-in-clan")
+                                        .replace("%player%", cm.formatPlain(arPlayerName)));
+                            }
                             if (arOnline != null) {
-                                arOnline.sendMessage(cm.getMessage("request-in-clan-player"));
+                                String messageKey = isLeader ? "leader-cannot-join" : "request-in-clan-player";
+                                arOnline.sendMessage(cm.getMessage(messageKey));
                             }
                             return true;
                         }
