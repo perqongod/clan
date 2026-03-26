@@ -167,6 +167,35 @@ skills-gui:
         - "&7Cooldown: &f72h"
         - "&7Click to rename (colors enabled)"
 
+quest-gui:
+  title: "&8Clan Quests"
+  overview:
+    name: "&6Clan Quests"
+  navigation:
+    previous:
+      name: "&ePrevious"
+    next:
+      name: "&eNext"
+
+settings-gui:
+  titles:
+    main: "Clan Settings"
+    chest: "Clan Chest Settings"
+    friendly-fire: "Clan Friendly Fire Settings"
+    skills: "Clan Skills Settings"
+    spawn: "Clan Spawn Settings"
+  items:
+    clan-chest:
+      name: "&6Clan Chest"
+    friendly-fire:
+      name: "&6Friendly Fire"
+    clan-skills:
+      name: "&6Clan Skills"
+    clan-spawn:
+      name: "&6Clan Spawn"
+    invitations:
+      name: "&6Invitations"
+
 ranks:
   Bronze: 0
   Silver: 5

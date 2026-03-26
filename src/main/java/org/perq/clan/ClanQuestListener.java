@@ -1,6 +1,7 @@
 package org.perq.clan;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +20,10 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ClanQuestListener implements Listener {
-    private static final String TITLE = "Clan Quests";
+    private static final String DEFAULT_TITLE = "&8Clan Quests";
+    private static final String DEFAULT_OVERVIEW_NAME = "&6Clan Quests";
+    private static final String DEFAULT_PREVIOUS_NAME = "&ePrevious";
+    private static final String DEFAULT_NEXT_NAME = "&eNext";
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
     private static final int PREVIOUS_PAGE_SLOT = 0;
@@ -35,7 +39,8 @@ public class ClanQuestListener implements Listener {
     }
 
     public void openGui(Player player, ClanData clan) {
-        Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE, TITLE);
+        ConfigManager cm = plugin.getConfigManager();
+        Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE, getQuestTitle(cm));
         pages.put(player.getUniqueId(), 0);
         populateQuestInventory(inv, clan, player.getUniqueId());
         player.openInventory(inv);
@@ -44,7 +49,8 @@ public class ClanQuestListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        if (!event.getView().title().equals(Component.text(TITLE))) return;
+        ConfigManager cm = plugin.getConfigManager();
+        if (!event.getView().title().equals(getQuestTitle(cm))) return;
 
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
@@ -78,7 +84,8 @@ public class ClanQuestListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!event.getView().title().equals(Component.text(TITLE))) return;
+        ConfigManager cm = plugin.getConfigManager();
+        if (!event.getView().title().equals(getQuestTitle(cm))) return;
         pages.remove(event.getPlayer().getUniqueId());
     }
 
@@ -107,7 +114,7 @@ public class ClanQuestListener implements Listener {
         overviewLore.add(cm.translateColors("&7Completed quests: &f" + completedQuests + "/" + totalQuests));
         overviewLore.add(cm.translateColors("&7Quest skill points: &f" + questPoints));
         overviewLore.add(questInfo);
-        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, cm.translateColors("&6Clan Quests"), overviewLore));
+        inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR, getQuestOverviewName(cm), overviewLore));
 
         List<ItemStack> questEntries = buildQuestEntries(clan, cm);
         int totalPages = Math.max(1, (questEntries.size() + QUEST_ROW_SIZE - 1) / QUEST_ROW_SIZE);
@@ -123,10 +130,12 @@ public class ClanQuestListener implements Listener {
 
         if (totalPages > 1) {
             if (page > 0) {
-                inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(cm.translateColors("&ePrevious")));
+                inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(getQuestNavigationName(cm,
+                        "quest-gui.navigation.previous.name", DEFAULT_PREVIOUS_NAME)));
             }
             if (page < totalPages - 1) {
-                inv.setItem(NEXT_PAGE_SLOT, arrowItem(cm.translateColors("&eNext")));
+                inv.setItem(NEXT_PAGE_SLOT, arrowItem(getQuestNavigationName(cm,
+                        "quest-gui.navigation.next.name", DEFAULT_NEXT_NAME)));
             }
         }
     }
@@ -159,6 +168,21 @@ public class ClanQuestListener implements Listener {
 
     private ItemStack arrowItem(String name) {
         return namedItem(Material.ARROW, name);
+    }
+
+    private Component getQuestTitle(ConfigManager cm) {
+        String title = plugin.getConfig().getString("quest-gui.title", DEFAULT_TITLE);
+        return LegacyComponentSerializer.legacySection().deserialize(cm.translateColors(title));
+    }
+
+    private String getQuestOverviewName(ConfigManager cm) {
+        String name = plugin.getConfig().getString("quest-gui.overview.name", DEFAULT_OVERVIEW_NAME);
+        return cm.translateColors(name);
+    }
+
+    private String getQuestNavigationName(ConfigManager cm, String path, String defaultName) {
+        String name = plugin.getConfig().getString(path, defaultName);
+        return cm.translateColors(name);
     }
 
     private ItemStack namedItem(Material material, String name) {
