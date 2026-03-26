@@ -241,7 +241,7 @@ help-book:
       &7Schritt 1: /clan create <tag>
       &7Schritt 2: /clan invite <spieler>
       &7Schritt 3: /clan request <tag>
-      &7Schritt 4: /clan accept <tag>
+      &7Schritt 4: /clan join <tag>
       &7Schritt 5: /clan info
       &7Schritt 6: /clan leave
       &7Schritt 7: /clan requests

@@ -237,7 +237,7 @@ public class ConfigManager {
                     + "&7Schritt 1: /clan create <tag>\n"
                     + "&7Schritt 2: /clan invite <spieler>\n"
                     + "&7Schritt 3: /clan request <tag>\n"
-                    + "&7Schritt 4: /clan accept <tag>\n"
+                    + "&7Schritt 4: /clan join <tag>\n"
                     + "&7Schritt 5: /clan info\n"
                     + "&7Schritt 6: /clan leave\n"
                     + "&7Schritt 7: /clan requests");
