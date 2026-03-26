@@ -6,6 +6,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,22 +17,54 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.logging.Level;
 
 public class ConfigManager {
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%[^%]+%");
+    private static final String STANDARD_CONFIG_FILE = "config-standard.yml";
     private final Clan plugin;
     private FileConfiguration config;
 
     public ConfigManager(Clan plugin) {
         this.plugin = plugin;
-        plugin.saveDefaultConfig();
+        ensureConfigDefaults();
         config = plugin.getConfig();
+    }
+
+    private void ensureConfigDefaults() {
+        File dataFolder = plugin.getDataFolder();
+        if (!dataFolder.exists() && !dataFolder.mkdirs()) {
+            plugin.getLogger().warning("Failed to create plugin data folder for config defaults.");
+            plugin.saveDefaultConfig();
+            return;
+        }
+        File configFile = new File(dataFolder, "config.yml");
+        File standardFile = new File(dataFolder, STANDARD_CONFIG_FILE);
+        if (!configFile.exists() && standardFile.exists()) {
+            try {
+                Files.copy(standardFile.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.WARNING, "Failed to copy standard config to config.yml.", e);
+            }
+        }
+        plugin.saveDefaultConfig();
     }
 
     public void reload() {
         plugin.reloadConfig();
         config = plugin.getConfig();
+    }
+
+    public boolean saveStandardConfig() {
+        File standardFile = new File(plugin.getDataFolder(), STANDARD_CONFIG_FILE);
+        try {
+            config.save(standardFile);
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to save standard config.", e);
+            return false;
+        }
     }
 
     public String getPrefix() {
