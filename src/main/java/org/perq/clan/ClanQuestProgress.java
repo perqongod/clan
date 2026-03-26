@@ -177,7 +177,8 @@ public final class ClanQuestProgress {
     }
 
     public static int getQuestLevel(Map<QuestTarget, Integer> killCounts) {
-        return getCompletedQuestCount(killCounts) + 1;
+        int level = getCompletedQuestCount(killCounts) + 1;
+        return Math.min(level, getTotalQuestCount() + 1);
     }
 
     public static int getCompletedQuestCount(Map<QuestTarget, Integer> killCounts) {

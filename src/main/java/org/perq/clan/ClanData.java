@@ -331,7 +331,9 @@ public class ClanData {
     }
 
     public void setQuestPointsRedeemed(int questPointsRedeemed) {
-        this.questPointsRedeemed = Math.max(0, questPointsRedeemed);
+        int earnedPoints = ClanQuestProgress.getQuestSkillPoints(questKillCounts);
+        int clamped = Math.min(questPointsRedeemed, earnedPoints);
+        this.questPointsRedeemed = Math.max(0, clamped);
     }
 
     /**
