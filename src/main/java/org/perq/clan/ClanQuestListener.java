@@ -87,8 +87,8 @@ public class ClanQuestListener implements Listener {
                 player.sendMessage(message);
                 return;
             }
-            int newPoints = Math.min(maxPoints, currentPoints + clanPointsReward);
-            int awardedPoints = newPoints - currentPoints;
+            int awardedPoints = calculateAwardedPoints(currentPoints, clanPointsReward, maxPoints);
+            int newPoints = currentPoints + awardedPoints;
             int previousRedeemed = clan.getQuestPointsRedeemed();
             String previousRank = clan.getRank();
             clan.setQuestPointsRedeemed(previousRedeemed + questRedeemCost);
@@ -241,6 +241,10 @@ public class ClanQuestListener implements Listener {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    private int calculateAwardedPoints(int currentPoints, int reward, int maxPoints) {
+        return Math.min(maxPoints, currentPoints + reward) - currentPoints;
     }
 
     private ClanData getPlayerClan(UUID player) {

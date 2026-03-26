@@ -330,6 +330,9 @@ public class ClanData {
         this.questPointsRedeemed = Math.max(0, questPointsRedeemed);
     }
 
+    /**
+     * Returns quest points available for redemption (total quest skill points minus redeemed points).
+     */
     public int getRedeemableQuestPoints() {
         return Math.max(0, getQuestSkillPoints() - questPointsRedeemed);
     }
