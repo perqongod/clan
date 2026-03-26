@@ -177,14 +177,7 @@ public final class ClanQuestProgress {
     }
 
     public static int getQuestLevel(Map<QuestTarget, Integer> killCounts) {
-        int level = 1;
-        for (QuestDefinition quest : QUESTS) {
-            int kills = killCounts.getOrDefault(quest.getTarget(), 0);
-            if (kills >= quest.getRequiredKills()) {
-                level = Math.max(level, quest.getLevel());
-            }
-        }
-        return level;
+        return getCompletedQuestCount(killCounts) + 1;
     }
 
     public static int getCompletedQuestCount(Map<QuestTarget, Integer> killCounts) {

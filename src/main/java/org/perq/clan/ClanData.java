@@ -319,7 +319,8 @@ public class ClanData {
     public void setRank(String rank) { this.rank = rank; }
 
     public int getQuestSkillPoints() {
-        return ClanQuestProgress.getQuestSkillPoints(questKillCounts);
+        int earnedPoints = ClanQuestProgress.getQuestSkillPoints(questKillCounts);
+        return Math.max(0, earnedPoints - questPointsRedeemed);
     }
 
     public int getQuestPointsRedeemed() {
@@ -334,7 +335,8 @@ public class ClanData {
      * Returns quest points available for redemption (total quest skill points minus redeemed points).
      */
     public int getRedeemableQuestPoints() {
-        return Math.max(0, getQuestSkillPoints() - questPointsRedeemed);
+        int earnedPoints = ClanQuestProgress.getQuestSkillPoints(questKillCounts);
+        return Math.max(0, earnedPoints - questPointsRedeemed);
     }
 
     public int getSkillPoints() {
