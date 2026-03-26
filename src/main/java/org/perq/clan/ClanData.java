@@ -132,7 +132,13 @@ public class ClanData {
                 try {
                     UUID memberId = UUID.fromString(key);
                     String value = config.getString("chest-permissions." + key);
-                    chestPermissions.put(memberId, ClanChestPermission.fromString(value));
+                    ClanChestPermission permission = ClanChestPermission.fromString(value);
+                    if (permission == ClanChestPermission.DENY) {
+                        permission = ClanChestPermission.VIEW;
+                    }
+                    if (permission != ClanChestPermission.VIEW) {
+                        chestPermissions.put(memberId, permission);
+                    }
                 } catch (IllegalArgumentException ignored) {
                     // skip invalid UUIDs
                 }
@@ -168,7 +174,13 @@ public class ClanData {
                 try {
                     UUID memberId = UUID.fromString(key);
                     String value = config.getString("spawn-permissions." + key);
-                    spawnPermissions.put(memberId, ClanAccessPermission.fromString(value));
+                    ClanAccessPermission permission = ClanAccessPermission.fromString(value);
+                    if (permission == ClanAccessPermission.VIEW) {
+                        permission = ClanAccessPermission.DENY;
+                    }
+                    if (permission != ClanAccessPermission.defaultPermission()) {
+                        spawnPermissions.put(memberId, permission);
+                    }
                 } catch (IllegalArgumentException ignored) {
                     // skip invalid UUIDs
                 }
@@ -383,10 +395,13 @@ public class ClanData {
     }
 
     public void setChestPermission(UUID member, ClanChestPermission permission) {
-        if (permission == null || permission == ClanChestPermission.VIEW) {
+        ClanChestPermission normalized = permission == ClanChestPermission.DENY
+                ? ClanChestPermission.VIEW
+                : permission;
+        if (normalized == null || normalized == ClanChestPermission.VIEW) {
             chestPermissions.remove(member);
         } else {
-            chestPermissions.put(member, permission);
+            chestPermissions.put(member, normalized);
         }
     }
 
@@ -419,10 +434,13 @@ public class ClanData {
     }
 
     public void setSpawnPermission(UUID member, ClanAccessPermission permission) {
-        if (permission == null || permission == ClanAccessPermission.defaultPermission()) {
+        ClanAccessPermission normalized = permission == ClanAccessPermission.VIEW
+                ? ClanAccessPermission.DENY
+                : permission;
+        if (normalized == null || normalized == ClanAccessPermission.defaultPermission()) {
             spawnPermissions.remove(member);
         } else {
-            spawnPermissions.put(member, permission);
+            spawnPermissions.put(member, normalized);
         }
     }
 
