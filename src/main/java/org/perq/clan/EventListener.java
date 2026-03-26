@@ -181,11 +181,18 @@ public class EventListener implements Listener {
         if (!(event.getEntity() instanceof Player)) return;
         if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
         Player player = (Player) event.getEntity();
-        Long teleportTime = enderPearlTeleports.remove(player.getUniqueId());
+        Long teleportTime = enderPearlTeleports.get(player.getUniqueId());
         if (teleportTime == null) return;
-        if (System.currentTimeMillis() - teleportTime > ENDER_PEARL_DAMAGE_WINDOW_MS) return;
+        if (System.currentTimeMillis() - teleportTime > ENDER_PEARL_DAMAGE_WINDOW_MS) {
+            enderPearlTeleports.remove(player.getUniqueId());
+            return;
+        }
         ClanData clan = getPlayerClan(player.getUniqueId());
-        if (clan == null || !ClanSkillProgress.hasEnderPearlProtection(clan.getSkillPoints())) return;
+        if (clan == null || !ClanSkillProgress.hasEnderPearlProtection(clan.getSkillPoints())) {
+            enderPearlTeleports.remove(player.getUniqueId());
+            return;
+        }
+        enderPearlTeleports.remove(player.getUniqueId());
         event.setCancelled(true);
     }
 
