@@ -878,23 +878,24 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (previousTag != null && !previousTag.equalsIgnoreCase(arClan.getTag())) {
                     ClanData previousClan = plugin.getFileManager().loadClan(previousTag);
                     if (previousClan != null) {
-                        if (previousClan.getLeader().equals(arUUID)) {
-                            player.sendMessage(cm.getMessage("request-leader-blocked")
-                                    .replace("%player%", cm.formatPlain(arPlayerName)));
+                        boolean isLeader = previousClan.getLeader().equals(arUUID);
+                        boolean hasActiveMembership = isLeader
+                                || previousClan.getMembers().contains(arUUID)
+                                || previousClan.getModerators().contains(arUUID);
+                        if (hasActiveMembership) {
                             Player arOnline = Bukkit.getPlayer(arUUID);
+                            if (isLeader) {
+                                player.sendMessage(cm.getMessage("request-leader-blocked")
+                                        .replace("%player%", cm.formatPlain(arPlayerName)));
+                            } else {
+                                player.sendMessage(cm.getMessage("request-player-in-clan")
+                                        .replace("%player%", cm.formatPlain(arPlayerName)));
+                            }
                             if (arOnline != null) {
-                                arOnline.sendMessage(cm.getMessage("leader-cannot-join"));
+                                String messageKey = isLeader ? "leader-cannot-join" : "request-in-clan-player";
+                                arOnline.sendMessage(cm.getMessage(messageKey));
                             }
                             return true;
-                        }
-                        if (previousClan.getMembers().contains(arUUID)) {
-                            previousClan.getMembers().remove(arUUID);
-                        }
-                        if (previousClan.getModerators().contains(arUUID)) {
-                            previousClan.getModerators().remove(arUUID);
-                        }
-                        try { plugin.getFileManager().saveClan(previousClan); } catch (IOException e) {
-                            plugin.getLogger().warning("Failed to save previous clan data for " + previousTag + ": " + e.getMessage());
                         }
                     }
                 }
