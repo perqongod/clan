@@ -23,7 +23,8 @@ public class ClanQuestListener implements Listener {
     private static final String DEFAULT_OVERVIEW_NAME = "&6Clan Quests";
     private static final String DEFAULT_PREVIOUS_NAME = "&ePrevious";
     private static final String DEFAULT_NEXT_NAME = "&eNext";
-    private static final String CONFIG_NAVIGATION_BASE = "quest-gui.navigation";
+    private static final String CONFIG_NAV_PREVIOUS_NAME = "quest-gui.navigation.previous.name";
+    private static final String CONFIG_NAV_NEXT_NAME = "quest-gui.navigation.next.name";
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
     private static final int PREVIOUS_PAGE_SLOT = 0;
@@ -129,10 +130,8 @@ public class ClanQuestListener implements Listener {
         }
 
         if (totalPages > 1) {
-            String previousName = getQuestNavigationName(cm, CONFIG_NAVIGATION_BASE + ".previous.name",
-                    DEFAULT_PREVIOUS_NAME);
-            String nextName = getQuestNavigationName(cm, CONFIG_NAVIGATION_BASE + ".next.name",
-                    DEFAULT_NEXT_NAME);
+            String previousName = getQuestNavigationName(cm, CONFIG_NAV_PREVIOUS_NAME, DEFAULT_PREVIOUS_NAME);
+            String nextName = getQuestNavigationName(cm, CONFIG_NAV_NEXT_NAME, DEFAULT_NEXT_NAME);
             if (page > 0) {
                 inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(previousName));
             }
@@ -177,13 +176,11 @@ public class ClanQuestListener implements Listener {
     }
 
     private String getQuestOverviewName(ConfigManager cm) {
-        String name = plugin.getConfig().getString("quest-gui.overview.name", DEFAULT_OVERVIEW_NAME);
-        return cm.translateColors(name);
+        return cm.getConfigString("quest-gui.overview.name", DEFAULT_OVERVIEW_NAME);
     }
 
     private String getQuestNavigationName(ConfigManager cm, String path, String defaultName) {
-        String name = plugin.getConfig().getString(path, defaultName);
-        return cm.translateColors(name);
+        return cm.getConfigString(path, defaultName);
     }
 
     private ItemStack namedItem(Material material, String name) {

@@ -620,8 +620,7 @@ public class ClanSettingsListener implements Listener {
     }
 
     private String getSettingsItemName(ConfigManager cm, String path, String defaultName) {
-        String name = plugin.getConfig().getString(path, defaultName);
-        return cm.translateColors(name);
+        return cm.getConfigString(path, defaultName);
     }
 
     private ItemStack memberSkull(UUID member, ClanChestPermission permission, boolean selected, UUID leaderId) {

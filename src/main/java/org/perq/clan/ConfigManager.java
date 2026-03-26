@@ -57,6 +57,11 @@ public class ConfigManager {
         return LegacyComponentSerializer.legacySection().deserialize(translateColors(value));
     }
 
+    public String getConfigString(String path, String defaultValue) {
+        String value = config.getString(path, defaultValue);
+        return translateColors(value);
+    }
+
     public String normalizeTag(String tag) {
         if (tag == null) return null;
         return tag.replace(ChatColor.COLOR_CHAR, '&');
