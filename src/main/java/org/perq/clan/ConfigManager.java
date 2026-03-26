@@ -36,6 +36,8 @@ public class ConfigManager {
         File dataFolder = plugin.getDataFolder();
         if (!dataFolder.exists() && !dataFolder.mkdirs()) {
             plugin.getLogger().warning("Failed to create plugin data folder for config defaults.");
+            plugin.saveDefaultConfig();
+            return;
         }
         File configFile = new File(dataFolder, "config.yml");
         File standardFile = new File(dataFolder, STANDARD_CONFIG_FILE);
