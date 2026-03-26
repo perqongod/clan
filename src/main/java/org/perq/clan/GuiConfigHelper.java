@@ -51,17 +51,17 @@ final class GuiConfigHelper {
         if (slots == null || slots.isEmpty()) {
             slots = defaults == null ? Collections.emptyList() : new ArrayList<>(defaults);
         }
-        List<Integer> valid = new ArrayList<>();
+        Set<Integer> valid = new LinkedHashSet<>();
         for (Integer slot : slots) {
             if (slot == null) continue;
-            if (slot >= 0 && slot < size && !valid.contains(slot)) {
+            if (slot >= 0 && slot < size) {
                 valid.add(slot);
             }
         }
         if (valid.isEmpty() && size > 0) {
             valid.add(Math.min(size - 1, size / 2));
         }
-        return valid;
+        return new ArrayList<>(valid);
     }
 
     static List<Integer> buildDefaultSlots(int size) {

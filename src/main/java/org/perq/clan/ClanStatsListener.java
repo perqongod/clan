@@ -71,8 +71,6 @@ public class ClanStatsListener implements Listener {
         String leaderName = Bukkit.getOfflinePlayer(clan.getLeader()).getName();
         if (leaderName == null) leaderName = "Unknown";
         int effectiveMaxMembers = cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getSkillPoints());
-        String playtime = String.format(PLAYTIME_FORMAT, clan.getOnlineTime());
-
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("%tag%", clan.getTag());
         placeholders.put("%points%", String.valueOf(clan.getPoints()));
@@ -80,7 +78,7 @@ public class ClanStatsListener implements Listener {
         placeholders.put("%created%", clan.getCreated());
         placeholders.put("%members%", String.valueOf(clan.getMembers().size()));
         placeholders.put("%max_members%", String.valueOf(effectiveMaxMembers));
-        placeholders.put("%playtime%", playtime);
+        placeholders.put("%playtime%", String.format(PLAYTIME_FORMAT, clan.getOnlineTime()));
         placeholders.put("%leader%", leaderName);
 
         FileConfiguration config = plugin.getConfig();

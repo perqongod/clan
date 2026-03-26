@@ -249,7 +249,7 @@ public class ClanQuestListener implements Listener {
             ConfigurationSection questSection = config.getConfigurationSection("quest-gui.quests");
             List<String> defaultLore = new ArrayList<>();
             defaultLore.add("&7task: &fkill %required% %target%");
-            defaultLore.add("&7progress: &f%progress%");
+            defaultLore.add("&7progress: &f%kills%/%required%");
             defaultLore.add("&7reward: &f%reward% quest points");
             defaultLore.add("%status%");
 

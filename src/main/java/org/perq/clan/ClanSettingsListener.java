@@ -37,6 +37,7 @@ public class ClanSettingsListener implements Listener {
     private static final int DEFAULT_MAIN_ROWS = 3;
     private static final int DEFAULT_SUBMENU_ROWS = 6;
     private static final int DEFAULT_HEADER_SLOT = 4;
+    private static final int DEFAULT_MEMBER_SLOT_START = 9;
     private static final int MAIN_INVITE_TOGGLE_SLOT = 10;
     private static final int MAIN_CHEST_SLOT = 11;
     private static final int MAIN_FRIENDLY_FIRE_SLOT = 12;
@@ -709,7 +710,7 @@ public class ClanSettingsListener implements Listener {
 
     private List<Integer> buildMemberSlots(FileConfiguration config, String basePath, int size) {
         List<Integer> defaults = new ArrayList<>();
-        for (int slot = 9; slot < size; slot++) {
+        for (int slot = DEFAULT_MEMBER_SLOT_START; slot < size; slot++) {
             defaults.add(slot);
         }
         return GuiConfigHelper.resolveSlots(config, basePath + ".member-slots", defaults, size);
