@@ -791,24 +791,22 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 if (reqPd.getClanTag() != null) {
                     if (reqTag.equalsIgnoreCase(reqPd.getClanTag())) {
                         player.sendMessage(cm.getMessage("already-in-clan"));
-                    } else {
-                        ClanData currentClan = plugin.getFileManager().loadClan(reqPd.getClanTag());
-                        if (currentClan != null && currentClan.getLeader().equals(playerUUID)) {
-                            pendingLeaderRequests.put(playerUUID, reqTag);
-                            player.sendMessage(cm.getMessage("leader-request-confirm"));
-                            player.sendMessage(
-                                    Component.text(cm.formatPlain("[Accept]"))
-                                            .clickEvent(ClickEvent.runCommand("/clan request confirm"))
-                            );
-                            player.sendMessage(
-                                    Component.text(cm.formatPlain("[Deny]"))
-                                            .clickEvent(ClickEvent.runCommand("/clan request deny"))
-                            );
-                            return true;
-                        }
-                        player.sendMessage(cm.getMessage("request-betrayal"));
+                        return true;
                     }
-                    return true;
+                    ClanData currentClan = plugin.getFileManager().loadClan(reqPd.getClanTag());
+                    if (currentClan != null && currentClan.getLeader().equals(playerUUID)) {
+                        pendingLeaderRequests.put(playerUUID, reqTag);
+                        player.sendMessage(cm.getMessage("leader-request-confirm"));
+                        player.sendMessage(
+                                Component.text(cm.formatPlain("[Accept]"))
+                                        .clickEvent(ClickEvent.runCommand("/clan request confirm"))
+                        );
+                        player.sendMessage(
+                                Component.text(cm.formatPlain("[Deny]"))
+                                        .clickEvent(ClickEvent.runCommand("/clan request deny"))
+                        );
+                        return true;
+                    }
                 }
                 if (reqClan.getPendingRequests().contains(playerUUID)) {
                     player.sendMessage(cm.getMessage("request-already-sent"));
@@ -879,6 +877,15 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 arClan.addLog(arPlayerName + " joined the clan via request.");
                 PlayerData arPd = plugin.getFileManager().loadPlayer(arUUID);
                 if (arPd == null) arPd = new PlayerData(arPlayerName);
+                String previousTag = arPd.getClanTag();
+                if (previousTag != null && !previousTag.equalsIgnoreCase(arClan.getTag())) {
+                    ClanData previousClan = plugin.getFileManager().loadClan(previousTag);
+                    if (previousClan != null) {
+                        previousClan.getMembers().remove(arUUID);
+                        previousClan.getModerators().remove(arUUID);
+                        try { plugin.getFileManager().saveClan(previousClan); } catch (Exception ignored) { /* continue */ }
+                    }
+                }
                 arPd.setClanTag(arClan.getTag());
                 arPd.setRole("MEMBER");
                 try {
