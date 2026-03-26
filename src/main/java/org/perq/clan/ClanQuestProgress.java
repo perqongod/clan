@@ -178,7 +178,7 @@ public final class ClanQuestProgress {
 
     public static int getQuestLevel(Map<QuestTarget, Integer> killCounts) {
         int questProgress = getCompletedQuestCount(killCounts) + 1;
-        // Level starts at 1 and increases with each completed quest, so max is total quests + 1.
+        // Level starts at 1 with 0 completed quests and increases per completion, so max is total quests + 1.
         return Math.min(questProgress, getTotalQuestCount() + 1);
     }
 
