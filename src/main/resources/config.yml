@@ -3,6 +3,9 @@ clansystem-prefix: "&4[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7| "
 # Points awarded to a clan per kill (ranking/points)
 kill-points: 1
 online-save-interval: 60
+quest-redeem:
+  cost: 100
+  reward: 10
 
 # Clan tag validation
 clan-tag-settings:

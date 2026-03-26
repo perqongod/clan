@@ -178,6 +178,14 @@ public class ConfigManager {
         return config.getInt("kill-points", 1);
     }
 
+    public int getQuestRedeemCost() {
+        return config.getInt("quest-redeem.cost", 100);
+    }
+
+    public int getQuestRedeemReward() {
+        return config.getInt("quest-redeem.reward", 10);
+    }
+
     public int getOnlineSaveInterval() {
         return config.getInt("online-save-interval", 60);
     }

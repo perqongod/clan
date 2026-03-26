@@ -25,8 +25,6 @@ public class ClanQuestListener implements Listener {
     private static final String DEFAULT_NEXT_NAME = "&eNext";
     private static final String CONFIG_NAV_PREVIOUS_NAME = "quest-gui.navigation.previous.name";
     private static final String CONFIG_NAV_NEXT_NAME = "quest-gui.navigation.next.name";
-    private static final int QUEST_REDEEM_COST = 100;
-    private static final int CLAN_POINTS_REWARD = 10;
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
     private static final int PREVIOUS_PAGE_SLOT = 0;
@@ -70,15 +68,19 @@ public class ClanQuestListener implements Listener {
         if (rawSlot == OVERVIEW_SLOT) {
             int minPoints = cm.getMinPoints();
             int maxPoints = cm.getMaxPoints();
-            if (clan.getPoints() + CLAN_POINTS_REWARD > maxPoints) {
+            int questRedeemCost = cm.getQuestRedeemCost();
+            int clanPointsReward = cm.getQuestRedeemReward();
+            int currentPoints = clan.getPoints();
+            int newPoints = Math.max(minPoints, Math.min(maxPoints, currentPoints + clanPointsReward));
+            if (newPoints <= currentPoints) {
                 player.sendMessage(cm.getMessage("quest-redeem-max")
                         .replace("%max%", String.valueOf(maxPoints)));
                 return;
             }
             int redeemablePoints = clan.getRedeemableQuestPoints();
-            if (redeemablePoints < QUEST_REDEEM_COST) {
+            if (redeemablePoints < questRedeemCost) {
                 String message = cm.getMessage("quest-redeem-not-enough")
-                        .replace("%required%", String.valueOf(QUEST_REDEEM_COST))
+                        .replace("%required%", String.valueOf(questRedeemCost))
                         .replace("%available%", String.valueOf(redeemablePoints));
                 player.sendMessage(message);
                 return;
@@ -86,8 +88,7 @@ public class ClanQuestListener implements Listener {
             int previousPoints = clan.getPoints();
             int previousRedeemed = clan.getQuestPointsRedeemed();
             String previousRank = clan.getRank();
-            clan.setQuestPointsRedeemed(previousRedeemed + QUEST_REDEEM_COST);
-            int newPoints = Math.max(minPoints, Math.min(maxPoints, clan.getPoints() + CLAN_POINTS_REWARD));
+            clan.setQuestPointsRedeemed(previousRedeemed + questRedeemCost);
             clan.setPoints(newPoints);
             clan.setRank(cm.getRankForPoints(newPoints));
             try {
@@ -102,8 +103,8 @@ public class ClanQuestListener implements Listener {
                 return;
             }
             String message = cm.getMessage("quest-redeem-success")
-                    .replace("%quest_points%", String.valueOf(QUEST_REDEEM_COST))
-                    .replace("%clan_points%", String.valueOf(CLAN_POINTS_REWARD))
+                    .replace("%quest_points%", String.valueOf(questRedeemCost))
+                    .replace("%clan_points%", String.valueOf(clanPointsReward))
                     .replace("%total%", String.valueOf(newPoints));
             player.sendMessage(message);
             populateQuestInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
@@ -147,8 +148,8 @@ public class ClanQuestListener implements Listener {
         int completedQuests = ClanQuestProgress.getCompletedQuestCount(killCounts);
         int totalQuests = ClanQuestProgress.getTotalQuestCount();
         String questInfo = cm.getMessage("quest-info")
-                .replace("%quest_cost%", String.valueOf(QUEST_REDEEM_COST))
-                .replace("%clan_reward%", String.valueOf(CLAN_POINTS_REWARD));
+                .replace("%quest_cost%", String.valueOf(cm.getQuestRedeemCost()))
+                .replace("%clan_reward%", String.valueOf(cm.getQuestRedeemReward()));
         String prefix = cm.getPrefix();
         if (questInfo.startsWith(prefix)) {
             questInfo = questInfo.substring(prefix.length()).trim();
