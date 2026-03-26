@@ -66,7 +66,6 @@ public class ClanQuestListener implements Listener {
             return;
         }
         if (rawSlot == OVERVIEW_SLOT) {
-            int minPoints = cm.getMinPoints();
             int maxPoints = cm.getMaxPoints();
             int questRedeemCost = cm.getQuestRedeemCost();
             int clanPointsReward = cm.getQuestRedeemReward();
@@ -84,7 +83,7 @@ public class ClanQuestListener implements Listener {
                 player.sendMessage(message);
                 return;
             }
-            int newPoints = Math.max(minPoints, Math.min(maxPoints, currentPoints + clanPointsReward));
+            int newPoints = Math.min(maxPoints, currentPoints + clanPointsReward);
             int awardedPoints = newPoints - currentPoints;
             if (awardedPoints <= 0) {
                 player.sendMessage(cm.getMessage("quest-redeem-max")
