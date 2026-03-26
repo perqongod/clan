@@ -8,6 +8,7 @@ public final class ClanSkillProgress {
     private static final int SPAWN_UNLOCK_POINTS = 200;
     private static final int RENAME_UNLOCK_POINTS = 300;
     private static final int ENDER_PEARL_UNLOCK_POINTS = 400;
+    private static final int RALLY_UNLOCK_POINTS = 500;
     private static final int BONUS_SLOT_STEP = 100;
 
     private ClanSkillProgress() {
@@ -29,6 +30,10 @@ public final class ClanSkillProgress {
         return ENDER_PEARL_UNLOCK_POINTS;
     }
 
+    public static int getRallyUnlockPoints() {
+        return RALLY_UNLOCK_POINTS;
+    }
+
     public static boolean hasChest(int points) {
         return points >= CHEST_UNLOCK_POINTS;
     }
@@ -45,6 +50,10 @@ public final class ClanSkillProgress {
         return points >= ENDER_PEARL_UNLOCK_POINTS;
     }
 
+    public static boolean hasRally(int points) {
+        return points >= RALLY_UNLOCK_POINTS;
+    }
+
     public static int getBonusMemberSlots(int points) {
         if (points < SPAWN_UNLOCK_POINTS) return 0;
         return (points - SPAWN_UNLOCK_POINTS) / BONUS_SLOT_STEP;
@@ -55,7 +64,8 @@ public final class ClanSkillProgress {
     }
 
     public static int getNextUnlockPoints(int points) {
-        int[] unlocks = {CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS, RENAME_UNLOCK_POINTS, ENDER_PEARL_UNLOCK_POINTS};
+        int[] unlocks = {CHEST_UNLOCK_POINTS, SPAWN_UNLOCK_POINTS, RENAME_UNLOCK_POINTS,
+                ENDER_PEARL_UNLOCK_POINTS, RALLY_UNLOCK_POINTS};
         for (int unlock : unlocks) {
             if (points < unlock) return unlock;
         }
@@ -76,6 +86,9 @@ public final class ClanSkillProgress {
         }
         if (nextUnlock == ENDER_PEARL_UNLOCK_POINTS) {
             rewards.add("ender pearl shield");
+        }
+        if (nextUnlock == RALLY_UNLOCK_POINTS) {
+            rewards.add("clan rally");
         }
         if (rewards.isEmpty()) {
             return "Bonus member slot +1";

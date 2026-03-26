@@ -270,6 +270,20 @@ public class ClanSkillsListener implements Listener {
                 ClanSkillProgress.hasEnderPearlProtection(points),
                 "No ender pearl fall damage"));
 
+        List<String> rallyUnlockedLore = new ArrayList<>();
+        rallyUnlockedLore.add("&7Cooldown: &f30m");
+        rallyUnlockedLore.add("&7Teleport all members to the leader");
+        entries.add(buildSkillEntry(cm, skillsSection,
+                "rally",
+                Material.BEACON,
+                "&6Clan Rally",
+                Collections.singletonList(DEFAULT_REWARD_LORE),
+                rallyUnlockedLore,
+                5,
+                ClanSkillProgress.getRallyUnlockPoints(),
+                ClanSkillProgress.hasRally(points),
+                "Teleport all members to the leader"));
+
         return entries;
     }
 
