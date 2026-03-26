@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClanStatsListener implements Listener {
     private static final String DEFAULT_TITLE_FORMAT = "Clan stats of %tag%";
@@ -33,7 +34,7 @@ public class ClanStatsListener implements Listener {
     private static final int TAG_SLOT = 16;
 
     private final Clan plugin;
-    private final Map<UUID, String> openTitles = new HashMap<>();
+    private final Map<UUID, String> openTitles = new ConcurrentHashMap<>();
 
     public ClanStatsListener(Clan plugin) {
         this.plugin = plugin;
