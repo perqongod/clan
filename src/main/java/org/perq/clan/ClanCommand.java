@@ -1189,7 +1189,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     chestClan.setChestLocation(player.getLocation());
                     try {
                         plugin.getFileManager().saveClan(chestClan);
-                        player.sendMessage(cm.getMessage("chest-set"));
+                        if (wantsSet) {
+                            player.sendMessage(cm.getMessage("chest-set"));
+                        }
                     } catch (Exception e) {
                         player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
                     }

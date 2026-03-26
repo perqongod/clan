@@ -379,7 +379,11 @@ public class ClanData {
     }
 
     public ClanChestPermission getChestPermission(UUID member) {
-        return chestPermissions.getOrDefault(member, ClanChestPermission.VIEW);
+        ClanChestPermission permission = chestPermissions.getOrDefault(member, ClanChestPermission.VIEW);
+        if (permission == ClanChestPermission.DENY) {
+            return ClanChestPermission.VIEW;
+        }
+        return permission;
     }
 
     public void setChestPermission(UUID member, ClanChestPermission permission) {
@@ -415,7 +419,11 @@ public class ClanData {
     }
 
     public ClanAccessPermission getSpawnPermission(UUID member) {
-        return spawnPermissions.getOrDefault(member, ClanAccessPermission.defaultPermission());
+        ClanAccessPermission permission = spawnPermissions.getOrDefault(member, ClanAccessPermission.defaultPermission());
+        if (permission == ClanAccessPermission.VIEW) {
+            return ClanAccessPermission.DENY;
+        }
+        return permission;
     }
 
     public void setSpawnPermission(UUID member, ClanAccessPermission permission) {

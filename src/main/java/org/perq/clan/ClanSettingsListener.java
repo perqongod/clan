@@ -421,7 +421,9 @@ public class ClanSettingsListener implements Listener {
 
     private void togglePermission(Player player, ClanData clan, UUID member) {
         ClanChestPermission current = clan.getChestPermission(member);
-        ClanChestPermission next = current.next();
+        ClanChestPermission next = current == ClanChestPermission.EXECUTE
+                ? ClanChestPermission.VIEW
+                : ClanChestPermission.EXECUTE;
         clan.setChestPermission(member, next);
         try {
             plugin.getFileManager().saveClan(clan);
@@ -454,7 +456,9 @@ public class ClanSettingsListener implements Listener {
 
     private void toggleSpawnPermission(Player player, ClanData clan, UUID member) {
         ClanAccessPermission current = clan.getSpawnPermission(member);
-        ClanAccessPermission next = current.next();
+        ClanAccessPermission next = current == ClanAccessPermission.EXECUTE
+                ? ClanAccessPermission.DENY
+                : ClanAccessPermission.EXECUTE;
         clan.setSpawnPermission(member, next);
         try {
             plugin.getFileManager().saveClan(clan);
@@ -508,9 +512,8 @@ public class ClanSettingsListener implements Listener {
                 if (name == null) name = selectedMember.toString().substring(0, 8);
                 lore.add(cm.translateColors("&7Selected: &f" + name));
             }
-            lore.add(cm.translateColors("&7✅ &aAccess granted"));
-            lore.add(cm.translateColors("&7👁 &eView only"));
-            lore.add(cm.translateColors("&7❌ &cNo access"));
+            lore.add(cm.translateColors("&7✅ &aFull access"));
+            lore.add(cm.translateColors("&7❌ &cNo access (view only)"));
             meta.setLore(lore);
             item.setItemMeta(meta);
         }
@@ -553,7 +556,6 @@ public class ClanSettingsListener implements Listener {
                 lore.add(cm.translateColors("&7Selected: &f" + name));
             }
             lore.add(cm.translateColors("&7✅ &aFull access"));
-            lore.add(cm.translateColors("&7👁 &eSee only"));
             lore.add(cm.translateColors("&7❌ &cNo access"));
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -689,11 +691,9 @@ public class ClanSettingsListener implements Listener {
     private String permissionLabel(ClanChestPermission permission) {
         switch (permission) {
             case EXECUTE:
-                return "&a✅ Access granted";
-            case DENY:
-                return "&c❌ No access";
+                return "&a✅ Full access";
             default:
-                return "&e👁 View only";
+                return "&c❌ No access (view only)";
         }
     }
 
