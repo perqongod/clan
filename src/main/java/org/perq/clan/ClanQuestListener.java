@@ -24,6 +24,8 @@ public class ClanQuestListener implements Listener {
     private static final String DEFAULT_OVERVIEW_NAME = "&6Clan Quests";
     private static final String DEFAULT_PREVIOUS_NAME = "&ePrevious";
     private static final String DEFAULT_NEXT_NAME = "&eNext";
+    private static final String CONFIG_NAV_PREVIOUS_NAME = "quest-gui.navigation.previous.name";
+    private static final String CONFIG_NAV_NEXT_NAME = "quest-gui.navigation.next.name";
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
     private static final int PREVIOUS_PAGE_SLOT = 0;
@@ -131,11 +133,11 @@ public class ClanQuestListener implements Listener {
         if (totalPages > 1) {
             if (page > 0) {
                 inv.setItem(PREVIOUS_PAGE_SLOT, arrowItem(getQuestNavigationName(cm,
-                        "quest-gui.navigation.previous.name", DEFAULT_PREVIOUS_NAME)));
+                        CONFIG_NAV_PREVIOUS_NAME, DEFAULT_PREVIOUS_NAME)));
             }
             if (page < totalPages - 1) {
                 inv.setItem(NEXT_PAGE_SLOT, arrowItem(getQuestNavigationName(cm,
-                        "quest-gui.navigation.next.name", DEFAULT_NEXT_NAME)));
+                        CONFIG_NAV_NEXT_NAME, DEFAULT_NEXT_NAME)));
             }
         }
     }
