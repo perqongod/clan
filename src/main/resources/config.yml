@@ -232,31 +232,31 @@ ranks:
   Platinum: 11
   Diamond: 12
 
-  help-book:
+help-book:
   title: "Clan Hilfe"
   author: "Clan System"
   pages:
     - |-
       &6&lClan Hilfe
-      &7Erste Schritte:
-      &f/clan create <tag>
-      &f/clan invite <spieler>
-      &f/clan leave
-      &f/clan info
-      &f/clan request <tag>
-      &f/clan requests
+      &7Schritt 1: /clan create <tag>
+      &7Schritt 2: /clan invite <spieler>
+      &7Schritt 3: /clan request <tag>
+      &7Schritt 4: /clan accept <tag>
+      &7Schritt 5: /clan info
+      &7Schritt 6: /clan leave
+      &7Schritt 7: /clan requests
     - |-
       &6&lVerwaltung
-      &f/clan kick <spieler>
-      &f/clan promote <spieler>
-      &f/clan demote [spieler]
-      &f/clan leader <spieler>
-      &f/clan rename <tag>
-      &f/clan chest (set)
-      &f/clan spawn
-      &f/clan setspawn
-      &f/clan delspawn
-      &f/clan settings
-      &f/clan skills
-      &f/clan quest
-      &f/clan logs
+      &7/clan kick <spieler>
+      &7/clan promote <spieler>
+      &7/clan demote [spieler]
+      &7/clan leader <spieler>
+      &7/clan rename <tag>
+      &7/clan chest (set)
+      &7/clan spawn
+      &7/clan setspawn
+      &7/clan delspawn
+      &7/clan settings
+      &7/clan skills
+      &7/clan quest
+      &7/clan logs

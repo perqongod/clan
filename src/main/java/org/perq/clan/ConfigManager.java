@@ -234,28 +234,27 @@ public class ConfigManager {
         if (pages == null || pages.isEmpty()) {
             pages = new ArrayList<>();
             pages.add("&6&lClan Hilfe\n"
-                    + "&7Erste Schritte:\n"
-                    + "&f/clan create <tag>\n"
-                    + "&f/clan invite <spieler>\n"
-                    + "&f/clan join <tag>\n"
-                    + "&f/clan leave\n"
-                    + "&f/clan info\n"
-                    + "&f/clan request <tag>\n"
-                    + "&f/clan requests");
+                    + "&7Schritt 1: /clan create <tag>\n"
+                    + "&7Schritt 2: /clan invite <spieler>\n"
+                    + "&7Schritt 3: /clan request <tag>\n"
+                    + "&7Schritt 4: /clan accept <tag>\n"
+                    + "&7Schritt 5: /clan info\n"
+                    + "&7Schritt 6: /clan leave\n"
+                    + "&7Schritt 7: /clan requests");
             pages.add("&6&lVerwaltung\n"
-                    + "&f/clan kick <spieler>\n"
-                    + "&f/clan promote <spieler>\n"
-                    + "&f/clan demote [spieler]\n"
-                    + "&f/clan leader <spieler>\n"
-                    + "&f/clan rename <tag>\n"
-                    + "&f/clan chest (set)\n"
-                    + "&f/clan spawn\n"
-                    + "&f/clan setspawn\n"
-                    + "&f/clan delspawn\n"
-                    + "&f/clan settings\n"
-                    + "&f/clan skills\n"
-                    + "&f/clan quest\n"
-                    + "&f/clan logs");
+                    + "&7/clan kick <spieler>\n"
+                    + "&7/clan promote <spieler>\n"
+                    + "&7/clan demote [spieler]\n"
+                    + "&7/clan leader <spieler>\n"
+                    + "&7/clan rename <tag>\n"
+                    + "&7/clan chest (set)\n"
+                    + "&7/clan spawn\n"
+                    + "&7/clan setspawn\n"
+                    + "&7/clan delspawn\n"
+                    + "&7/clan settings\n"
+                    + "&7/clan skills\n"
+                    + "&7/clan quest\n"
+                    + "&7/clan logs");
         }
         return new ArrayList<>(pages);
     }
