@@ -68,7 +68,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "accept-request", "deny-request", "logs", "skills", "quest", "settings", "war", "force", "admin",
-            "points"
+            "points", "reload"
     ));
 
     public ClanCommand(Clan plugin) {
@@ -1054,6 +1054,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 break;
             }
 
+            case "reload": {
+                if (!player.hasPermission("clan.admin")) {
+                    player.sendMessage(cm.getMessage("no-permission"));
+                    return true;
+                }
+                plugin.getConfigManager().reload();
+                player.sendMessage(cm.getMessage("config-reloaded"));
+                return true;
+            }
+
             case "toggle": {
                 boolean invitesDisabled = plugin.toggleInvitation(player);
                 player.sendMessage(invitesDisabled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
@@ -1819,6 +1829,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             if (player.hasPermission("clan.admin")) {
                 subs.add("force");
                 subs.add("admin");
+                subs.add("reload");
             }
             if (player.isOp()) {
                 subs.add("points");
