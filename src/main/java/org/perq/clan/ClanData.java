@@ -335,8 +335,7 @@ public class ClanData {
      * Returns quest points available for redemption (total quest skill points minus redeemed points).
      */
     public int getRedeemableQuestPoints() {
-        int earnedPoints = ClanQuestProgress.getQuestSkillPoints(questKillCounts);
-        return Math.max(0, earnedPoints - questPointsRedeemed);
+        return getQuestSkillPoints();
     }
 
     public int getSkillPoints() {

@@ -15,14 +15,15 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
 public class ClanQuestListener implements Listener {
-    private static final String DEFAULT_TITLE = "Clan Quests";
-    private static final String DEFAULT_OVERVIEW_NAME = "&6Clan Quests";
-    private static final String DEFAULT_PREVIOUS_NAME = "&ePrevious";
-    private static final String DEFAULT_NEXT_NAME = "&eNext";
+    private static final String DEFAULT_TITLE = "clan quests";
+    private static final String DEFAULT_OVERVIEW_NAME = "&6clan quests";
+    private static final String DEFAULT_PREVIOUS_NAME = "&eprevious";
+    private static final String DEFAULT_NEXT_NAME = "&enext";
     private static final String CONFIG_NAV_PREVIOUS_NAME = "quest-gui.navigation.previous.name";
     private static final String CONFIG_NAV_NEXT_NAME = "quest-gui.navigation.next.name";
     private static final int INVENTORY_SIZE = 27;
@@ -160,10 +161,10 @@ public class ClanQuestListener implements Listener {
         }
 
         List<String> overviewLore = new ArrayList<>();
-        overviewLore.add(cm.translateColors("&7Quest level: &f" + questLevel));
-        overviewLore.add(cm.translateColors("&7Completed quests: &f" + completedQuests + "/" + totalQuests));
-        overviewLore.add(cm.translateColors("&7Quest skill points: &f" + questPoints));
-        overviewLore.add(cm.translateColors("&7Redeemable quest points: &f" + redeemableQuestPoints));
+        overviewLore.add(cm.translateColors("&7quest level: &f" + questLevel));
+        overviewLore.add(cm.translateColors("&7completed quests: &f" + completedQuests + "/" + totalQuests));
+        overviewLore.add(cm.translateColors("&7quest skill points: &f" + questPoints));
+        overviewLore.add(cm.translateColors("&7redeemable quest points: &f" + redeemableQuestPoints));
         overviewLore.add(questInfo);
         inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR,
                 cm.getConfigString("quest-gui.overview.name", DEFAULT_OVERVIEW_NAME), overviewLore));
@@ -201,18 +202,19 @@ public class ClanQuestListener implements Listener {
         List<ItemStack> entries = new ArrayList<>();
 
         List<String> levelOneLore = new ArrayList<>();
-        levelOneLore.add(cm.translateColors("&7Unlocked"));
-        entries.add(namedItem(Material.BOOK, cm.translateColors("&6Quest Level 1"), levelOneLore));
+        levelOneLore.add(cm.translateColors("&7unlocked"));
+        entries.add(namedItem(Material.BOOK, cm.translateColors("&6quest level 1"), levelOneLore));
 
         for (ClanQuestProgress.QuestDefinition quest : ClanQuestProgress.getQuestDefinitions()) {
             int kills = clan.getQuestKillCount(quest.getTarget());
+            String targetName = quest.getTarget().getDisplayName().toLowerCase(Locale.ENGLISH);
             List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Task: &fKill " + quest.getRequiredKills() + " " + quest.getTarget().getDisplayName()));
-            lore.add(cm.translateColors("&7Progress: &f" + kills + "/" + quest.getRequiredKills()));
-            lore.add(cm.translateColors("&7Reward: &f" + quest.getRewardPoints() + " quest points"));
-            lore.add(cm.translateColors(kills >= quest.getRequiredKills() ? "&aUnlocked" : "&cLocked"));
+            lore.add(cm.translateColors("&7task: &fkill " + quest.getRequiredKills() + " " + targetName));
+            lore.add(cm.translateColors("&7progress: &f" + kills + "/" + quest.getRequiredKills()));
+            lore.add(cm.translateColors("&7reward: &f" + quest.getRewardPoints() + " quest points"));
+            lore.add(cm.translateColors(kills >= quest.getRequiredKills() ? "&aunlocked" : "&clocked"));
             entries.add(namedItem(quest.getTarget().getIcon(),
-                    cm.translateColors("&6Quest Level " + quest.getLevel() + " - " + quest.getTarget().getDisplayName()), lore));
+                    cm.translateColors("&6quest level " + quest.getLevel() + " - " + targetName), lore));
         }
 
         return entries;
