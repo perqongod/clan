@@ -60,8 +60,7 @@ public class ConfigManager {
     private String formatMessage(String message, boolean preservePlaceholders) {
         if (message == null) return null;
         String translated = ChatColor.translateAlternateColorCodes('&', translateHexColorCodes(message));
-        String stripped = ChatColor.stripColor(translated);
-        return preservePlaceholders ? toSmallCapsPreservingPlaceholders(stripped) : toSmallCaps(stripped);
+        return preservePlaceholders ? toSmallCapsPreservingPlaceholders(translated) : toSmallCaps(translated);
     }
 
     private static String toSmallCapsPreservingPlaceholders(String input) {
@@ -82,7 +81,13 @@ public class ConfigManager {
         if (input == null) return null;
         StringBuilder builder = new StringBuilder(input.length());
         for (int i = 0; i < input.length(); i++) {
-            builder.append(toSmallCapsChar(input.charAt(i)));
+            char value = input.charAt(i);
+            if (value == ChatColor.COLOR_CHAR && i + 1 < input.length()) {
+                builder.append(value).append(input.charAt(i + 1));
+                i++;
+                continue;
+            }
+            builder.append(toSmallCapsChar(value));
         }
         return builder.toString();
     }
