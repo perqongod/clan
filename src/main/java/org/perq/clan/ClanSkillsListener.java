@@ -285,13 +285,25 @@ public class ClanSkillsListener implements Listener {
                                       boolean unlocked,
                                       String rewardDescription) {
         Map<String, String> placeholders = buildSkillPlaceholders(level, unlockPoints, rewardDescription);
-        ConfigurationSection lockedSection = skillsSection == null ? null : skillsSection.getConfigurationSection("locked");
-        if (!unlocked) {
-            List<String> lockedLore = getConfiguredLore(lockedSection, "lore", Collections.emptyList());
-            return buildConfiguredItem(cm, lockedSection, Material.RED_STAINED_GLASS_PANE,
-                    DEFAULT_LOCKED_NAME, lockedLore, placeholders);
-        }
         ConfigurationSection skillSection = skillsSection == null ? null : skillsSection.getConfigurationSection(skillKey);
+        ConfigurationSection baseLockedSection = skillsSection == null ? null : skillsSection.getConfigurationSection("locked");
+        ConfigurationSection lockedSection = skillSection != null ? skillSection.getConfigurationSection("locked") : null;
+        if (!unlocked) {
+            Material lockedMaterial = resolveMaterial(baseLockedSection, Material.RED_STAINED_GLASS_PANE);
+            String lockedName = DEFAULT_LOCKED_NAME;
+            if (baseLockedSection != null && baseLockedSection.contains("name")) {
+                lockedName = baseLockedSection.getString("name", DEFAULT_LOCKED_NAME);
+            }
+            List<String> lockedLore;
+            if (lockedSection != null && lockedSection.contains("lore")) {
+                lockedLore = getConfiguredLore(lockedSection, "lore", Collections.emptyList());
+            } else {
+                lockedLore = getConfiguredLore(baseLockedSection, "lore", Collections.emptyList());
+            }
+            ConfigurationSection effectiveLockedSection = lockedSection != null ? lockedSection : baseLockedSection;
+            return buildConfiguredItem(cm, effectiveLockedSection, lockedMaterial,
+                    lockedName, lockedLore, placeholders);
+        }
         List<String> lore = getConfiguredLore(skillSection, "lore", defaultLore);
         List<String> unlockedLore = getConfiguredLore(skillSection, "unlocked-lore", defaultUnlockedLore);
         List<String> combinedLore = new ArrayList<>(lore);
