@@ -337,7 +337,7 @@ public class ClanData {
     }
 
     /**
-     * Alias for getQuestSkillPoints() to represent points available for redemption.
+     * Alias for getQuestSkillPoints() to represent points available for redemption in UI checks.
      */
     public int getRedeemableQuestPoints() {
         return getQuestSkillPoints();
