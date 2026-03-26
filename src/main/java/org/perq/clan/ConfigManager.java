@@ -23,12 +23,17 @@ public class ConfigManager {
         config = plugin.getConfig();
     }
 
+    public void reload() {
+        plugin.reloadConfig();
+        config = plugin.getConfig();
+    }
+
     public String getPrefix() {
-        return translateColors(config.getString("prefix", "&b[Xyntrix]&r "));
+        return translateColors(config.getString("prefix", "&6&lxyntrix &7| "));
     }
 
     public String getClanSystemPrefix() {
-        return translateColors(config.getString("clansystem-prefix", "&4[ClanSystem]&r "));
+        return translateColors(config.getString("clansystem-prefix", "&4[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7| "));
     }
 
     private static String translateHexColorCodes(String message) {

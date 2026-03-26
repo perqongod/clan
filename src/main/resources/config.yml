@@ -1,5 +1,5 @@
-prefix: "&b[Xyntrix]&r "
-clansystem-prefix: "&4[ClanSystem]&r "
+prefix: "&6&lxyntrix &7| "
+clansystem-prefix: "&4[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7| "
 # Points awarded to a clan per kill (ranking/points)
 kill-points: 1
 online-save-interval: 60
@@ -109,6 +109,7 @@ messages:
   admin-points-add: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte hinzugefügt. Neuer Stand: %total%."
   admin-points-remove: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte entfernt. Neuer Stand: %total%."
   admin-points-set: "%prefix%Du hast die Punkte des [%tag%] Clans auf %amount% gesetzt."
+  config-reloaded: "%prefix%&aClan config reloaded."
 
 skills-gui:
   rows: 5
