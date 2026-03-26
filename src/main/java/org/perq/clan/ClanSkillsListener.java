@@ -36,7 +36,7 @@ public class ClanSkillsListener implements Listener {
     private static final int DEFAULT_OVERVIEW_SLOT = 40;
     private static final int DEFAULT_PREVIOUS_PAGE_SLOT = 36;
     private static final int DEFAULT_NEXT_PAGE_SLOT = 44;
-    private static final int[] DEFAULT_SKILL_SLOTS = {21, 22, 23};
+    private static final int[] DEFAULT_SKILL_SLOTS = {21, 22, 23, 24};
     private static final int RENAME_SKILL_INDEX = 2;
     private static final String DEFAULT_OVERVIEW_NAME = "&6Clan Skills";
     private static final String DEFAULT_PREVIOUS_NAME = "&ePrevious";
@@ -258,6 +258,17 @@ public class ClanSkillsListener implements Listener {
                 ClanSkillProgress.getRenameUnlockPoints(),
                 ClanSkillProgress.hasRename(points),
                 "Rename the clan tag"));
+
+        entries.add(buildSkillEntry(cm, skillsSection,
+                "enderpearl",
+                Material.ENDER_PEARL,
+                "&6Ender Pearl Shield",
+                Collections.singletonList(DEFAULT_REWARD_LORE),
+                Collections.emptyList(),
+                4,
+                ClanSkillProgress.getEnderPearlUnlockPoints(),
+                ClanSkillProgress.hasEnderPearlProtection(points),
+                "No ender pearl fall damage"));
 
         return entries;
     }
