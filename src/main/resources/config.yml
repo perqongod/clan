@@ -62,6 +62,7 @@ messages:
   clan-deleted-cancelled: "%prefix%&cClan deletion cancelled (timed out)."
   not-clan-leader: "%prefix%&cYou are not the clan leader."
   leader-cannot-join: "%prefix%&cAs a leader you cannot join another clan. Transfer leadership or delete your clan first."
+  request-leader-blocked: "%prefix%&c%player% is a clan leader and must transfer leadership or delete their clan first."
   force-leave-success: "%prefix%&a%player% has been removed from the clan."
   force-leave-no-clan: "%prefix%&cThis player is not in a clan."
   no-requests: "%prefix%&cYou have no pending clan requests."
