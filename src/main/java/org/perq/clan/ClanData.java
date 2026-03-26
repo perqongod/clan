@@ -337,7 +337,7 @@ public class ClanData {
     }
 
     /**
-     * Returns quest points available for redemption (remaining quest skill points).
+     * Returns quest points available for redemption (same as remaining quest skill points).
      */
     public int getRedeemableQuestPoints() {
         return getQuestSkillPoints();
