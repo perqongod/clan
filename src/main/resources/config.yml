@@ -125,6 +125,8 @@ messages:
   admin-points-remove: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte entfernt. Neuer Stand: %total%."
   admin-points-set: "%prefix%Du hast die Punkte des [%tag%] Clans auf %amount% gesetzt."
   config-reloaded: "%prefix%&aClan config reloaded."
+  config-standard-saved: "%prefix%&aCurrent config saved as standard config."
+  config-standard-save-failed: "%prefix%&cFailed to save standard config."
 
 skills-gui:
   rows: 5

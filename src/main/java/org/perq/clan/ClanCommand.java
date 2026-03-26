@@ -70,7 +70,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "accept-request", "deny-request", "logs", "skills", "quest", "settings", "rally", "war", "force", "admin",
-            "points", "reload"
+            "points", "reload", "configsafe"
     ));
 
     public ClanCommand(Clan plugin) {
@@ -1119,6 +1119,17 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
+            case "configsafe": {
+                if (!player.isOp()) {
+                    player.sendMessage(cm.getMessage("admin-points-no-op"));
+                    return true;
+                }
+                boolean saved = plugin.getConfigManager().saveStandardConfig();
+                player.sendMessage(saved ? cm.getMessage("config-standard-saved")
+                        : cm.getMessage("config-standard-save-failed"));
+                return true;
+            }
+
             case "toggle": {
                 boolean invitesDisabled = plugin.toggleInvitation(player);
                 player.sendMessage(invitesDisabled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
@@ -1672,6 +1683,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan force kick <player> &7- Remove player from clan"));
                 player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan force delete <tag> &7- Disband clan"));
                 player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan points <add|remove|set> <player> <amount> &7- Manage clan points (OP)"));
+                if (player.isOp()) {
+                    player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan configsafe &7- Save current config as standard (OP)"));
+                }
                 break;
             }
 
@@ -1968,6 +1982,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
             if (player.isOp()) {
                 subs.add("points");
+                subs.add("configsafe");
             }
             String partial = args[0].toLowerCase();
             subs.removeIf(s -> !s.startsWith(partial));
