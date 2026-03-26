@@ -86,6 +86,7 @@ messages:
   quest-info: "%prefix%Quest points affect clan skills. Click the nether star to redeem %quest_cost% quest points for %clan_reward% clan points."
   quest-redeem-not-enough: "%prefix%&cDu brauchst %required% Questpunkte zum Einlösen. Du hast %available%."
   quest-redeem-max: "%prefix%&cDie Clanpunkte sind bereits am Maximum (%max%)."
+  quest-redeem-failed: "%prefix%&cQuestpunkte konnten nicht eingelöst werden. Bitte versuche es erneut."
   quest-redeem-success: "%prefix%&a%quest_points% Questpunkte eingelöst und %clan_points% Clanpunkte erhalten. Neuer Stand: %total%."
   chest-set: "%prefix%&aClan Chest gesetzt!"
   chest-not-set: "%prefix%&cClan Chest wurde noch nicht gesetzt."
