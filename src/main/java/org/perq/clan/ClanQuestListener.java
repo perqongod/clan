@@ -25,6 +25,8 @@ public class ClanQuestListener implements Listener {
     private static final String DEFAULT_NEXT_NAME = "&eNext";
     private static final String CONFIG_NAV_PREVIOUS_NAME = "quest-gui.navigation.previous.name";
     private static final String CONFIG_NAV_NEXT_NAME = "quest-gui.navigation.next.name";
+    private static final int QUEST_REDEEM_COST = 100;
+    private static final int CLAN_POINTS_REWARD = 10;
     private static final int INVENTORY_SIZE = 27;
     private static final int OVERVIEW_SLOT = 22;
     private static final int PREVIOUS_PAGE_SLOT = 0;
@@ -66,7 +68,32 @@ public class ClanQuestListener implements Listener {
             return;
         }
         if (rawSlot == OVERVIEW_SLOT) {
-            player.sendMessage(plugin.getConfigManager().getMessage("quest-info"));
+            int redeemablePoints = clan.getRedeemableQuestPoints();
+            if (redeemablePoints < QUEST_REDEEM_COST) {
+                String message = cm.getMessage("quest-redeem-not-enough")
+                        .replace("%required%", String.valueOf(QUEST_REDEEM_COST))
+                        .replace("%available%", String.valueOf(redeemablePoints));
+                player.sendMessage(message);
+                return;
+            }
+            clan.setQuestPointsRedeemed(clan.getQuestPointsRedeemed() + QUEST_REDEEM_COST);
+            int minPoints = cm.getMinPoints();
+            int maxPoints = cm.getMaxPoints();
+            int newPoints = Math.max(minPoints, Math.min(maxPoints, clan.getPoints() + CLAN_POINTS_REWARD));
+            clan.setPoints(newPoints);
+            clan.setRank(cm.getRankForPoints(newPoints));
+            try {
+                plugin.getFileManager().saveClan(clan);
+            } catch (Exception e) {
+                Bukkit.getLogger().log(java.util.logging.Level.WARNING,
+                        "[Clan] Failed to redeem quest points for " + clan.getTag(), e);
+            }
+            String message = cm.getMessage("quest-redeem-success")
+                    .replace("%quest_points%", String.valueOf(QUEST_REDEEM_COST))
+                    .replace("%clan_points%", String.valueOf(CLAN_POINTS_REWARD))
+                    .replace("%total%", String.valueOf(newPoints));
+            player.sendMessage(message);
+            populateQuestInventory(event.getView().getTopInventory(), clan, player.getUniqueId());
             return;
         }
         if (rawSlot == PREVIOUS_PAGE_SLOT || rawSlot == NEXT_PAGE_SLOT) {
@@ -103,6 +130,7 @@ public class ClanQuestListener implements Listener {
         Map<ClanQuestProgress.QuestTarget, Integer> killCounts = clan.getQuestKillCounts();
         int questLevel = ClanQuestProgress.getQuestLevel(killCounts);
         int questPoints = clan.getQuestSkillPoints();
+        int redeemableQuestPoints = clan.getRedeemableQuestPoints();
         int completedQuests = ClanQuestProgress.getCompletedQuestCount(killCounts);
         int totalQuests = ClanQuestProgress.getTotalQuestCount();
         String questInfo = cm.getMessage("quest-info");
@@ -115,6 +143,7 @@ public class ClanQuestListener implements Listener {
         overviewLore.add(cm.translateColors("&7Quest level: &f" + questLevel));
         overviewLore.add(cm.translateColors("&7Completed quests: &f" + completedQuests + "/" + totalQuests));
         overviewLore.add(cm.translateColors("&7Quest skill points: &f" + questPoints));
+        overviewLore.add(cm.translateColors("&7Redeemable quest points: &f" + redeemableQuestPoints));
         overviewLore.add(questInfo);
         inv.setItem(OVERVIEW_SLOT, namedItem(Material.NETHER_STAR,
                 cm.getConfigString("quest-gui.overview.name", DEFAULT_OVERVIEW_NAME), overviewLore));
