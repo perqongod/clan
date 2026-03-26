@@ -360,7 +360,11 @@ public class ClanSkillsListener implements Listener {
         }
         List<Integer> accentSlots = resolveOptionalSlots(config, "skills-gui.accent.slots", size);
         if (accentSlots == null) {
-            accentSlots = skillSlots.isEmpty() ? buildDefaultAccentSlots(rows) : new ArrayList<>(skillSlots);
+            if (skillSlots.isEmpty()) {
+                accentSlots = buildDefaultAccentSlots(rows);
+            } else {
+                accentSlots = new ArrayList<>(skillSlots);
+            }
         }
         ItemStack previousItem = buildConfiguredItem(cm,
                 config.getConfigurationSection("skills-gui.navigation.previous"),
