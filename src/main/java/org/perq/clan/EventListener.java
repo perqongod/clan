@@ -21,12 +21,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class EventListener implements Listener {
     private final Clan plugin;
     private Map<UUID, Long> joinTimes = new HashMap<>();
-    private Map<UUID, Long> enderPearlTeleports = new HashMap<>();
+    private final Map<UUID, Long> enderPearlTeleports = new ConcurrentHashMap<>();
     // Save quest progress after each quest kill so GUI progress updates immediately.
     private static final int QUEST_SAVE_INTERVAL = 1;
     private static final long ENDER_PEARL_DAMAGE_WINDOW_MS = 2000L;
@@ -173,7 +174,12 @@ public class EventListener implements Listener {
         Player player = event.getPlayer();
         ClanData clan = getPlayerClan(player.getUniqueId());
         if (clan == null || !ClanSkillProgress.hasEnderPearlProtection(clan.getSkillPoints())) return;
-        enderPearlTeleports.put(player.getUniqueId(), System.currentTimeMillis());
+        long teleportTime = System.currentTimeMillis();
+        enderPearlTeleports.put(player.getUniqueId(), teleportTime);
+        long cleanupDelay = Math.max(1L, ENDER_PEARL_DAMAGE_WINDOW_MS / 50L);
+        Bukkit.getScheduler().runTaskLater(plugin,
+                () -> enderPearlTeleports.remove(player.getUniqueId(), teleportTime),
+                cleanupDelay);
     }
 
     @EventHandler
