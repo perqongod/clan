@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ClanQuestListener implements Listener {
-    private static final String DEFAULT_TITLE = "&8Clan Quests";
+    private static final String DEFAULT_TITLE = "Clan Quests";
     private static final String DEFAULT_OVERVIEW_NAME = "&6Clan Quests";
     private static final String DEFAULT_PREVIOUS_NAME = "&ePrevious";
     private static final String DEFAULT_NEXT_NAME = "&eNext";

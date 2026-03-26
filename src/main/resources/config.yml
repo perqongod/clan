@@ -168,7 +168,7 @@ skills-gui:
         - "&7Click to rename (colors enabled)"
 
 quest-gui:
-  title: "&8Clan Quests"
+  title: "Clan Quests"
   overview:
     name: "&6Clan Quests"
   navigation:
