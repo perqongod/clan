@@ -724,7 +724,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
             case "request": {
                 if (args.length < 2) {
-                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan request <tag>"));
+                    ClanData listClan = getPlayerClan(playerUUID);
+                    if (listClan != null && listClan.getLeader().equals(playerUUID)) {
+                        sendRequestList(player, cm);
+                    } else {
+                        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Usage: /clan request <tag>"));
+                    }
                     return true;
                 }
                 String reqTag = args[1];
@@ -808,30 +813,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             case "requests": {
-                ClanData reqsClan = getPlayerClan(playerUUID);
-                if (reqsClan == null) {
-                    player.sendMessage(cm.getMessage("no-clan"));
-                    return true;
-                }
-                if (!reqsClan.getLeader().equals(playerUUID)) {
-                    player.sendMessage(cm.getMessage("requests-only-leader"));
-                    return true;
-                }
-                List<UUID> pendingReqs = reqsClan.getPendingRequests();
-                if (pendingReqs.isEmpty()) {
-                    player.sendMessage(cm.getMessage("requests-empty"));
-                    return true;
-                }
-                player.sendMessage(cm.formatPlain(cm.getPrefix() + "Pending join requests:"));
-                for (UUID reqUUID : new ArrayList<>(pendingReqs)) {
-                    String reqName = Bukkit.getOfflinePlayer(reqUUID).getName();
-                    if (reqName == null) reqName = reqUUID.toString().substring(0, 8);
-                    player.sendMessage(
-                            Component.text(cm.formatPlain(cm.getPrefix() + reqName + " "))
-                                    .append(Component.text(cm.formatPlain("[Accept]"))
-                                            .clickEvent(ClickEvent.runCommand("/clan accept-request " + reqName)))
-                    );
-                }
+                sendRequestList(player, cm);
                 break;
             }
 
@@ -1677,7 +1659,35 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             leaderOnline.sendMessage(
                     Component.text(cm.getMessage("request-received").replace("%player%", cm.formatPlain(requester.getName())) + " ")
                             .append(Component.text(cm.formatPlain("[View requests]"))
-                                    .clickEvent(ClickEvent.runCommand("/clan requests")))
+                                    .clickEvent(ClickEvent.runCommand("/clan request")))
+            );
+        }
+    }
+
+    private void sendRequestList(Player player, ConfigManager cm) {
+        UUID playerUUID = player.getUniqueId();
+        ClanData reqsClan = getPlayerClan(playerUUID);
+        if (reqsClan == null) {
+            player.sendMessage(cm.getMessage("no-clan"));
+            return;
+        }
+        if (!reqsClan.getLeader().equals(playerUUID)) {
+            player.sendMessage(cm.getMessage("requests-only-leader"));
+            return;
+        }
+        List<UUID> pendingReqs = reqsClan.getPendingRequests();
+        if (pendingReqs.isEmpty()) {
+            player.sendMessage(cm.getMessage("requests-empty"));
+            return;
+        }
+        player.sendMessage(cm.formatPlain(cm.getPrefix() + "Pending join requests:"));
+        for (UUID reqUUID : new ArrayList<>(pendingReqs)) {
+            String reqName = Bukkit.getOfflinePlayer(reqUUID).getName();
+            if (reqName == null) reqName = reqUUID.toString().substring(0, 8);
+            player.sendMessage(
+                    Component.text(cm.formatPlain(cm.getPrefix() + reqName + " "))
+                            .append(Component.text(cm.formatPlain("[Accept]"))
+                                    .clickEvent(ClickEvent.runCommand("/clan accept-request " + reqName)))
             );
         }
     }
