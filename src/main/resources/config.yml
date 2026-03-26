@@ -60,7 +60,7 @@ messages:
   clan-dissolved: "%prefix%The [%tag%] clan has been disbanded."
   # kept for backward compat
   delete-pending: "%prefix%The [%tag%] clan will be disbanded upon confirmation."
-  delete-confirm: "&cAre you sure you want to delete the clan?"
+  delete-confirm: "%prefix%&cAre you sure you want to delete the clan?"
   delete-denied: "%prefix%&cClan deletion cancelled."
   clan-deleted-cancelled: "%prefix%&cClan deletion cancelled (timed out)."
   not-clan-leader: "%prefix%&cYou are not the clan leader."

@@ -195,14 +195,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     pendingDeletes.put(playerUUID, System.currentTimeMillis());
                     player.sendMessage(cm.getMessage("delete-pending")
                             .replace("%tag%", cm.translateColors(disbandClan.getTag())));
-                    player.sendMessage(cm.getMessage("delete-confirm"));
                     player.sendMessage(
-                            Component.text(cm.formatPlain("[Accept]"))
-                                    .clickEvent(ClickEvent.runCommand(confirmCmd))
-                    );
-                    player.sendMessage(
-                            Component.text(cm.formatPlain("[Deny]"))
-                                    .clickEvent(ClickEvent.runCommand(denyCmd))
+                            Component.text(cm.getMessage("delete-confirm") + " ")
+                                    .append(Component.text(cm.formatPlain("[Accept]"))
+                                            .clickEvent(ClickEvent.runCommand(confirmCmd)))
+                                    .append(Component.text(" / "))
+                                    .append(Component.text(cm.formatPlain("[Deny]"))
+                                            .clickEvent(ClickEvent.runCommand(denyCmd)))
                     );
                 }
                 break;
@@ -250,14 +249,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         pendingAdminLeaves.put(playerUUID, System.currentTimeMillis());
                         player.sendMessage(cm.getMessage("delete-pending")
                                 .replace("%tag%", cm.translateColors(leaveClan.getTag())));
-                        player.sendMessage(cm.getMessage("delete-confirm"));
                         player.sendMessage(
-                                Component.text(cm.formatPlain("[Accept]"))
-                                        .clickEvent(ClickEvent.runCommand(confirmCmd))
-                        );
-                        player.sendMessage(
-                                Component.text(cm.formatPlain("[Deny]"))
-                                        .clickEvent(ClickEvent.runCommand(denyCmd))
+                                Component.text(cm.getMessage("delete-confirm") + " ")
+                                        .append(Component.text(cm.formatPlain("[Accept]"))
+                                                .clickEvent(ClickEvent.runCommand(confirmCmd)))
+                                        .append(Component.text(" / "))
+                                        .append(Component.text(cm.formatPlain("[Deny]"))
+                                                .clickEvent(ClickEvent.runCommand(denyCmd)))
                         );
                         return true;
                     }
@@ -280,14 +278,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                         pendingAdminLeaves.put(playerUUID, System.currentTimeMillis());
                         player.sendMessage(cm.getMessage("delete-pending")
                                 .replace("%tag%", cm.translateColors(leaveClan.getTag())));
-                        player.sendMessage(cm.getMessage("delete-confirm"));
                         player.sendMessage(
-                                Component.text(cm.formatPlain("[Accept]"))
-                                        .clickEvent(ClickEvent.runCommand(confirmCmd))
-                        );
-                        player.sendMessage(
-                                Component.text(cm.formatPlain("[Deny]"))
-                                        .clickEvent(ClickEvent.runCommand(denyCmd))
+                                Component.text(cm.getMessage("delete-confirm") + " ")
+                                        .append(Component.text(cm.formatPlain("[Accept]"))
+                                                .clickEvent(ClickEvent.runCommand(confirmCmd)))
+                                        .append(Component.text(" / "))
+                                        .append(Component.text(cm.formatPlain("[Deny]"))
+                                                .clickEvent(ClickEvent.runCommand(denyCmd)))
                         );
                         return true;
                     }
