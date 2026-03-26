@@ -3,6 +3,8 @@ package org.perq.clan;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,15 +34,9 @@ public class ClanSettingsListener implements Listener {
     private static final String DEFAULT_SKILLS_NAME = "&6Clan Skills";
     private static final String DEFAULT_SPAWN_NAME = "&6Clan Spawn";
     private static final String DEFAULT_INVITATIONS_NAME = "&6Invitations";
-    private static final int MAIN_INVENTORY_SIZE = 27;
-    private static final int CHEST_INVENTORY_SIZE = 54;
-    private static final int FRIENDLY_FIRE_INVENTORY_SIZE = 54;
-    private static final int SKILLS_INVENTORY_SIZE = 54;
-    private static final int SPAWN_INVENTORY_SIZE = 54;
-    private static final int CHEST_SLOT = 4;
-    private static final int FRIENDLY_FIRE_SLOT = 4;
-    private static final int SKILLS_SLOT = 4;
-    private static final int SPAWN_SLOT = 4;
+    private static final int DEFAULT_MAIN_ROWS = 3;
+    private static final int DEFAULT_SUBMENU_ROWS = 6;
+    private static final int DEFAULT_HEADER_SLOT = 4;
     private static final int MAIN_INVITE_TOGGLE_SLOT = 10;
     private static final int MAIN_CHEST_SLOT = 11;
     private static final int MAIN_FRIENDLY_FIRE_SLOT = 12;
@@ -56,11 +52,12 @@ public class ClanSettingsListener implements Listener {
 
     public void openGui(Player player, ClanData clan) {
         ConfigManager cm = plugin.getConfigManager();
-        Inventory inv = Bukkit.createInventory(null, MAIN_INVENTORY_SIZE,
+        MainMenuLayout layout = loadMainMenuLayout(cm);
+        Inventory inv = Bukkit.createInventory(null, layout.size,
                 cm.getComponent("settings-gui.titles.main", DEFAULT_MAIN_TITLE));
         SettingsSession session = new SettingsSession(clan.getTag(), new ArrayList<>(clan.getMembers()));
         sessions.put(player.getUniqueId(), session);
-        populateMainMenu(inv, player, clan);
+        populateMainMenu(inv, player, clan, layout);
         player.openInventory(inv);
     }
 
@@ -72,6 +69,11 @@ public class ClanSettingsListener implements Listener {
         SettingsSession session = sessions.get(player.getUniqueId());
         if (session == null) return;
         ConfigManager cm = plugin.getConfigManager();
+        MainMenuLayout mainLayout = loadMainMenuLayout(cm);
+        SubmenuLayout chestLayout = loadSubmenuLayout(cm, "chest");
+        SubmenuLayout friendlyLayout = loadSubmenuLayout(cm, "friendly-fire");
+        SubmenuLayout skillsLayout = loadSubmenuLayout(cm, "skills");
+        SubmenuLayout spawnLayout = loadSubmenuLayout(cm, "spawn");
         Component title = event.getView().title();
         boolean mainMenu = title.equals(cm.getComponent("settings-gui.titles.main", DEFAULT_MAIN_TITLE));
         boolean chestMenu = title.equals(cm.getComponent("settings-gui.titles.chest", DEFAULT_CHEST_TITLE));
@@ -94,13 +96,13 @@ public class ClanSettingsListener implements Listener {
         }
 
         if (mainMenu) {
-            if (rawSlot == MAIN_INVITE_TOGGLE_SLOT) {
+            if (rawSlot == mainLayout.inviteToggleSlot) {
                 boolean invitesDisabled = plugin.toggleInvitation(player);
                 player.sendMessage(invitesDisabled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
                 refreshMainMenu(event.getView().getTopInventory(), player, clan);
                 return;
             }
-            if (rawSlot == MAIN_CHEST_SLOT) {
+            if (rawSlot == mainLayout.chestSlot) {
                 if (!clan.getLeader().equals(player.getUniqueId())) {
                     player.sendMessage(cm.getMessage("not-clan-leader"));
                     return;
@@ -109,9 +111,9 @@ public class ClanSettingsListener implements Listener {
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
                 }
-                openChestSettings(player, clan, session, cm);
+                openChestSettings(player, clan, session, cm, chestLayout);
             }
-            if (rawSlot == MAIN_FRIENDLY_FIRE_SLOT) {
+            if (rawSlot == mainLayout.friendlyFireSlot) {
                 if (!clan.getLeader().equals(player.getUniqueId())) {
                     player.sendMessage(cm.getMessage("not-clan-leader"));
                     return;
@@ -120,9 +122,9 @@ public class ClanSettingsListener implements Listener {
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
                 }
-                openFriendlyFireSettings(player, clan, session, cm);
+                openFriendlyFireSettings(player, clan, session, cm, friendlyLayout);
             }
-            if (rawSlot == MAIN_SKILLS_SLOT) {
+            if (rawSlot == mainLayout.skillsSlot) {
                 if (!clan.getLeader().equals(player.getUniqueId())) {
                     player.sendMessage(cm.getMessage("not-clan-leader"));
                     return;
@@ -131,9 +133,9 @@ public class ClanSettingsListener implements Listener {
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
                 }
-                openSkillsSettings(player, clan, session, cm);
+                openSkillsSettings(player, clan, session, cm, skillsLayout);
             }
-            if (rawSlot == MAIN_SPAWN_SLOT) {
+            if (rawSlot == mainLayout.spawnSlot) {
                 if (!clan.getLeader().equals(player.getUniqueId())) {
                     player.sendMessage(cm.getMessage("not-clan-leader"));
                     return;
@@ -142,98 +144,90 @@ public class ClanSettingsListener implements Listener {
                 if (session.selectedMember != null && !session.members.contains(session.selectedMember)) {
                     session.selectedMember = null;
                 }
-                openSpawnSettings(player, clan, session, cm);
+                openSpawnSettings(player, clan, session, cm, spawnLayout);
             }
             return;
         }
 
         if (chestMenu) {
-            if (rawSlot == CHEST_SLOT) {
+            if (rawSlot == chestLayout.headerSlot) {
                 if (session.selectedMember != null) {
                     if (isLeaderToggle(player, clan, session.selectedMember, "settings-leader-chest")) return;
                     togglePermission(player, clan, session.selectedMember);
-                    refreshChestSettings(event.getView().getTopInventory(), clan, session);
+                    refreshChestSettings(event.getView().getTopInventory(), clan, session, chestLayout);
                 }
                 return;
             }
 
-            if (rawSlot < 9) return;
-
-            int memberIndex = rawSlot - 9;
-            if (memberIndex >= session.members.size()) return;
+            int memberIndex = chestLayout.memberSlots.indexOf(rawSlot);
+            if (memberIndex < 0 || memberIndex >= session.members.size()) return;
 
             UUID member = session.members.get(memberIndex);
             if (isLeaderToggle(player, clan, member, "settings-leader-chest")) return;
             session.selectedMember = member;
             togglePermission(player, clan, member);
-            refreshChestSettings(event.getView().getTopInventory(), clan, session);
+            refreshChestSettings(event.getView().getTopInventory(), clan, session, chestLayout);
             return;
         }
 
         if (friendlyMenu) {
-            if (rawSlot == FRIENDLY_FIRE_SLOT) {
+            if (rawSlot == friendlyLayout.headerSlot) {
                 if (session.selectedMember != null) {
                     toggleFriendlyFirePermission(player, clan, session.selectedMember);
-                    refreshFriendlyFireSettings(event.getView().getTopInventory(), clan, session);
+                    refreshFriendlyFireSettings(event.getView().getTopInventory(), clan, session, friendlyLayout);
                 }
                 return;
             }
 
-            if (rawSlot < 9) return;
-
-            int memberIndex = rawSlot - 9;
-            if (memberIndex >= session.members.size()) return;
+            int memberIndex = friendlyLayout.memberSlots.indexOf(rawSlot);
+            if (memberIndex < 0 || memberIndex >= session.members.size()) return;
 
             UUID member = session.members.get(memberIndex);
             session.selectedMember = member;
             toggleFriendlyFirePermission(player, clan, member);
-            refreshFriendlyFireSettings(event.getView().getTopInventory(), clan, session);
+            refreshFriendlyFireSettings(event.getView().getTopInventory(), clan, session, friendlyLayout);
             return;
         }
 
         if (skillsMenu) {
-            if (rawSlot == SKILLS_SLOT) {
+            if (rawSlot == skillsLayout.headerSlot) {
                 if (session.selectedMember != null) {
                     if (isLeaderToggle(player, clan, session.selectedMember, "settings-leader-skills")) return;
                     toggleSkillsPermission(player, clan, session.selectedMember);
-                    refreshSkillsSettings(event.getView().getTopInventory(), clan, session);
+                    refreshSkillsSettings(event.getView().getTopInventory(), clan, session, skillsLayout);
                 }
                 return;
             }
 
-            if (rawSlot < 9) return;
-
-            int memberIndex = rawSlot - 9;
-            if (memberIndex >= session.members.size()) return;
+            int memberIndex = skillsLayout.memberSlots.indexOf(rawSlot);
+            if (memberIndex < 0 || memberIndex >= session.members.size()) return;
 
             UUID member = session.members.get(memberIndex);
             if (isLeaderToggle(player, clan, member, "settings-leader-skills")) return;
             session.selectedMember = member;
             toggleSkillsPermission(player, clan, member);
-            refreshSkillsSettings(event.getView().getTopInventory(), clan, session);
+            refreshSkillsSettings(event.getView().getTopInventory(), clan, session, skillsLayout);
             return;
         }
 
         if (spawnMenu) {
-            if (rawSlot == SPAWN_SLOT) {
+            if (rawSlot == spawnLayout.headerSlot) {
                 if (session.selectedMember != null) {
                     if (isLeaderToggle(player, clan, session.selectedMember, "settings-leader-spawn")) return;
                     toggleSpawnPermission(player, clan, session.selectedMember);
-                    refreshSpawnSettings(event.getView().getTopInventory(), clan, session);
+                    refreshSpawnSettings(event.getView().getTopInventory(), clan, session, spawnLayout);
                 }
                 return;
             }
 
-            if (rawSlot < 9) return;
-
-            int memberIndex = rawSlot - 9;
-            if (memberIndex >= session.members.size()) return;
+            int memberIndex = spawnLayout.memberSlots.indexOf(rawSlot);
+            if (memberIndex < 0 || memberIndex >= session.members.size()) return;
 
             UUID member = session.members.get(memberIndex);
             if (isLeaderToggle(player, clan, member, "settings-leader-spawn")) return;
             session.selectedMember = member;
             toggleSpawnPermission(player, clan, member);
-            refreshSpawnSettings(event.getView().getTopInventory(), clan, session);
+            refreshSpawnSettings(event.getView().getTopInventory(), clan, session, spawnLayout);
         }
     }
 
@@ -258,164 +252,141 @@ public class ClanSettingsListener implements Listener {
         sessions.remove(event.getPlayer().getUniqueId());
     }
 
-    private void refreshChestSettings(Inventory inv, ClanData clan, SettingsSession session) {
+    private void refreshChestSettings(Inventory inv, ClanData clan, SettingsSession session, SubmenuLayout layout) {
         inv.clear();
-        populateChestSettings(inv, clan, session);
+        populateChestSettings(inv, clan, session, layout);
     }
 
-    private void refreshFriendlyFireSettings(Inventory inv, ClanData clan, SettingsSession session) {
+    private void refreshFriendlyFireSettings(Inventory inv, ClanData clan, SettingsSession session, SubmenuLayout layout) {
         inv.clear();
-        populateFriendlyFireSettings(inv, clan, session);
+        populateFriendlyFireSettings(inv, clan, session, layout);
     }
 
-    private void refreshSkillsSettings(Inventory inv, ClanData clan, SettingsSession session) {
+    private void refreshSkillsSettings(Inventory inv, ClanData clan, SettingsSession session, SubmenuLayout layout) {
         inv.clear();
-        populateSkillsSettings(inv, clan, session);
+        populateSkillsSettings(inv, clan, session, layout);
     }
 
-    private void refreshSpawnSettings(Inventory inv, ClanData clan, SettingsSession session) {
+    private void refreshSpawnSettings(Inventory inv, ClanData clan, SettingsSession session, SubmenuLayout layout) {
         inv.clear();
-        populateSpawnSettings(inv, clan, session);
+        populateSpawnSettings(inv, clan, session, layout);
     }
 
     private void refreshMainMenu(Inventory inv, Player player, ClanData clan) {
         inv.clear();
-        populateMainMenu(inv, player, clan);
+        populateMainMenu(inv, player, clan, loadMainMenuLayout(plugin.getConfigManager()));
     }
 
-    private void populateMainMenu(Inventory inv, Player player, ClanData clan) {
-        ItemStack orangePane = namedItem(Material.ORANGE_STAINED_GLASS_PANE, " ");
-        ItemStack grayPane = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 9; i++) {
-            inv.setItem(i, orangePane);
-            inv.setItem(18 + i, orangePane);
+    private void populateMainMenu(Inventory inv, Player player, ClanData clan, MainMenuLayout layout) {
+        for (Integer slot : layout.fillerSlots) {
+            if (slot >= 0 && slot < inv.getSize()) {
+                inv.setItem(slot, layout.filler);
+            }
         }
-        for (int i = 9; i < 18; i++) {
-            inv.setItem(i, grayPane);
+        for (Integer slot : layout.accentSlots) {
+            if (slot >= 0 && slot < inv.getSize()) {
+                inv.setItem(slot, layout.accent);
+            }
         }
-        inv.setItem(MAIN_CHEST_SLOT, clanChestItem(null));
-        inv.setItem(MAIN_FRIENDLY_FIRE_SLOT, friendlyFireItem(null));
-        inv.setItem(MAIN_INVITE_TOGGLE_SLOT, invitationToggleItem(player));
-        inv.setItem(MAIN_SKILLS_SLOT, clanSkillsItem(null));
-        inv.setItem(MAIN_SPAWN_SLOT, clanSpawnItem(null));
+        setItemIfValid(inv, layout.chestSlot, clanChestItem(null));
+        setItemIfValid(inv, layout.friendlyFireSlot, friendlyFireItem(null));
+        setItemIfValid(inv, layout.inviteToggleSlot, invitationToggleItem(player));
+        setItemIfValid(inv, layout.skillsSlot, clanSkillsItem(null));
+        setItemIfValid(inv, layout.spawnSlot, clanSpawnItem(null));
     }
 
-    private void populateChestSettings(Inventory inv, ClanData clan, SettingsSession session) {
-        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 9; i++) {
-            inv.setItem(i, filler);
-        }
-        inv.setItem(CHEST_SLOT, clanChestItem(session.selectedMember));
+    private void populateChestSettings(Inventory inv, ClanData clan, SettingsSession session, SubmenuLayout layout) {
+        applySubmenuFill(inv, layout);
+        setItemIfValid(inv, layout.headerSlot, clanChestItem(session.selectedMember));
 
         UUID leaderId = clan.getLeader();
-        for (int i = 0; i < session.members.size() && i < 45; i++) {
+        int maxMembers = Math.min(session.members.size(), layout.memberSlots.size());
+        for (int i = 0; i < maxMembers; i++) {
             UUID member = session.members.get(i);
             ClanChestPermission permission = effectivePermission(clan, member, leaderId);
             boolean selected = member.equals(session.selectedMember);
-            inv.setItem(9 + i, memberSkull(member, permission, selected, leaderId));
+            inv.setItem(layout.memberSlots.get(i), memberSkull(member, permission, selected, leaderId));
         }
 
-        if (session.members.size() < 45) {
-            for (int i = session.members.size(); i < 45; i++) {
-                inv.setItem(9 + i, namedItem(Material.BLACK_STAINED_GLASS_PANE, " "));
-            }
-        }
+        fillEmptyMembers(inv, layout, maxMembers);
     }
 
-    private void populateFriendlyFireSettings(Inventory inv, ClanData clan, SettingsSession session) {
-        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 9; i++) {
-            inv.setItem(i, filler);
-        }
-        inv.setItem(FRIENDLY_FIRE_SLOT, friendlyFireItem(session.selectedMember));
+    private void populateFriendlyFireSettings(Inventory inv, ClanData clan, SettingsSession session, SubmenuLayout layout) {
+        applySubmenuFill(inv, layout);
+        setItemIfValid(inv, layout.headerSlot, friendlyFireItem(session.selectedMember));
 
-        for (int i = 0; i < session.members.size() && i < 45; i++) {
+        int maxMembers = Math.min(session.members.size(), layout.memberSlots.size());
+        for (int i = 0; i < maxMembers; i++) {
             UUID member = session.members.get(i);
             ClanFriendlyFirePermission permission = effectiveFriendlyFirePermission(clan, member);
             boolean selected = member.equals(session.selectedMember);
-            inv.setItem(9 + i, friendlyFireMemberSkull(member, permission, selected, clan.getLeader()));
+            inv.setItem(layout.memberSlots.get(i), friendlyFireMemberSkull(member, permission, selected, clan.getLeader()));
         }
 
-        if (session.members.size() < 45) {
-            for (int i = session.members.size(); i < 45; i++) {
-                inv.setItem(9 + i, namedItem(Material.BLACK_STAINED_GLASS_PANE, " "));
-            }
-        }
+        fillEmptyMembers(inv, layout, maxMembers);
     }
 
-    private void populateSkillsSettings(Inventory inv, ClanData clan, SettingsSession session) {
-        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 9; i++) {
-            inv.setItem(i, filler);
-        }
-        inv.setItem(SKILLS_SLOT, clanSkillsItem(session.selectedMember));
+    private void populateSkillsSettings(Inventory inv, ClanData clan, SettingsSession session, SubmenuLayout layout) {
+        applySubmenuFill(inv, layout);
+        setItemIfValid(inv, layout.headerSlot, clanSkillsItem(session.selectedMember));
 
         UUID leaderId = clan.getLeader();
-        for (int i = 0; i < session.members.size() && i < 45; i++) {
+        int maxMembers = Math.min(session.members.size(), layout.memberSlots.size());
+        for (int i = 0; i < maxMembers; i++) {
             UUID member = session.members.get(i);
             ClanAccessPermission permission = effectiveSkillsPermission(clan, member, leaderId);
             boolean selected = member.equals(session.selectedMember);
-            inv.setItem(9 + i, accessMemberSkull(member, permission, selected, leaderId));
+            inv.setItem(layout.memberSlots.get(i), accessMemberSkull(member, permission, selected, leaderId));
         }
 
-        if (session.members.size() < 45) {
-            for (int i = session.members.size(); i < 45; i++) {
-                inv.setItem(9 + i, namedItem(Material.BLACK_STAINED_GLASS_PANE, " "));
-            }
-        }
+        fillEmptyMembers(inv, layout, maxMembers);
     }
 
-    private void populateSpawnSettings(Inventory inv, ClanData clan, SettingsSession session) {
-        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 9; i++) {
-            inv.setItem(i, filler);
-        }
-        inv.setItem(SPAWN_SLOT, clanSpawnItem(session.selectedMember));
+    private void populateSpawnSettings(Inventory inv, ClanData clan, SettingsSession session, SubmenuLayout layout) {
+        applySubmenuFill(inv, layout);
+        setItemIfValid(inv, layout.headerSlot, clanSpawnItem(session.selectedMember));
 
         UUID leaderId = clan.getLeader();
-        for (int i = 0; i < session.members.size() && i < 45; i++) {
+        int maxMembers = Math.min(session.members.size(), layout.memberSlots.size());
+        for (int i = 0; i < maxMembers; i++) {
             UUID member = session.members.get(i);
             ClanAccessPermission permission = effectiveSpawnPermission(clan, member, leaderId);
             boolean selected = member.equals(session.selectedMember);
-            inv.setItem(9 + i, accessMemberSkull(member, permission, selected, leaderId));
+            inv.setItem(layout.memberSlots.get(i), accessMemberSkull(member, permission, selected, leaderId));
         }
 
-        if (session.members.size() < 45) {
-            for (int i = session.members.size(); i < 45; i++) {
-                inv.setItem(9 + i, namedItem(Material.BLACK_STAINED_GLASS_PANE, " "));
-            }
-        }
+        fillEmptyMembers(inv, layout, maxMembers);
     }
 
-    private void openChestSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm) {
+    private void openChestSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm, SubmenuLayout layout) {
         session.switching = true;
-        Inventory inv = Bukkit.createInventory(null, CHEST_INVENTORY_SIZE,
+        Inventory inv = Bukkit.createInventory(null, layout.size,
                 cm.getComponent("settings-gui.titles.chest", DEFAULT_CHEST_TITLE));
-        populateChestSettings(inv, clan, session);
+        populateChestSettings(inv, clan, session, layout);
         player.openInventory(inv);
     }
 
-    private void openFriendlyFireSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm) {
+    private void openFriendlyFireSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm, SubmenuLayout layout) {
         session.switching = true;
-        Inventory inv = Bukkit.createInventory(null, FRIENDLY_FIRE_INVENTORY_SIZE,
+        Inventory inv = Bukkit.createInventory(null, layout.size,
                 cm.getComponent("settings-gui.titles.friendly-fire", DEFAULT_FRIENDLY_FIRE_TITLE));
-        populateFriendlyFireSettings(inv, clan, session);
+        populateFriendlyFireSettings(inv, clan, session, layout);
         player.openInventory(inv);
     }
 
-    private void openSkillsSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm) {
+    private void openSkillsSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm, SubmenuLayout layout) {
         session.switching = true;
-        Inventory inv = Bukkit.createInventory(null, SKILLS_INVENTORY_SIZE,
+        Inventory inv = Bukkit.createInventory(null, layout.size,
                 cm.getComponent("settings-gui.titles.skills", DEFAULT_SKILLS_TITLE));
-        populateSkillsSettings(inv, clan, session);
+        populateSkillsSettings(inv, clan, session, layout);
         player.openInventory(inv);
     }
 
-    private void openSpawnSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm) {
+    private void openSpawnSettings(Player player, ClanData clan, SettingsSession session, ConfigManager cm, SubmenuLayout layout) {
         session.switching = true;
-        Inventory inv = Bukkit.createInventory(null, SPAWN_INVENTORY_SIZE,
+        Inventory inv = Bukkit.createInventory(null, layout.size,
                 cm.getComponent("settings-gui.titles.spawn", DEFAULT_SPAWN_TITLE));
-        populateSpawnSettings(inv, clan, session);
+        populateSpawnSettings(inv, clan, session, layout);
         player.openInventory(inv);
     }
 
@@ -500,115 +471,248 @@ public class ClanSettingsListener implements Listener {
     }
 
     private ItemStack clanChestItem(UUID selectedMember) {
-        ConfigManager cm = plugin.getConfigManager();
-        ItemStack item = new ItemStack(Material.CHEST);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(cm.getConfigString("settings-gui.items.clan-chest.name", DEFAULT_CHEST_NAME));
-            List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Click to configure"));
-            if (selectedMember != null) {
-                String name = Bukkit.getOfflinePlayer(selectedMember).getName();
-                if (name == null) name = selectedMember.toString().substring(0, 8);
-                lore.add(cm.translateColors("&7Selected: &f" + name));
-            }
-            lore.add(cm.translateColors("&7✅ &aFull access"));
-            lore.add(cm.translateColors("&7❌ &cNo access (view only)"));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
+        Map<String, String> placeholders = new HashMap<>();
+        String selectedName = resolveSelectedName(selectedMember);
+        if (selectedName != null) {
+            placeholders.put("%selected%", selectedName);
         }
-        return item;
+        List<String> defaultLore = List.of(
+                "&7Click to configure",
+                "&7✅ &aFull access",
+                "&7❌ &cNo access (view only)"
+        );
+        List<String> defaultSelectedLore = List.of("&7Selected: &f%selected%");
+        return buildSettingsItem("settings-gui.items.clan-chest", Material.CHEST,
+                DEFAULT_CHEST_NAME, defaultLore, placeholders, selectedName != null, defaultSelectedLore);
     }
 
     private ItemStack friendlyFireItem(UUID selectedMember) {
-        ConfigManager cm = plugin.getConfigManager();
-        ItemStack item = new ItemStack(Material.IRON_SWORD);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(cm.getConfigString("settings-gui.items.friendly-fire.name",
-                    DEFAULT_FRIENDLY_FIRE_NAME));
-            List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Click to configure"));
-            if (selectedMember != null) {
-                String name = Bukkit.getOfflinePlayer(selectedMember).getName();
-                if (name == null) name = selectedMember.toString().substring(0, 8);
-                lore.add(cm.translateColors("&7Selected: &f" + name));
-            }
-            lore.add(cm.translateColors("&7✅ &aEnabled"));
-            lore.add(cm.translateColors("&7❌ &cDisabled"));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
+        Map<String, String> placeholders = new HashMap<>();
+        String selectedName = resolveSelectedName(selectedMember);
+        if (selectedName != null) {
+            placeholders.put("%selected%", selectedName);
         }
-        return item;
+        List<String> defaultLore = List.of(
+                "&7Click to configure",
+                "&7✅ &aEnabled",
+                "&7❌ &cDisabled"
+        );
+        List<String> defaultSelectedLore = List.of("&7Selected: &f%selected%");
+        return buildSettingsItem("settings-gui.items.friendly-fire", Material.IRON_SWORD,
+                DEFAULT_FRIENDLY_FIRE_NAME, defaultLore, placeholders, selectedName != null, defaultSelectedLore);
     }
 
     private ItemStack clanSkillsItem(UUID selectedMember) {
-        ConfigManager cm = plugin.getConfigManager();
-        ItemStack item = new ItemStack(Material.NETHER_STAR);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(cm.getConfigString("settings-gui.items.clan-skills.name", DEFAULT_SKILLS_NAME));
-            List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Click to configure"));
-            if (selectedMember != null) {
-                String name = Bukkit.getOfflinePlayer(selectedMember).getName();
-                if (name == null) name = selectedMember.toString().substring(0, 8);
-                lore.add(cm.translateColors("&7Selected: &f" + name));
-            }
-            lore.add(cm.translateColors("&7✅ &aFull access"));
-            lore.add(cm.translateColors("&7❌ &cNo access"));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
+        Map<String, String> placeholders = new HashMap<>();
+        String selectedName = resolveSelectedName(selectedMember);
+        if (selectedName != null) {
+            placeholders.put("%selected%", selectedName);
         }
-        return item;
+        List<String> defaultLore = List.of(
+                "&7Click to configure",
+                "&7✅ &aFull access",
+                "&7❌ &cNo access"
+        );
+        List<String> defaultSelectedLore = List.of("&7Selected: &f%selected%");
+        return buildSettingsItem("settings-gui.items.clan-skills", Material.NETHER_STAR,
+                DEFAULT_SKILLS_NAME, defaultLore, placeholders, selectedName != null, defaultSelectedLore);
     }
 
     private ItemStack clanSpawnItem(UUID selectedMember) {
-        ConfigManager cm = plugin.getConfigManager();
-        ItemStack item = new ItemStack(Material.ENDER_EYE);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(cm.getConfigString("settings-gui.items.clan-spawn.name", DEFAULT_SPAWN_NAME));
-            List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Click to configure"));
-            if (selectedMember != null) {
-                String name = Bukkit.getOfflinePlayer(selectedMember).getName();
-                if (name == null) name = selectedMember.toString().substring(0, 8);
-                lore.add(cm.translateColors("&7Selected: &f" + name));
-            }
-            lore.add(cm.translateColors("&7✅ &aFull access"));
-            lore.add(cm.translateColors("&7👁 &eSee only"));
-            lore.add(cm.translateColors("&7❌ &cNo access"));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
+        Map<String, String> placeholders = new HashMap<>();
+        String selectedName = resolveSelectedName(selectedMember);
+        if (selectedName != null) {
+            placeholders.put("%selected%", selectedName);
         }
-        return item;
+        List<String> defaultLore = List.of(
+                "&7Click to configure",
+                "&7✅ &aFull access",
+                "&7👁 &eSee only",
+                "&7❌ &cNo access"
+        );
+        List<String> defaultSelectedLore = List.of("&7Selected: &f%selected%");
+        return buildSettingsItem("settings-gui.items.clan-spawn", Material.ENDER_EYE,
+                DEFAULT_SPAWN_NAME, defaultLore, placeholders, selectedName != null, defaultSelectedLore);
     }
 
     private ItemStack invitationToggleItem(Player player) {
-        ConfigManager cm = plugin.getConfigManager();
         boolean invitesEnabled = plugin.isInvitesEnabled(player.getUniqueId());
-        ItemStack item = new ItemStack(Material.BELL);
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("%status%", invitesEnabled ? "&aEnabled" : "&cDisabled");
+        List<String> defaultLore = List.of(
+                "&7Click to toggle",
+                "&7Status: %status%"
+        );
+        return buildSettingsItem("settings-gui.items.invitations", Material.BELL,
+                DEFAULT_INVITATIONS_NAME, defaultLore, placeholders, false, List.of());
+    }
+
+    private ItemStack buildSettingsItem(String path,
+                                        Material defaultMaterial,
+                                        String defaultName,
+                                        List<String> defaultLore,
+                                        Map<String, String> placeholders,
+                                        boolean includeSelected,
+                                        List<String> defaultSelectedLore) {
+        ConfigManager cm = plugin.getConfigManager();
+        FileConfiguration config = plugin.getConfig();
+        ConfigurationSection section = config.getConfigurationSection(path);
+        ItemStack item = GuiConfigHelper.buildConfiguredItem(cm, section, defaultMaterial, defaultName, defaultLore, placeholders);
+        if (!includeSelected) return item;
+
+        List<String> selectedLore = GuiConfigHelper.getConfiguredLore(section, "selected-lore", defaultSelectedLore);
+        if (selectedLore.isEmpty()) return item;
+
         ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(cm.getConfigString("settings-gui.items.invitations.name", DEFAULT_INVITATIONS_NAME));
-            List<String> lore = new ArrayList<>();
-            lore.add(cm.translateColors("&7Click to toggle"));
-            lore.add(cm.translateColors("&7Status: " + (invitesEnabled ? "&aEnabled" : "&cDisabled")));
-            meta.setLore(lore);
-            item.setItemMeta(meta);
+        if (meta == null) return item;
+
+        List<String> lore = meta.getLore();
+        List<String> updatedLore = lore == null ? new ArrayList<>() : new ArrayList<>(lore);
+        for (String line : selectedLore) {
+            String applied = GuiConfigHelper.applyPlaceholders(line, placeholders);
+            updatedLore.add(cm.translateColors(applied));
         }
+        meta.setLore(updatedLore);
+        item.setItemMeta(meta);
         return item;
     }
 
-    private ItemStack namedItem(Material material, String name) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            item.setItemMeta(meta);
+    private String resolveSelectedName(UUID selectedMember) {
+        if (selectedMember == null) return null;
+        String name = Bukkit.getOfflinePlayer(selectedMember).getName();
+        if (name == null) {
+            name = selectedMember.toString().substring(0, 8);
         }
-        return item;
+        return name;
+    }
+
+    private void setItemIfValid(Inventory inv, int slot, ItemStack item) {
+        if (slot >= 0 && slot < inv.getSize()) {
+            inv.setItem(slot, item);
+        }
+    }
+
+    private void applySubmenuFill(Inventory inv, SubmenuLayout layout) {
+        for (Integer slot : layout.fillerSlots) {
+            if (slot >= 0 && slot < inv.getSize()) {
+                inv.setItem(slot, layout.filler);
+            }
+        }
+    }
+
+    private void fillEmptyMembers(Inventory inv, SubmenuLayout layout, int startIndex) {
+        for (int i = startIndex; i < layout.memberSlots.size(); i++) {
+            int slot = layout.memberSlots.get(i);
+            if (slot >= 0 && slot < inv.getSize()) {
+                inv.setItem(slot, layout.emptyMemberItem);
+            }
+        }
+    }
+
+    private MainMenuLayout loadMainMenuLayout(ConfigManager cm) {
+        FileConfiguration config = plugin.getConfig();
+        int rows = GuiConfigHelper.clampRows(config.getInt("settings-gui.main.rows", DEFAULT_MAIN_ROWS));
+        int size = rows * 9;
+        ItemStack filler = GuiConfigHelper.buildConfiguredItem(cm,
+                config.getConfigurationSection("settings-gui.main.filler"),
+                Material.ORANGE_STAINED_GLASS_PANE,
+                " ",
+                List.of(),
+                Map.of());
+        List<Integer> fillerSlots = GuiConfigHelper.resolveOptionalSlots(config, "settings-gui.main.filler.slots", size);
+        if (fillerSlots == null) {
+            fillerSlots = buildDefaultMainFillerSlots(rows);
+        }
+        ItemStack accent = GuiConfigHelper.buildConfiguredItem(cm,
+                config.getConfigurationSection("settings-gui.main.accent"),
+                Material.GRAY_STAINED_GLASS_PANE,
+                " ",
+                List.of(),
+                Map.of());
+        List<Integer> accentSlots = GuiConfigHelper.resolveOptionalSlots(config, "settings-gui.main.accent.slots", size);
+        if (accentSlots == null) {
+            accentSlots = buildDefaultMainAccentSlots(rows);
+        }
+
+        int inviteSlot = GuiConfigHelper.resolveSlot(config, "settings-gui.items.invitations.slot", MAIN_INVITE_TOGGLE_SLOT, size);
+        int chestSlot = GuiConfigHelper.resolveSlot(config, "settings-gui.items.clan-chest.slot", MAIN_CHEST_SLOT, size);
+        int friendlySlot = GuiConfigHelper.resolveSlot(config, "settings-gui.items.friendly-fire.slot", MAIN_FRIENDLY_FIRE_SLOT, size);
+        int skillsSlot = GuiConfigHelper.resolveSlot(config, "settings-gui.items.clan-skills.slot", MAIN_SKILLS_SLOT, size);
+        int spawnSlot = GuiConfigHelper.resolveSlot(config, "settings-gui.items.clan-spawn.slot", MAIN_SPAWN_SLOT, size);
+
+        return new MainMenuLayout(size, filler, fillerSlots, accent, accentSlots,
+                inviteSlot, chestSlot, friendlySlot, skillsSlot, spawnSlot);
+    }
+
+    private SubmenuLayout loadSubmenuLayout(ConfigManager cm, String key) {
+        FileConfiguration config = plugin.getConfig();
+        String basePath = "settings-gui.submenus." + key;
+        int rows = GuiConfigHelper.clampRows(config.getInt(basePath + ".rows", DEFAULT_SUBMENU_ROWS));
+        int size = rows * 9;
+        ItemStack filler = GuiConfigHelper.buildConfiguredItem(cm,
+                config.getConfigurationSection(basePath + ".filler"),
+                Material.GRAY_STAINED_GLASS_PANE,
+                " ",
+                List.of(),
+                Map.of());
+        List<Integer> fillerSlots = GuiConfigHelper.resolveOptionalSlots(config, basePath + ".filler.slots", size);
+        if (fillerSlots == null) {
+            fillerSlots = buildDefaultSubmenuFillerSlots(size);
+        }
+        ItemStack emptyMemberItem = GuiConfigHelper.buildConfiguredItem(cm,
+                config.getConfigurationSection(basePath + ".empty-member"),
+                Material.BLACK_STAINED_GLASS_PANE,
+                " ",
+                List.of(),
+                Map.of());
+
+        int headerSlot = GuiConfigHelper.resolveSlot(config, basePath + ".header.slot", DEFAULT_HEADER_SLOT, size);
+        List<Integer> memberSlots = buildMemberSlots(config, basePath, size);
+        return new SubmenuLayout(size, filler, fillerSlots, emptyMemberItem, headerSlot, memberSlots);
+    }
+
+    private List<Integer> buildDefaultMainFillerSlots(int rows) {
+        List<Integer> slots = new ArrayList<>();
+        int size = rows * 9;
+        if (rows <= 0) return slots;
+        for (int col = 0; col < 9; col++) {
+            slots.add(col);
+            int bottom = size - 9 + col;
+            if (bottom != col && bottom >= 0 && bottom < size) {
+                slots.add(bottom);
+            }
+        }
+        return slots;
+    }
+
+    private List<Integer> buildDefaultMainAccentSlots(int rows) {
+        List<Integer> slots = new ArrayList<>();
+        int size = rows * 9;
+        for (int row = 1; row <= rows - 2; row++) {
+            for (int col = 0; col < 9; col++) {
+                int slot = (row * 9) + col;
+                if (slot >= 0 && slot < size) {
+                    slots.add(slot);
+                }
+            }
+        }
+        return slots;
+    }
+
+    private List<Integer> buildDefaultSubmenuFillerSlots(int size) {
+        List<Integer> slots = new ArrayList<>();
+        for (int col = 0; col < Math.min(9, size); col++) {
+            slots.add(col);
+        }
+        return slots;
+    }
+
+    private List<Integer> buildMemberSlots(FileConfiguration config, String basePath, int size) {
+        List<Integer> defaults = new ArrayList<>();
+        for (int slot = 9; slot < size; slot++) {
+            defaults.add(slot);
+        }
+        return GuiConfigHelper.resolveSlots(config, basePath + ".member-slots", defaults, size);
     }
 
     private ItemStack memberSkull(UUID member, ClanChestPermission permission, boolean selected, UUID leaderId) {
@@ -713,6 +817,64 @@ public class ClanSettingsListener implements Listener {
             return "&c❌ Disabled";
         }
         return "&a✅ Enabled";
+    }
+
+    private static class MainMenuLayout {
+        private final int size;
+        private final ItemStack filler;
+        private final List<Integer> fillerSlots;
+        private final ItemStack accent;
+        private final List<Integer> accentSlots;
+        private final int inviteToggleSlot;
+        private final int chestSlot;
+        private final int friendlyFireSlot;
+        private final int skillsSlot;
+        private final int spawnSlot;
+
+        private MainMenuLayout(int size,
+                               ItemStack filler,
+                               List<Integer> fillerSlots,
+                               ItemStack accent,
+                               List<Integer> accentSlots,
+                               int inviteToggleSlot,
+                               int chestSlot,
+                               int friendlyFireSlot,
+                               int skillsSlot,
+                               int spawnSlot) {
+            this.size = size;
+            this.filler = filler;
+            this.fillerSlots = fillerSlots;
+            this.accent = accent;
+            this.accentSlots = accentSlots;
+            this.inviteToggleSlot = inviteToggleSlot;
+            this.chestSlot = chestSlot;
+            this.friendlyFireSlot = friendlyFireSlot;
+            this.skillsSlot = skillsSlot;
+            this.spawnSlot = spawnSlot;
+        }
+    }
+
+    private static class SubmenuLayout {
+        private final int size;
+        private final ItemStack filler;
+        private final List<Integer> fillerSlots;
+        private final ItemStack emptyMemberItem;
+        private final int headerSlot;
+        private final List<Integer> memberSlots;
+
+        private SubmenuLayout(int size,
+                              ItemStack filler,
+                              List<Integer> fillerSlots,
+                              ItemStack emptyMemberItem,
+                              int headerSlot,
+                              List<Integer> memberSlots) {
+            this.size = size;
+            this.filler = filler;
+            this.fillerSlots = fillerSlots;
+            this.emptyMemberItem = emptyMemberItem;
+            this.headerSlot = headerSlot;
+            this.memberSlots = memberSlots;
+        }
     }
 
     private static class SettingsSession {

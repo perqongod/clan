@@ -2,6 +2,8 @@ package org.perq.clan;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,13 +13,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ClanStatsListener implements Listener {
-    private static final String TITLE_PREFIX = "Clan stats of ";
+    private static final String DEFAULT_TITLE_TEMPLATE = "Clan stats of %tag%";
     private static final String EMPTY_DISPLAY_NAME = " ";
     private static final String PLAYTIME_FORMAT = "%.1f";
-    private static final int INVENTORY_SIZE = 27;
+    private static final int DEFAULT_ROWS = 3;
     private static final int POINTS_SLOT = 10;
     private static final int RANK_SLOT = 11;
     private static final int CREATED_SLOT = 12;
@@ -34,9 +38,9 @@ public class ClanStatsListener implements Listener {
 
     public void openGui(Player player, ClanData clan) {
         ConfigManager cm = plugin.getConfigManager();
-        Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE,
-                cm.translateColors(TITLE_PREFIX + clan.getTag()));
-        populateInventory(inv, clan);
+        StatsGuiLayout layout = loadStatsGuiLayout(cm);
+        Inventory inv = Bukkit.createInventory(null, layout.size, formatStatsTitle(cm, clan));
+        populateInventory(inv, clan, layout);
         player.openInventory(inv);
     }
 
@@ -45,7 +49,7 @@ public class ClanStatsListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         @SuppressWarnings("deprecation")
         String title = event.getView().getTitle();
-        if (!title.startsWith(TITLE_PREFIX)) return;
+        if (!matchesStatsTitle(title, plugin.getConfigManager())) return;
 
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
@@ -53,46 +57,54 @@ public class ClanStatsListener implements Listener {
         event.setCancelled(true);
     }
 
-    private void populateInventory(Inventory inv, ClanData clan) {
+    private void populateInventory(Inventory inv, ClanData clan, StatsGuiLayout layout) {
         inv.clear();
         ConfigManager cm = plugin.getConfigManager();
 
-        ItemStack filler = namedItem(Material.GRAY_STAINED_GLASS_PANE, EMPTY_DISPLAY_NAME);
-        for (int i = 0; i < inv.getSize(); i++) {
-            inv.setItem(i, filler);
+        ItemStack filler = layout.filler;
+        for (Integer slot : layout.fillerSlots) {
+            if (slot >= 0 && slot < inv.getSize()) {
+                inv.setItem(slot, filler);
+            }
         }
 
         String leaderName = Bukkit.getOfflinePlayer(clan.getLeader()).getName();
         if (leaderName == null) leaderName = "Unknown";
         int effectiveMaxMembers = cm.getMaxMembers() + ClanSkillProgress.getBonusMemberSlots(clan.getSkillPoints());
+        String playtime = String.format(PLAYTIME_FORMAT, clan.getOnlineTime());
 
-        List<String> pointsLore = new ArrayList<>();
-        pointsLore.add(cm.translateColors("&f" + clan.getPoints()));
-        inv.setItem(POINTS_SLOT, namedItem(Material.GREEN_WOOL, cm.translateColors("&aClan Points"), pointsLore));
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("%tag%", clan.getTag());
+        placeholders.put("%points%", String.valueOf(clan.getPoints()));
+        placeholders.put("%rank%", clan.getRank());
+        placeholders.put("%created%", clan.getCreated());
+        placeholders.put("%members%", String.valueOf(clan.getMembers().size()));
+        placeholders.put("%max_members%", String.valueOf(effectiveMaxMembers));
+        placeholders.put("%playtime%", playtime);
+        placeholders.put("%leader%", leaderName);
 
-        List<String> rankLore = new ArrayList<>();
-        rankLore.add(cm.translateColors("&f" + clan.getRank()));
-        inv.setItem(RANK_SLOT, namedItem(Material.PINK_WOOL, cm.translateColors("&dClan Rank"), rankLore));
-
-        List<String> createdLore = new ArrayList<>();
-        createdLore.add(cm.translateColors("&f" + clan.getCreated()));
-        inv.setItem(CREATED_SLOT, namedItem(Material.RED_WOOL, cm.translateColors("&cCreated"), createdLore));
-
-        List<String> membersLore = new ArrayList<>();
-        membersLore.add(cm.translateColors("&f" + clan.getMembers().size() + "/" + effectiveMaxMembers));
-        inv.setItem(MEMBERS_SLOT, namedItem(Material.GRAY_WOOL, cm.translateColors("&7Members"), membersLore));
-
-        List<String> playtimeLore = new ArrayList<>();
-        playtimeLore.add(cm.translateColors("&f" + String.format(PLAYTIME_FORMAT, clan.getOnlineTime()) + "h"));
-        inv.setItem(PLAYTIME_SLOT, namedItem(Material.YELLOW_WOOL, cm.translateColors("&eTotal Playtime"), playtimeLore));
-
-        List<String> leaderLore = new ArrayList<>();
-        leaderLore.add(cm.translateColors("&f" + leaderName));
-        inv.setItem(LEADER_SLOT, namedItem(Material.WHITE_WOOL, cm.translateColors("&fLeader"), leaderLore));
-
-        List<String> tagLore = new ArrayList<>();
-        tagLore.add(cm.translateColors("&f" + clan.getTag()));
-        inv.setItem(TAG_SLOT, namedItem(Material.BLACK_WOOL, cm.translateColors("&8Clan Tag"), tagLore));
+        FileConfiguration config = plugin.getConfig();
+        setConfiguredItem(inv, cm, config, "stats-gui.items.points", POINTS_SLOT,
+                Material.GREEN_WOOL, "&aClan Points",
+                List.of("&f%points%"), placeholders);
+        setConfiguredItem(inv, cm, config, "stats-gui.items.rank", RANK_SLOT,
+                Material.PINK_WOOL, "&dClan Rank",
+                List.of("&f%rank%"), placeholders);
+        setConfiguredItem(inv, cm, config, "stats-gui.items.created", CREATED_SLOT,
+                Material.RED_WOOL, "&cCreated",
+                List.of("&f%created%"), placeholders);
+        setConfiguredItem(inv, cm, config, "stats-gui.items.members", MEMBERS_SLOT,
+                Material.GRAY_WOOL, "&7Members",
+                List.of("&f%members%/%max_members%"), placeholders);
+        setConfiguredItem(inv, cm, config, "stats-gui.items.playtime", PLAYTIME_SLOT,
+                Material.YELLOW_WOOL, "&eTotal Playtime",
+                List.of("&f%playtime%h"), placeholders);
+        setConfiguredItem(inv, cm, config, "stats-gui.items.leader", LEADER_SLOT,
+                Material.WHITE_WOOL, "&fLeader",
+                List.of("&f%leader%"), placeholders);
+        setConfiguredItem(inv, cm, config, "stats-gui.items.tag", TAG_SLOT,
+                Material.BLACK_WOOL, "&8Clan Tag",
+                List.of("&f%tag%"), placeholders);
     }
 
     private ItemStack namedItem(Material material, String name) {
@@ -110,5 +122,68 @@ public class ClanStatsListener implements Listener {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    private StatsGuiLayout loadStatsGuiLayout(ConfigManager cm) {
+        FileConfiguration config = plugin.getConfig();
+        int rows = GuiConfigHelper.clampRows(config.getInt("stats-gui.rows", DEFAULT_ROWS));
+        int size = rows * 9;
+        ItemStack filler = GuiConfigHelper.buildConfiguredItem(cm,
+                config.getConfigurationSection("stats-gui.filler"),
+                Material.GRAY_STAINED_GLASS_PANE,
+                EMPTY_DISPLAY_NAME,
+                List.of(),
+                Map.of());
+        List<Integer> fillerSlots = GuiConfigHelper.resolveOptionalSlots(config, "stats-gui.filler.slots", size);
+        if (fillerSlots == null) {
+            fillerSlots = GuiConfigHelper.buildDefaultSlots(size);
+        }
+        return new StatsGuiLayout(size, filler, fillerSlots);
+    }
+
+    private void setConfiguredItem(Inventory inv,
+                                   ConfigManager cm,
+                                   FileConfiguration config,
+                                   String path,
+                                   int defaultSlot,
+                                   Material defaultMaterial,
+                                   String defaultName,
+                                   List<String> defaultLore,
+                                   Map<String, String> placeholders) {
+        int slot = GuiConfigHelper.resolveSlot(config, path + ".slot", defaultSlot, inv.getSize());
+        if (slot < 0 || slot >= inv.getSize()) return;
+        ConfigurationSection section = config.getConfigurationSection(path);
+        ItemStack item = GuiConfigHelper.buildConfiguredItem(cm, section,
+                defaultMaterial, defaultName, defaultLore, placeholders);
+        inv.setItem(slot, item);
+    }
+
+    private String formatStatsTitle(ConfigManager cm, ClanData clan) {
+        String template = plugin.getConfig().getString("stats-gui.title", DEFAULT_TITLE_TEMPLATE);
+        String withTag = GuiConfigHelper.applyPlaceholders(template, Map.of("%tag%", clan.getTag()));
+        return cm.translateColors(withTag);
+    }
+
+    private boolean matchesStatsTitle(String title, ConfigManager cm) {
+        String template = plugin.getConfig().getString("stats-gui.title", DEFAULT_TITLE_TEMPLATE);
+        int index = template.indexOf("%tag%");
+        if (index < 0) {
+            return title.equals(cm.translateColors(template));
+        }
+        String prefix = cm.translateColors(template.substring(0, index));
+        String suffix = cm.translateColors(template.substring(index + "%tag%".length()));
+        return title.startsWith(prefix) && title.endsWith(suffix);
+    }
+
+    private static class StatsGuiLayout {
+        private final int size;
+        private final ItemStack filler;
+        private final List<Integer> fillerSlots;
+
+        private StatsGuiLayout(int size, ItemStack filler, List<Integer> fillerSlots) {
+            this.size = size;
+            this.filler = filler;
+            this.fillerSlots = fillerSlots;
+        }
     }
 }

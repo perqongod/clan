@@ -206,20 +206,102 @@ skills-gui:
         - "&7%reward%"
       unlocked-lore:
         - "&7Cooldown: &f30m"
-        - "&7Teleport all members to the leader"
       locked:
         lore:
           - "&7use clan rally"
 
+stats-gui:
+  rows: 3
+  title: "Clan stats of %tag%"
+  filler:
+    material: GRAY_STAINED_GLASS_PANE
+    name: " "
+    slots: []
+  items:
+    points:
+      slot: 10
+      material: GREEN_WOOL
+      name: "&aClan Points"
+      lore:
+        - "&f%points%"
+    rank:
+      slot: 11
+      material: PINK_WOOL
+      name: "&dClan Rank"
+      lore:
+        - "&f%rank%"
+    created:
+      slot: 12
+      material: RED_WOOL
+      name: "&cCreated"
+      lore:
+        - "&f%created%"
+    members:
+      slot: 13
+      material: GRAY_WOOL
+      name: "&7Members"
+      lore:
+        - "&f%members%/%max_members%"
+    playtime:
+      slot: 14
+      material: YELLOW_WOOL
+      name: "&eTotal Playtime"
+      lore:
+        - "&f%playtime%h"
+    leader:
+      slot: 15
+      material: WHITE_WOOL
+      name: "&fLeader"
+      lore:
+        - "&f%leader%"
+    tag:
+      slot: 16
+      material: BLACK_WOOL
+      name: "&8Clan Tag"
+      lore:
+        - "&f%tag%"
+
 quest-gui:
+  rows: 3
   title: "clan quests"
+  filler:
+    material: GRAY_STAINED_GLASS_PANE
+    name: " "
+    slots: []
   overview:
+    slot: 22
+    material: NETHER_STAR
     name: "&6clan quests"
+    lore:
+      - "&7quest level: &f%quest_level%"
+      - "&7completed quests: &f%completed%/%total%"
+      - "&7quest skill points: &f%quest_points%"
+      - "&7redeemable quest points: &f%redeemable%"
+      - "%quest_info%"
   navigation:
     previous:
+      slot: 0
+      material: ARROW
       name: "&eprevious"
     next:
+      slot: 8
+      material: ARROW
       name: "&enext"
+  level-one:
+    material: BOOK
+    name: "&6quest level 1"
+    lore:
+      - "&7unlocked"
+  quests:
+    row-start: 9
+    row-size: 9
+    slots: []
+    name: "&6quest level %level% - %target%"
+    lore:
+      - "&7task: &fkill %required% %target%"
+      - "&7progress: &f%progress%"
+      - "&7reward: &f%reward% quest points"
+      - "%status%"
 
 settings-gui:
   titles:
@@ -228,17 +310,114 @@ settings-gui:
     friendly-fire: "Clan Friendly Fire Settings"
     skills: "Clan Skills Settings"
     spawn: "Clan Spawn Settings"
+  main:
+    rows: 3
+    filler:
+      material: ORANGE_STAINED_GLASS_PANE
+      name: " "
+      slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+    accent:
+      material: GRAY_STAINED_GLASS_PANE
+      name: " "
+      slots: [9, 10, 11, 12, 13, 14, 15, 16, 17]
   items:
     clan-chest:
+      slot: 11
+      material: CHEST
       name: "&6Clan Chest"
+      lore:
+        - "&7Click to configure"
+        - "&7✅ &aFull access"
+        - "&7❌ &cNo access (view only)"
+      selected-lore:
+        - "&7Selected: &f%selected%"
     friendly-fire:
+      slot: 12
+      material: IRON_SWORD
       name: "&6Friendly Fire"
+      lore:
+        - "&7Click to configure"
+        - "&7✅ &aEnabled"
+        - "&7❌ &cDisabled"
+      selected-lore:
+        - "&7Selected: &f%selected%"
     clan-skills:
+      slot: 13
+      material: NETHER_STAR
       name: "&6Clan Skills"
+      lore:
+        - "&7Click to configure"
+        - "&7✅ &aFull access"
+        - "&7❌ &cNo access"
+      selected-lore:
+        - "&7Selected: &f%selected%"
     clan-spawn:
+      slot: 14
+      material: ENDER_EYE
       name: "&6Clan Spawn"
+      lore:
+        - "&7Click to configure"
+        - "&7✅ &aFull access"
+        - "&7👁 &eSee only"
+        - "&7❌ &cNo access"
+      selected-lore:
+        - "&7Selected: &f%selected%"
     invitations:
+      slot: 10
+      material: BELL
       name: "&6Invitations"
+      lore:
+        - "&7Click to toggle"
+        - "&7Status: %status%"
+  submenus:
+    chest:
+      rows: 6
+      header:
+        slot: 4
+      filler:
+        material: GRAY_STAINED_GLASS_PANE
+        name: " "
+        slots: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      member-slots: []
+      empty-member:
+        material: BLACK_STAINED_GLASS_PANE
+        name: " "
+    friendly-fire:
+      rows: 6
+      header:
+        slot: 4
+      filler:
+        material: GRAY_STAINED_GLASS_PANE
+        name: " "
+        slots: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      member-slots: []
+      empty-member:
+        material: BLACK_STAINED_GLASS_PANE
+        name: " "
+    skills:
+      rows: 6
+      header:
+        slot: 4
+      filler:
+        material: GRAY_STAINED_GLASS_PANE
+        name: " "
+        slots: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      member-slots: []
+      empty-member:
+        material: BLACK_STAINED_GLASS_PANE
+        name: " "
+    spawn:
+      rows: 6
+      header:
+        slot: 4
+      filler:
+        material: GRAY_STAINED_GLASS_PANE
+        name: " "
+        slots: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      member-slots: []
+      empty-member:
+        material: BLACK_STAINED_GLASS_PANE
+        name: " "
 
 ranks:
   Bronze: 0
