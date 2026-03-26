@@ -9,6 +9,7 @@ public final class ClanSkillProgress {
     private static final int RENAME_UNLOCK_POINTS = 300;
     private static final int ENDER_PEARL_UNLOCK_POINTS = 400;
     private static final int RALLY_UNLOCK_POINTS = 500;
+    private static final int RALLY_COOLDOWN_MINUTES = 30;
     private static final int BONUS_SLOT_STEP = 100;
 
     private ClanSkillProgress() {
@@ -32,6 +33,10 @@ public final class ClanSkillProgress {
 
     public static int getRallyUnlockPoints() {
         return RALLY_UNLOCK_POINTS;
+    }
+
+    public static int getRallyCooldownMinutes() {
+        return RALLY_COOLDOWN_MINUTES;
     }
 
     public static boolean hasChest(int points) {

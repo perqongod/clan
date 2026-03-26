@@ -55,7 +55,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private static final long INVITE_COOLDOWN_MS = 10_000L;
     private static final double RENAME_COOLDOWN_HOURS = 72.0;
     private static final long RENAME_COOLDOWN_MS = (long) (RENAME_COOLDOWN_HOURS * 3_600_000L);
-    private static final long RALLY_COOLDOWN_MS = 30 * 60 * 1000L;
+    private static final long RALLY_COOLDOWN_MS = ClanSkillProgress.getRallyCooldownMinutes() * 60_000L;
     private static final int SPAWN_PARTICLE_COUNT = 60;
     private static final double SPAWN_PARTICLE_OFFSET_X = 0.6;
     private static final double SPAWN_PARTICLE_OFFSET_Y = 0.8;
@@ -1811,7 +1811,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         }
         if (clan != null && clan.getLeader().equals(playerUUID)) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rally &7- Teleport all clan members to you ("
-                    + ClanSkillProgress.getRallyUnlockPoints() + "+ Punkte, 30m CD)"));
+                    + ClanSkillProgress.getRallyUnlockPoints() + "+ Punkte, "
+                    + ClanSkillProgress.getRallyCooldownMinutes() + "m CD)"));
         }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
