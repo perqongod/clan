@@ -879,17 +879,21 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     ClanData previousClan = plugin.getFileManager().loadClan(previousTag);
                     if (previousClan != null) {
                         if (previousClan.getLeader().equals(arUUID)) {
-                            player.sendMessage(cm.formatPlain(cm.getPrefix() + arPlayerName
-                                    + " is a clan leader and must transfer leadership or delete their clan first."));
+                            player.sendMessage(cm.getMessage("request-leader-blocked")
+                                    .replace("%player%", cm.formatPlain(arPlayerName)));
                             Player arOnline = Bukkit.getPlayer(arUUID);
                             if (arOnline != null) {
                                 arOnline.sendMessage(cm.getMessage("leader-cannot-join"));
                             }
                             return true;
                         }
-                        previousClan.getMembers().remove(arUUID);
-                        previousClan.getModerators().remove(arUUID);
-                        try { plugin.getFileManager().saveClan(previousClan); } catch (Exception e) {
+                        if (previousClan.getMembers().contains(arUUID)) {
+                            previousClan.getMembers().remove(arUUID);
+                        }
+                        if (previousClan.getModerators().contains(arUUID)) {
+                            previousClan.getModerators().remove(arUUID);
+                        }
+                        try { plugin.getFileManager().saveClan(previousClan); } catch (IOException e) {
                             plugin.getLogger().warning("Failed to save previous clan data for " + previousTag + ": " + e.getMessage());
                         }
                     }
