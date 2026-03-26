@@ -1355,8 +1355,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 for (UUID mem : rallyClan.getMembers()) {
                     if (mem.equals(playerUUID)) continue;
                     Player target = Bukkit.getPlayer(mem);
-                    if (target != null) {
-                        target.teleport(rallyLocation);
+                    if (target != null && target.teleport(rallyLocation)) {
                         target.sendMessage(cm.getMessage("rally-teleported")
                                 .replace("%leader%", cm.formatPlain(player.getName())));
                         teleported++;
