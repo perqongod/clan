@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,7 +58,7 @@ public class ClanStatsListener implements Listener {
         @SuppressWarnings("deprecation")
         String title = event.getView().getTitle();
         String openTitle = openTitles.get(player.getUniqueId());
-        if (openTitle == null || !openTitle.equals(title)) return;
+        if (!Objects.equals(openTitle, title)) return;
 
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
@@ -72,7 +73,7 @@ public class ClanStatsListener implements Listener {
         String title = event.getView().getTitle();
         UUID playerId = event.getPlayer().getUniqueId();
         String openTitle = openTitles.get(playerId);
-        if (openTitle != null && openTitle.equals(title)) {
+        if (Objects.equals(openTitle, title)) {
             openTitles.remove(playerId);
         }
     }

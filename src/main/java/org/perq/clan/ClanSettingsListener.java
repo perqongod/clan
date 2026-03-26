@@ -161,8 +161,8 @@ public class ClanSettingsListener implements Listener {
                 return;
             }
 
-            int memberIndex = chestLayout.memberSlots.indexOf(rawSlot);
-            if (memberIndex < 0 || memberIndex >= session.members.size()) return;
+            Integer memberIndex = chestLayout.memberSlotIndex.get(rawSlot);
+            if (memberIndex == null || memberIndex >= session.members.size()) return;
 
             UUID member = session.members.get(memberIndex);
             if (isLeaderToggle(player, clan, member, "settings-leader-chest")) return;
@@ -181,8 +181,8 @@ public class ClanSettingsListener implements Listener {
                 return;
             }
 
-            int memberIndex = friendlyLayout.memberSlots.indexOf(rawSlot);
-            if (memberIndex < 0 || memberIndex >= session.members.size()) return;
+            Integer memberIndex = friendlyLayout.memberSlotIndex.get(rawSlot);
+            if (memberIndex == null || memberIndex >= session.members.size()) return;
 
             UUID member = session.members.get(memberIndex);
             session.selectedMember = member;
@@ -201,8 +201,8 @@ public class ClanSettingsListener implements Listener {
                 return;
             }
 
-            int memberIndex = skillsLayout.memberSlots.indexOf(rawSlot);
-            if (memberIndex < 0 || memberIndex >= session.members.size()) return;
+            Integer memberIndex = skillsLayout.memberSlotIndex.get(rawSlot);
+            if (memberIndex == null || memberIndex >= session.members.size()) return;
 
             UUID member = session.members.get(memberIndex);
             if (isLeaderToggle(player, clan, member, "settings-leader-skills")) return;
@@ -222,8 +222,8 @@ public class ClanSettingsListener implements Listener {
                 return;
             }
 
-            int memberIndex = spawnLayout.memberSlots.indexOf(rawSlot);
-            if (memberIndex < 0 || memberIndex >= session.members.size()) return;
+            Integer memberIndex = spawnLayout.memberSlotIndex.get(rawSlot);
+            if (memberIndex == null || memberIndex >= session.members.size()) return;
 
             UUID member = session.members.get(memberIndex);
             if (isLeaderToggle(player, clan, member, "settings-leader-spawn")) return;
@@ -863,6 +863,7 @@ public class ClanSettingsListener implements Listener {
         private final ItemStack emptyMemberItem;
         private final int headerSlot;
         private final List<Integer> memberSlots;
+        private final Map<Integer, Integer> memberSlotIndex;
 
         private SubmenuLayout(int size,
                               ItemStack filler,
@@ -876,6 +877,11 @@ public class ClanSettingsListener implements Listener {
             this.emptyMemberItem = emptyMemberItem;
             this.headerSlot = headerSlot;
             this.memberSlots = memberSlots;
+            Map<Integer, Integer> indexMap = new HashMap<>();
+            for (int i = 0; i < memberSlots.size(); i++) {
+                indexMap.put(memberSlots.get(i), i);
+            }
+            this.memberSlotIndex = indexMap;
         }
     }
 
