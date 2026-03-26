@@ -7,25 +7,30 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class EventListener implements Listener {
     private final Clan plugin;
     private Map<UUID, Long> joinTimes = new HashMap<>();
+    private final Map<UUID, Long> enderPearlTeleports = new ConcurrentHashMap<>();
     // Save quest progress after each quest kill so GUI progress updates immediately.
     private static final int QUEST_SAVE_INTERVAL = 1;
+    private static final long ENDER_PEARL_DAMAGE_WINDOW_MS = 2000L;
 
     public EventListener(Clan plugin) {
         this.plugin = plugin;
@@ -164,9 +169,44 @@ public class EventListener implements Listener {
     }
 
     @EventHandler
+    public void onEnderPearlTeleport(PlayerTeleportEvent event) {
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) return;
+        Player player = event.getPlayer();
+        ClanData clan = getPlayerClan(player.getUniqueId());
+        if (clan == null || !ClanSkillProgress.hasEnderPearlProtection(clan.getSkillPoints())) return;
+        long teleportTime = System.currentTimeMillis();
+        enderPearlTeleports.put(player.getUniqueId(), teleportTime);
+        long cleanupDelay = Math.max(1L, ENDER_PEARL_DAMAGE_WINDOW_MS / 50L);
+        Bukkit.getScheduler().runTaskLater(plugin,
+                () -> enderPearlTeleports.remove(player.getUniqueId(), teleportTime),
+                cleanupDelay);
+    }
+
+    @EventHandler
+    public void onEnderPearlFallDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+        if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+        Player player = (Player) event.getEntity();
+        Long teleportTime = enderPearlTeleports.get(player.getUniqueId());
+        if (teleportTime == null) return;
+        if (System.currentTimeMillis() - teleportTime > ENDER_PEARL_DAMAGE_WINDOW_MS) {
+            enderPearlTeleports.remove(player.getUniqueId());
+            return;
+        }
+        ClanData clan = getPlayerClan(player.getUniqueId());
+        if (clan == null || !ClanSkillProgress.hasEnderPearlProtection(clan.getSkillPoints())) {
+            enderPearlTeleports.remove(player.getUniqueId());
+            return;
+        }
+        enderPearlTeleports.remove(player.getUniqueId());
+        event.setCancelled(true);
+    }
+
+    @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         UUID player = event.getPlayer().getUniqueId();
         Long joinTime = joinTimes.remove(player);
+        enderPearlTeleports.remove(player);
         if (joinTime != null) {
             double hours = (System.currentTimeMillis() - joinTime) / 3600000.0;
             ClanData clan = getPlayerClan(player);
