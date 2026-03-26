@@ -144,7 +144,7 @@ skills-gui:
       material: ARROW
       name: "&eNext"
   skills:
-    slots: [10, 19, 28, 29, 30, 21, 12, 13, 14, 23, 31, 32, 33]
+    slots: [11, 19, 28, 29, 30, 21, 12, 13, 14, 23, 31, 32, 33]
     locked:
       material: RED_STAINED_GLASS_PANE
       name: "&cLevel %level%"
