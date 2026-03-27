@@ -65,7 +65,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "join", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
-            "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
+            "ranking", "rally", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "accept-request", "deny-request", "logs", "skills", "quest", "war", "force", "admin",
             "points", "reload"
     ));
@@ -1224,14 +1224,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                     return true;
                 }
-                boolean isLeader = chestClan.getLeader().equals(playerUUID);
-                boolean isClanLabel = "clan".equalsIgnoreCase(label);
                 boolean wantsSet = args.length >= 2 && "set".equalsIgnoreCase(args[1]);
+                boolean isLeader = chestClan.getLeader().equals(playerUUID);
                 if (wantsSet && !isLeader) {
                     player.sendMessage(cm.getMessage("not-clan-leader"));
                     return true;
                 }
-                if ((isLeader && isClanLabel && args.length == 1) || (isLeader && wantsSet)) {
+                if (isLeader && wantsSet) {
                     chestClan.setChestLocation(player.getLocation());
                     try {
                         plugin.getFileManager().saveClan(chestClan);
@@ -1261,13 +1260,34 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 break;
             }
 
+            case "rally": {
+                ClanData rallyClan = getPlayerClan(playerUUID);
+                if (rallyClan == null) {
+                    player.sendMessage(cm.getMessage("no-clan"));
+                    return true;
+                }
+                if (!rallyClan.getLeader().equals(playerUUID)) {
+                    player.sendMessage(cm.getMessage("not-clan-leader"));
+                    return true;
+                }
+                String rallyMessage = cm.formatPlain(cm.getPrefix() + player.getName() + " has called a clan rally.");
+                for (UUID mem : rallyClan.getMembers()) {
+                    Player member = Bukkit.getPlayer(mem);
+                    if (member != null) {
+                        member.sendMessage(rallyMessage);
+                    }
+                }
+                break;
+            }
+
             case "spawn": {
                 ClanData spawnClan = getPlayerClan(playerUUID);
                 if (spawnClan == null) {
                     player.sendMessage(cm.getMessage("no-clan"));
                     return true;
                 }
-                if (getEffectiveSpawnPermission(spawnClan, playerUUID) != ClanAccessPermission.EXECUTE) {
+                ClanAccessPermission spawnPermission = getEffectiveSpawnPermission(spawnClan, playerUUID);
+                if (spawnPermission == ClanAccessPermission.DENY) {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
                 }
@@ -1779,17 +1799,17 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leave &7- Leave your clan"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan kick <player> &7- Kick a player"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan promote <player> &7- Promote a player"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan demote [player] &7- Demote a player"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan demote <player> &7- Demote a player"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leader <player> &7- Transfer leadership"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rename <newTag> &7- Rename your clan"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan info &7- Clan info"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan help &7- Open the clan help book"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Toggle invitations"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats [tag] &7- Clan stats"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats <tag> &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
+        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rally &7- Rally clan members"));
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest (Leader: /clan chest set, "
-                    + ClanSkillProgress.getChestUnlockPoints() + "+ Punkte)"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest"));
         }
         if (clan == null || spawnPermission != ClanAccessPermission.DENY) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
@@ -1873,7 +1893,7 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
         List<String> subs = new ArrayList<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
-            "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
+            "ranking", "rally", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "logs", "skills", "quest"
         ));
 

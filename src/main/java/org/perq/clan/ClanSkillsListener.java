@@ -132,9 +132,17 @@ public class ClanSkillsListener implements Listener {
         ItemStack result = event.getView().getTopInventory().getItem(ANVIL_RESULT_SLOT);
         if (result == null) return;
         ItemMeta meta = result.getItemMeta();
-        if (meta == null || meta.getDisplayName() == null) return;
+        if (meta == null) return;
         ConfigManager cm = plugin.getConfigManager();
-        String newTag = cm.normalizeTag(meta.getDisplayName().trim());
+        String displayName = null;
+        Component displayComponent = meta.displayName();
+        if (displayComponent != null) {
+            displayName = LegacyComponentSerializer.legacySection().serialize(displayComponent);
+        } else if (meta.hasDisplayName()) {
+            displayName = meta.getDisplayName();
+        }
+        if (displayName == null) return;
+        String newTag = cm.normalizeTag(displayName.trim());
         if (newTag.isEmpty()) return;
         ClanData clan = getPlayerClan(player.getUniqueId());
         if (clan == null) {
