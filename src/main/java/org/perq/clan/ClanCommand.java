@@ -1951,11 +1951,12 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
                 if (player.isOp()) {
                     return Arrays.asList("add", "remove", "set");
                 }
-                return null;
+                break;
 
             default:
-                return null;
+                break;
         }
+        return null;
     }
 
     if (args.length == 3) {
