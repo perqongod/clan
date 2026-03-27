@@ -109,7 +109,7 @@ messages:
   leader-transferred: "%prefix%&aLeadership has been transferred to %player%."
   leader-received: "%prefix%&aYou are now the leader of clan %tag%."
   invite-cooldown: "%prefix%&cPlease wait %seconds% more seconds before sending another invite."
-  invite-max-open: "%prefix%&cThis player already has an open invitation."
+  invite-max-open: "%prefix%&cYour clan has already invited this player."
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"
   target-in-clan-notify: "%csprefix%&aYou have a new notification."
   admin-points-no-op: "%prefix%&cDu brauchst OP-Rechte für diesen Befehl."
