@@ -1914,6 +1914,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         return plugin.getFileManager().loadClan(p.getClanTag());
     }
 
+    private List<String> getInviteTargets(ClanData clan, UUID playerUUID) {
+        if (clan == null) return null;
+        if (!playerUUID.equals(clan.getLeader()) && !clan.getModerators().contains(playerUUID)) return null;
+        return Bukkit.getOnlinePlayers().stream()
+                .filter(online -> !online.getUniqueId().equals(playerUUID))
+                .filter(online -> !clan.getMembers().contains(online.getUniqueId()))
+                .map(Player::getName)
+                .collect(Collectors.toList());
+    }
+
 // --- Tab completion ---
 
 @Override
@@ -1924,6 +1934,13 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
 
     if (args.length == 1) {
         ClanData clan = getPlayerClan(playerUUID);
+
+        if ("invite".equalsIgnoreCase(args[0])) {
+            List<String> inviteTargets = getInviteTargets(clan, playerUUID);
+            if (inviteTargets != null) {
+                return inviteTargets;
+            }
+        }
 
         List<String> subs = new ArrayList<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "leave",
@@ -1986,13 +2003,7 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
             }
 
             case "invite": {
-                if (clan == null) return null;
-                if (!playerUUID.equals(clan.getLeader()) && !clan.getModerators().contains(playerUUID)) return null;
-                return Bukkit.getOnlinePlayers().stream()
-                        .filter(online -> !online.getUniqueId().equals(playerUUID))
-                        .filter(online -> !clan.getMembers().contains(online.getUniqueId()))
-                        .map(Player::getName)
-                        .collect(Collectors.toList());
+                return getInviteTargets(clan, playerUUID);
             }
 
             case "request": {
