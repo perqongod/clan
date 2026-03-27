@@ -260,6 +260,41 @@ public class ConfigManager {
         return new ArrayList<>(pages);
     }
 
+    public List<String> getHelpLines() {
+        List<String> lines = config.getStringList("help-lines");
+        if (lines == null || lines.isEmpty()) {
+            lines = new ArrayList<>();
+            lines.add("%prefix%/clan create <tag> &7- Create a clan");
+            lines.add("%prefix%/clan delete &7- Disband your clan");
+            lines.add("%prefix%/clan invite <player> &7- Invite a player");
+            lines.add("%prefix%/clan accept <tag> &7- Accept an invite");
+            lines.add("%prefix%/clan deny <tag> &7- Decline an invite");
+            lines.add("%prefix%/clan leave &7- Leave your clan");
+            lines.add("%prefix%/clan kick <player> &7- Kick a player");
+            lines.add("%prefix%/clan promote <player> &7- Promote a player");
+            lines.add("%prefix%/clan demote <player> &7- Demote a player");
+            lines.add("%prefix%/clan leader <player> &7- Transfer leadership");
+            lines.add("%prefix%/clan rename <newTag> &7- Rename your clan");
+            lines.add("%prefix%/clan info &7- Clan info");
+            lines.add("%prefix%/clan help &7- Open the clan help book");
+            lines.add("%prefix%/clan toggle &7- Toggle invitations");
+            lines.add("%prefix%/clan stats <tag> &7- Clan stats");
+            lines.add("%prefix%/clan ranking &7- Clan ranking");
+            lines.add("%leader%%prefix%/clan rally &7- Rally clan members");
+            lines.add("%chest%%prefix%/clan chest &7- Open clan chest; Leader: /clan chest set");
+            lines.add("%spawn%%prefix%/clan spawn &7- Teleport to clan spawn (%spawn_unlock%+ Punkte)");
+            lines.add("%spawn%%prefix%/clan setspawn &7- Set clan spawn (%spawn_unlock%+ Punkte)");
+            lines.add("%spawn%%prefix%/clan delspawn &7- Remove clan spawn");
+            lines.add("%prefix%/clan request <tag> &7- Send a join request");
+            lines.add("%prefix%/clan requests &7- View join requests (Leader)");
+            lines.add("%prefix%/clan logs &7- View clan logs");
+            lines.add("%skills%%prefix%/clan skills &7- Open clan skills");
+            lines.add("%prefix%/clan quest &7- Open clan quests");
+            lines.add("%admin%%prefix%&7Admin: &f/clan admin &7for admin commands");
+        }
+        return new ArrayList<>(lines);
+    }
+
     /** @deprecated Use getTagMinLength() / getTagMaxLength() */
     @Deprecated
     public int getTagLength() {

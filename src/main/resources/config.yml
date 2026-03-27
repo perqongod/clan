@@ -119,6 +119,37 @@ messages:
   admin-points-set: "%prefix%Du hast die Punkte des [%tag%] Clans auf %amount% gesetzt."
   config-reloaded: "%prefix%&aClan config reloaded."
 
+# %leader%, %chest%, %spawn%, %skills%, %admin% lines only show when permitted.
+# %spawn_unlock% resolves to the spawn unlock point threshold.
+help-lines:
+  - "%prefix%/clan create <tag> &7- Create a clan"
+  - "%prefix%/clan delete &7- Disband your clan"
+  - "%prefix%/clan invite <player> &7- Invite a player"
+  - "%prefix%/clan accept <tag> &7- Accept an invite"
+  - "%prefix%/clan deny <tag> &7- Decline an invite"
+  - "%prefix%/clan leave &7- Leave your clan"
+  - "%prefix%/clan kick <player> &7- Kick a player"
+  - "%prefix%/clan promote <player> &7- Promote a player"
+  - "%prefix%/clan demote <player> &7- Demote a player"
+  - "%prefix%/clan leader <player> &7- Transfer leadership"
+  - "%prefix%/clan rename <newTag> &7- Rename your clan"
+  - "%prefix%/clan info &7- Clan info"
+  - "%prefix%/clan help &7- Open the clan help book"
+  - "%prefix%/clan toggle &7- Toggle invitations"
+  - "%prefix%/clan stats <tag> &7- Clan stats"
+  - "%prefix%/clan ranking &7- Clan ranking"
+  - "%leader%%prefix%/clan rally &7- Rally clan members"
+  - "%chest%%prefix%/clan chest &7- Open clan chest; Leader: /clan chest set"
+  - "%spawn%%prefix%/clan spawn &7- Teleport to clan spawn (%spawn_unlock%+ Punkte)"
+  - "%spawn%%prefix%/clan setspawn &7- Set clan spawn (%spawn_unlock%+ Punkte)"
+  - "%spawn%%prefix%/clan delspawn &7- Remove clan spawn"
+  - "%prefix%/clan request <tag> &7- Send a join request"
+  - "%prefix%/clan requests &7- View join requests (Leader)"
+  - "%prefix%/clan logs &7- View clan logs"
+  - "%skills%%prefix%/clan skills &7- Open clan skills"
+  - "%prefix%/clan quest &7- Open clan quests"
+  - "%admin%%prefix%&7Admin: &f/clan admin &7for admin commands"
+
 skills-gui:
   rows: 5
   title: "&8Clan Skills"
