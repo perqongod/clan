@@ -1964,10 +1964,6 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
                 List<String> names = new ArrayList<>();
                 for (Player online : Bukkit.getOnlinePlayers()) {
                     if (online.getUniqueId().equals(playerUUID)) continue;
-                    PlayerData targetData = plugin.getFileManager().loadPlayer(online.getUniqueId());
-                    if (targetData == null) targetData = new PlayerData(online.getName());
-                    if (targetData.getClanTag() != null) continue;
-                    if (!targetData.isInvitesEnabled()) continue;
                     names.add(online.getName());
                 }
                 return names;
