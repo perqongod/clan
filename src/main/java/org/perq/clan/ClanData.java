@@ -44,7 +44,6 @@ public class ClanData {
     private List<ItemStack> chestItems;
     private int skillLevel;
     private long lastRenameAt;
-    private long lastRallyAt;
     /** Log entries in format "[HH:MM DD.MM.YYYY] message" */
     private List<String> logs;
     /** UUIDs of players who requested to join this clan */
@@ -106,7 +105,6 @@ public class ClanData {
         this.onlineTime = config.getDouble("online-time");
         this.skillLevel = config.getInt("skill-level", 0);
         this.lastRenameAt = config.getLong("last-rename-at", 0L);
-        this.lastRallyAt = config.getLong("last-rally-at", 0L);
         if (config.contains("spawn")) {
             String world = config.getString("spawn.world");
             double x = config.getDouble("spawn.x");
@@ -219,7 +217,6 @@ public class ClanData {
         config.set("online-time", onlineTime);
         config.set("skill-level", skillLevel);
         config.set("last-rename-at", lastRenameAt);
-        config.set("last-rally-at", lastRallyAt);
         if (spawn != null) {
             config.set("spawn.world", spawn.getWorld().getName());
             config.set("spawn.x", spawn.getX());
@@ -391,8 +388,6 @@ public class ClanData {
     public long getLastRenameAt() { return lastRenameAt; }
     public void setLastRenameAt(long lastRenameAt) { this.lastRenameAt = lastRenameAt; }
 
-    public long getLastRallyAt() { return lastRallyAt; }
-    public void setLastRallyAt(long lastRallyAt) { this.lastRallyAt = lastRallyAt; }
 
     public List<String> getLogs() { return logs; }
     public void setLogs(List<String> logs) { this.logs = logs; }

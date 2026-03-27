@@ -55,9 +55,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private static final long INVITE_COOLDOWN_MS = 10_000L;
     private static final double RENAME_COOLDOWN_HOURS = 72.0;
     private static final long RENAME_COOLDOWN_MS = (long) (RENAME_COOLDOWN_HOURS * 3_600_000L);
-    private static final long MILLIS_PER_MINUTE = 60_000L;
-    private static final long RALLY_ROUNDING_OFFSET_MS = MILLIS_PER_MINUTE - 1L;
-    private static final long RALLY_COOLDOWN_MS = ClanSkillProgress.getRallyCooldownMinutes() * MILLIS_PER_MINUTE;
     private static final int SPAWN_PARTICLE_COUNT = 60;
     private static final double SPAWN_PARTICLE_OFFSET_X = 0.6;
     private static final double SPAWN_PARTICLE_OFFSET_Y = 0.8;
@@ -69,8 +66,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "create", "delete", "invite", "accept", "deny", "join", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
-            "accept-request", "deny-request", "logs", "skills", "quest", "settings", "rally", "war", "force", "admin",
-            "points", "reload", "configsafe"
+            "accept-request", "deny-request", "logs", "skills", "quest", "war", "force", "admin",
+            "points", "reload"
     ));
 
     public ClanCommand(Clan plugin) {
@@ -1119,17 +1116,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            case "configsafe": {
-                if (!player.isOp()) {
-                    player.sendMessage(cm.getMessage("admin-points-no-op"));
-                    return true;
-                }
-                boolean saved = plugin.getConfigManager().saveStandardConfig();
-                player.sendMessage(saved ? cm.getMessage("config-standard-saved")
-                        : cm.getMessage("config-standard-save-failed"));
-                return true;
-            }
-
             case "toggle": {
                 boolean invitesDisabled = plugin.toggleInvitation(player);
                 player.sendMessage(invitesDisabled ? cm.getMessage("toggle-off") : cm.getMessage("toggle-on"));
@@ -1275,16 +1261,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 break;
             }
 
-            case "settings": {
-                ClanData settingsClan = getPlayerClan(playerUUID);
-                if (settingsClan == null) {
-                    player.sendMessage(cm.getMessage("no-clan"));
-                    return true;
-                }
-                plugin.getClanSettingsListener().openGui(player, settingsClan);
-                break;
-            }
-
             case "spawn": {
                 ClanData spawnClan = getPlayerClan(playerUUID);
                 if (spawnClan == null) {
@@ -1381,52 +1357,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                 }, 0L, 20L).getTaskId();
                 spawnTaskIds.put(playerUUID, taskId);
-                break;
-            }
-
-            case "rally": {
-                ClanData rallyClan = getPlayerClan(playerUUID);
-                if (rallyClan == null) {
-                    player.sendMessage(cm.getMessage("no-clan"));
-                    return true;
-                }
-                if (!rallyClan.getLeader().equals(playerUUID)) {
-                    player.sendMessage(cm.getMessage("not-clan-leader"));
-                    return true;
-                }
-                if (!ClanSkillProgress.hasRally(rallyClan.getSkillPoints())) {
-                    player.sendMessage(cm.getMessage("skills-locked-rally")
-                            .replace("%required%", String.valueOf(ClanSkillProgress.getRallyUnlockPoints())));
-                    return true;
-                }
-                long now = System.currentTimeMillis();
-                long lastRally = rallyClan.getLastRallyAt();
-                long remaining = RALLY_COOLDOWN_MS - (now - lastRally);
-                if (lastRally > 0 && remaining > 0) {
-                    long minutesRemaining = (remaining + RALLY_ROUNDING_OFFSET_MS) / MILLIS_PER_MINUTE;
-                    player.sendMessage(cm.getMessage("rally-cooldown")
-                            .replace("%minutes%", String.valueOf(minutesRemaining)));
-                    return true;
-                }
-                int teleported = 0;
-                Location rallyLocation = player.getLocation().clone();
-                for (UUID mem : rallyClan.getMembers()) {
-                    if (mem.equals(playerUUID)) continue;
-                    Player target = Bukkit.getPlayer(mem);
-                    if (target != null && target.teleport(rallyLocation)) {
-                        target.sendMessage(cm.getMessage("rally-teleported")
-                                .replace("%leader%", cm.formatPlain(player.getName())));
-                        teleported++;
-                    }
-                }
-                rallyClan.setLastRallyAt(now);
-                try {
-                    plugin.getFileManager().saveClan(rallyClan);
-                } catch (Exception e) {
-                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Error saving."));
-                }
-                player.sendMessage(cm.getMessage("rally-triggered")
-                        .replace("%count%", String.valueOf(teleported)));
                 break;
             }
 
@@ -1683,9 +1613,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan force kick <player> &7- Remove player from clan"));
                 player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan force delete <tag> &7- Disband clan"));
                 player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan points <add|remove|set> <player> <amount> &7- Manage clan points (OP)"));
-                if (player.isOp()) {
-                    player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan configsafe &7- Save current config as standard (OP)"));
-                }
                 break;
             }
 
@@ -1869,11 +1796,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delspawn &7- Remove clan spawn"));
         }
-        if (clan != null && clan.getLeader().equals(playerUUID)) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rally &7- Teleport all clan members to you ("
-                    + ClanSkillProgress.getRallyUnlockPoints() + "+ Punkte, "
-                    + ClanSkillProgress.getRallyCooldownMinutes() + "m CD)"));
-        }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
@@ -1881,9 +1803,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan skills"));
         }
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan quest &7- Open clan quests"));
-        if (clan != null) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan settings &7- Open clan settings"));
-        }
         if (player.hasPermission("clan.admin")) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "&7Admin: &f/clan admin &7for admin commands"));
         }
@@ -1955,7 +1874,7 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
             "create", "delete", "invite", "accept", "deny", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
             "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
-            "logs", "skills", "quest", "settings", "rally"
+            "logs", "skills", "quest"
         ));
 
         if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillPoints())) {
@@ -1976,11 +1895,6 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
             subs.remove("delspawn");
         }
 
-        if (clan == null || !clan.getLeader().equals(playerUUID)
-                || !ClanSkillProgress.hasRally(clan.getSkillPoints())) {
-            subs.remove("rally");
-        }
-
         if (player.hasPermission("clan.admin")) {
             subs.add("force");
             subs.add("admin");
@@ -1989,7 +1903,6 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
 
         if (player.isOp()) {
             subs.add("points");
-            subs.add("configsafe");
         }
 
         String partial = args[0].toLowerCase();
