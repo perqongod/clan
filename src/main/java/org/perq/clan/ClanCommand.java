@@ -601,7 +601,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 Long lastInvite = inviteCooldowns.get(playerUUID);
                 if (lastInvite != null && System.currentTimeMillis() - lastInvite < INVITE_COOLDOWN_MS) {
                     long remSec = (INVITE_COOLDOWN_MS - (System.currentTimeMillis() - lastInvite)) / 1000 + 1;
-                    player.sendMessage(cm.formatPlain(cm.getPrefix() + "Please wait " + remSec + " more seconds."));
+                    player.sendMessage(cm.getMessage("invite-cooldown")
+                            .replace("%seconds%", String.valueOf(remSec)));
                     return true;
                 }
                 int inviteMaxMembers = getMaxMembers(inviteClan, cm);
@@ -626,8 +627,16 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 List<InviteData> existingInvites = plugin.getFileManager().loadAllInvites(invTarget.getUniqueId());
-                if (!existingInvites.isEmpty()) {
-                    player.sendMessage(cm.formatPlain(cm.getPrefix() + invTarget.getName() + " already has an open invitation."));
+                boolean alreadyInvited = false;
+                for (InviteData existingInvite : existingInvites) {
+                    if (existingInvite.getFromClan() != null
+                            && existingInvite.getFromClan().equalsIgnoreCase(inviteClan.getTag())) {
+                        alreadyInvited = true;
+                        break;
+                    }
+                }
+                if (alreadyInvited) {
+                    player.sendMessage(cm.getMessage("invite-max-open"));
                     return true;
                 }
                 InviteData invite = new InviteData(inviteClan.getTag());
