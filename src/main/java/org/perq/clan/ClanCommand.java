@@ -1794,16 +1794,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         UUID playerUUID = player.getUniqueId();
         ClanAccessPermission skillsPermission = getEffectiveSkillsPermission(clan, playerUUID);
         ClanAccessPermission spawnPermission = getEffectiveSpawnPermission(clan, playerUUID);
-        Map<String, Boolean> conditions = new HashMap<>();
-        conditions.put("%leader%", clan != null && clan.getLeader().equals(playerUUID));
-        conditions.put("%chest%", clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY);
-        conditions.put("%spawn%", clan == null || spawnPermission != ClanAccessPermission.DENY);
-        conditions.put("%skills%", clan == null || skillsPermission != ClanAccessPermission.DENY);
-        conditions.put("%admin%", player.hasPermission("clan.admin"));
-
-        Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("%prefix%", cm.getPrefix());
-        placeholders.put("%spawn_unlock%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints()));
+        Map<String, Boolean> conditions = buildHelpConditions(clan, playerUUID, skillsPermission, spawnPermission, player);
+        Map<String, String> placeholders = buildHelpPlaceholders(cm);
 
         for (String line : cm.getHelpLines()) {
             String formatted = formatHelpLine(line, conditions, placeholders);
@@ -1813,15 +1805,35 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private Map<String, Boolean> buildHelpConditions(ClanData clan,
+                                                     UUID playerUUID,
+                                                     ClanAccessPermission skillsPermission,
+                                                     ClanAccessPermission spawnPermission,
+                                                     Player player) {
+        Map<String, Boolean> conditions = new HashMap<>();
+        conditions.put("%leader%", clan != null && clan.getLeader().equals(playerUUID));
+        conditions.put("%chest%", clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY);
+        conditions.put("%spawn%", clan == null || spawnPermission != ClanAccessPermission.DENY);
+        conditions.put("%skills%", clan == null || skillsPermission != ClanAccessPermission.DENY);
+        conditions.put("%admin%", player.hasPermission("clan.admin"));
+        return conditions;
+    }
+
+    private Map<String, String> buildHelpPlaceholders(ConfigManager cm) {
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("%prefix%", cm.getPrefix());
+        placeholders.put("%spawn_unlock%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints()));
+        return placeholders;
+    }
+
     private String formatHelpLine(String line, Map<String, Boolean> conditions, Map<String, String> placeholders) {
         if (line == null) return null;
         String formatted = line;
         for (Map.Entry<String, Boolean> entry : conditions.entrySet()) {
-            if (formatted.contains(entry.getKey())) {
-                if (!entry.getValue()) {
-                    return null;
-                }
-                formatted = formatted.replace(entry.getKey(), "");
+            String updated = formatted.replace(entry.getKey(), "");
+            if (!updated.equals(formatted)) {
+                if (!entry.getValue()) return null;
+                formatted = updated;
             }
         }
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
