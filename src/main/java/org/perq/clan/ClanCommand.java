@@ -1950,8 +1950,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             ClanData clan = getPlayerClan(playerUUID);
-            List<String> subs = new ArrayList<>();
-            subs.addAll(Arrays.asList(
+            List<String> subs = new ArrayList<>(Arrays.asList(
                     "create", "delete", "invite", "accept", "deny", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
