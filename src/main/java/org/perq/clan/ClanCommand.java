@@ -1299,7 +1299,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                     return true;
                 }
-                if (spawnClan.getSpawn() == null) {
+                if (!isValidSpawnLocation(spawnClan.getSpawn())) {
                     player.sendMessage(cm.getMessage("spawn-not-set"));
                     return true;
                 }
@@ -1338,9 +1338,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                                         .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                                 return;
                             }
-                            Location target = refreshed != null && refreshed.getSpawn() != null
-                                    ? refreshed.getSpawn()
-                                    : spawnClan.getSpawn();
+                            Location target = resolveSpawnLocation(refreshed, spawnClan);
                             if (target == null) {
                                 spawnTaskIds.remove(playerUUID);
                                 cancel();
@@ -1794,43 +1792,66 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         UUID playerUUID = player.getUniqueId();
         ClanAccessPermission skillsPermission = getEffectiveSkillsPermission(clan, playerUUID);
         ClanAccessPermission spawnPermission = getEffectiveSpawnPermission(clan, playerUUID);
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan create <tag> &7- Create a clan"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delete &7- Disband your clan"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan invite <player> &7- Invite a player"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan accept <tag> &7- Accept an invite"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan deny <tag> &7- Decline an invite"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leave &7- Leave your clan"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan kick <player> &7- Kick a player"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan promote <player> &7- Promote a player"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan demote <player> &7- Demote a player"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan leader <player> &7- Transfer leadership"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rename <newTag> &7- Rename your clan"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan info &7- Clan info"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan help &7- Open the clan help book"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Toggle invitations"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats <tag> &7- Clan stats"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
-        if (clan != null && clan.getLeader().equals(playerUUID)) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rally &7- Rally clan members"));
+        Map<String, Boolean> conditions = buildHelpConditions(clan, playerUUID, skillsPermission, spawnPermission, player);
+        Map<String, String> placeholders = buildHelpPlaceholders(cm);
+
+        for (String line : cm.getHelpLines()) {
+            String formatted = formatHelpLine(line, conditions, placeholders);
+            if (formatted != null) {
+                player.sendMessage(cm.translateColors(formatted));
+            }
         }
-        if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest; Leader: /clan chest set"));
+    }
+
+    private Map<String, Boolean> buildHelpConditions(ClanData clan,
+            UUID playerUUID,
+            ClanAccessPermission skillsPermission,
+            ClanAccessPermission spawnPermission,
+            Player player) {
+        Map<String, Boolean> conditions = new HashMap<>();
+        conditions.put("%leader%", clan != null && clan.getLeader().equals(playerUUID));
+        conditions.put("%chest%", clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY);
+        conditions.put("%spawn%", clan == null || spawnPermission != ClanAccessPermission.DENY);
+        conditions.put("%skills%", clan == null || skillsPermission != ClanAccessPermission.DENY);
+        conditions.put("%admin%", player.hasPermission("clan.admin"));
+        return conditions;
+    }
+
+    private Map<String, String> buildHelpPlaceholders(ConfigManager cm) {
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("%prefix%", cm.getPrefix());
+        placeholders.put("%spawn_unlock%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints()));
+        return placeholders;
+    }
+
+    private Location resolveSpawnLocation(ClanData refreshed, ClanData fallback) {
+        Location refreshedSpawn = refreshed == null ? null : refreshed.getSpawn();
+        if (isValidSpawnLocation(refreshedSpawn)) {
+            return refreshedSpawn;
         }
-        if (clan == null || spawnPermission != ClanAccessPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan setspawn &7- Set clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan delspawn &7- Remove clan spawn"));
+        Location fallbackSpawn = fallback == null ? null : fallback.getSpawn();
+        return isValidSpawnLocation(fallbackSpawn) ? fallbackSpawn : null;
+    }
+
+    private boolean isValidSpawnLocation(Location location) {
+        return location != null && location.getWorld() != null;
+    }
+
+    private String formatHelpLine(String line, Map<String, Boolean> conditions, Map<String, String> placeholders) {
+        if (line == null) return null;
+        String formatted = line;
+        for (Map.Entry<String, Boolean> entry : conditions.entrySet()) {
+            String updated = formatted.replace(entry.getKey(), "");
+            if (!updated.equals(formatted)) {
+                if (!entry.getValue()) return null;
+                formatted = updated;
+            }
         }
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan request <tag> &7- Send a join request"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan requests &7- View join requests (Leader)"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan logs &7- View clan logs"));
-        if (clan == null || skillsPermission != ClanAccessPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan skills &7- Open clan skills"));
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            formatted = formatted.replace(entry.getKey(), entry.getValue());
         }
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan quest &7- Open clan quests"));
-        if (player.hasPermission("clan.admin")) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "&7Admin: &f/clan admin &7for admin commands"));
-        }
+        formatted = formatted.trim();
+        return formatted.isEmpty() ? null : formatted;
     }
 
     private void openHelpBook(Player player, ConfigManager cm) {

@@ -3,6 +3,7 @@ package org.perq.clan;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -258,6 +259,17 @@ public class ConfigManager {
                     + "&7/clan logs");
         }
         return new ArrayList<>(pages);
+    }
+
+    public List<String> getHelpLines() {
+        List<String> lines = config.getStringList("help-lines");
+        if (lines == null || lines.isEmpty()) {
+            Configuration defaults = config.getDefaults();
+            if (defaults != null) {
+                lines = defaults.getStringList("help-lines");
+            }
+        }
+        return lines == null ? new ArrayList<>() : new ArrayList<>(lines);
     }
 
     /** @deprecated Use getTagMinLength() / getTagMaxLength() */
