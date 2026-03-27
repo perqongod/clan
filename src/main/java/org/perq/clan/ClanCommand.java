@@ -1957,12 +1957,10 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
 
             case "invite": {
                 if (clan == null) return null;
-                PlayerData inviterData = plugin.getFileManager().loadPlayer(playerUUID);
-                if (inviterData == null) return null;
-                String role = inviterData.getRole();
-                if (!"LEADER".equals(role) && !"MOD".equals(role)) return null;
+                if (!playerUUID.equals(clan.getLeader()) && !clan.getModerators().contains(playerUUID)) return null;
                 return Bukkit.getOnlinePlayers().stream()
                         .filter(online -> !online.getUniqueId().equals(playerUUID))
+                        .filter(online -> !clan.getMembers().contains(online.getUniqueId()))
                         .map(Player::getName)
                         .collect(Collectors.toList());
             }
