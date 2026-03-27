@@ -1299,7 +1299,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                             .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                     return true;
                 }
-                if (spawnClan.getSpawn() == null) {
+                if (!isValidSpawnLocation(spawnClan.getSpawn())) {
                     player.sendMessage(cm.getMessage("spawn-not-set"));
                     return true;
                 }
@@ -1338,9 +1338,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                                         .replace("%required%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints())));
                                 return;
                             }
-                            Location target = refreshed != null && refreshed.getSpawn() != null
-                                    ? refreshed.getSpawn()
-                                    : spawnClan.getSpawn();
+                            Location target = resolveSpawnLocation(refreshed, spawnClan);
                             if (target == null) {
                                 spawnTaskIds.remove(playerUUID);
                                 cancel();
@@ -1806,10 +1804,10 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     }
 
     private Map<String, Boolean> buildHelpConditions(ClanData clan,
-                                                     UUID playerUUID,
-                                                     ClanAccessPermission skillsPermission,
-                                                     ClanAccessPermission spawnPermission,
-                                                     Player player) {
+            UUID playerUUID,
+            ClanAccessPermission skillsPermission,
+            ClanAccessPermission spawnPermission,
+            Player player) {
         Map<String, Boolean> conditions = new HashMap<>();
         conditions.put("%leader%", clan != null && clan.getLeader().equals(playerUUID));
         conditions.put("%chest%", clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY);
@@ -1824,6 +1822,19 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         placeholders.put("%prefix%", cm.getPrefix());
         placeholders.put("%spawn_unlock%", String.valueOf(ClanSkillProgress.getSpawnUnlockPoints()));
         return placeholders;
+    }
+
+    private Location resolveSpawnLocation(ClanData refreshed, ClanData fallback) {
+        Location refreshedSpawn = refreshed == null ? null : refreshed.getSpawn();
+        if (isValidSpawnLocation(refreshedSpawn)) {
+            return refreshedSpawn;
+        }
+        Location fallbackSpawn = fallback == null ? null : fallback.getSpawn();
+        return isValidSpawnLocation(fallbackSpawn) ? fallbackSpawn : null;
+    }
+
+    private boolean isValidSpawnLocation(Location location) {
+        return location != null && location.getWorld() != null;
     }
 
     private String formatHelpLine(String line, Map<String, Boolean> conditions, Map<String, String> placeholders) {
