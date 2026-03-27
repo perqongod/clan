@@ -1958,15 +1958,13 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
             case "invite": {
                 if (clan == null) return null;
                 PlayerData inviterData = plugin.getFileManager().loadPlayer(playerUUID);
-                if (inviterData == null || (!"LEADER".equals(inviterData.getRole()) && !"MOD".equals(inviterData.getRole()))) {
-                    return null;
-                }
-                List<String> names = new ArrayList<>();
-                for (Player online : Bukkit.getOnlinePlayers()) {
-                    if (online.getUniqueId().equals(playerUUID)) continue;
-                    names.add(online.getName());
-                }
-                return names;
+                if (inviterData == null) return null;
+                String role = inviterData.getRole();
+                if (!"LEADER".equals(role) && !"MOD".equals(role)) return null;
+                return Bukkit.getOnlinePlayers().stream()
+                        .filter(online -> !online.getUniqueId().equals(playerUUID))
+                        .map(Player::getName)
+                        .collect(Collectors.toList());
             }
 
             case "request": {
