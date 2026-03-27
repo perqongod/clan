@@ -1951,12 +1951,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             ClanData clan = getPlayerClan(playerUUID);
             List<String> subs = new ArrayList<>();
-            Collections.addAll(subs,
+            subs.addAll(Arrays.asList(
                     "create", "delete", "invite", "accept", "deny", "leave",
                     "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
                     "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
                     "logs", "skills", "quest", "settings", "rally"
-            );
+            ));
             if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillPoints())) {
                 subs.remove("chest");
             } else if (!clan.getLeader().equals(playerUUID)
