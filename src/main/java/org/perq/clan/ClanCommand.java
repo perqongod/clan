@@ -1224,8 +1224,8 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     }
                     return true;
                 }
-                boolean wantsSet = args.length >= 2 && "set".equalsIgnoreCase(args[1]);
                 boolean isLeader = chestClan.getLeader().equals(playerUUID);
+                boolean wantsSet = args.length >= 2 && "set".equalsIgnoreCase(args[1]);
                 if (wantsSet && !isLeader) {
                     player.sendMessage(cm.getMessage("not-clan-leader"));
                     return true;
@@ -1270,7 +1270,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(cm.getMessage("not-clan-leader"));
                     return true;
                 }
-                String rallyMessage = cm.formatPlain(cm.getPrefix() + player.getName() + " has called a clan rally.");
+                String rallyCaller = cm.formatPlain(player.getName());
+                String rallyMessage = cm.getMessage("rally-called")
+                        .replace("%player%", rallyCaller);
                 for (UUID mem : rallyClan.getMembers()) {
                     Player member = Bukkit.getPlayer(mem);
                     if (member != null) {
@@ -1287,6 +1289,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 ClanAccessPermission spawnPermission = getEffectiveSpawnPermission(spawnClan, playerUUID);
+                // ClanAccessPermission has VIEW/EXECUTE/DENY; allow VIEW/EXECUTE, only block explicit DENY.
                 if (spawnPermission == ClanAccessPermission.DENY) {
                     player.sendMessage(cm.getMessage("no-permission"));
                     return true;
@@ -1807,9 +1810,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan toggle &7- Toggle invitations"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan stats <tag> &7- Clan stats"));
         player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan ranking &7- Clan ranking"));
-        player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rally &7- Rally clan members"));
+        if (clan != null && clan.getLeader().equals(playerUUID)) {
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan rally &7- Rally clan members"));
+        }
         if (clan == null || clan.getLeader().equals(playerUUID) || clan.getChestPermission(playerUUID) != ClanChestPermission.DENY) {
-            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest"));
+            player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan chest &7- Open clan chest; Leader: /clan chest set"));
         }
         if (clan == null || spawnPermission != ClanAccessPermission.DENY) {
             player.sendMessage(cm.translateColors(cm.getPrefix() + "/clan spawn &7- Teleport to clan spawn (" + ClanSkillProgress.getSpawnUnlockPoints() + "+ Punkte)"));

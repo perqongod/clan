@@ -99,6 +99,7 @@ messages:
   spawn-not-set: "%prefix%&cClan spawn is not set."
   spawn-teleporting: "%prefix%&aTeleportiere..."
   spawn-teleported: "%prefix%&aTeleportiert."
+  rally-called: "%prefix%&e%player% hat ein Clan-Rally gestartet."
   rename-too-soon: "%prefix%&cDu kannst deinen Clan erst in %hours%h erneut umbenennen. (Cooldown: %required%h)"
   clan-info-playtime: "%prefix%Gesamtspielzeit: %hours%h"
   leader-request-confirm: "%prefix%&cDo you really want to leave your clan to join another?"

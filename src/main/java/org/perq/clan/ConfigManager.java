@@ -248,6 +248,7 @@ public class ConfigManager {
                     + "&7/clan demote <spieler>\n"
                     + "&7/clan leader <spieler>\n"
                     + "&7/clan rename <tag>\n"
+                    + "&7/clan chest\n"
                     + "&7/clan chest set\n"
                     + "&7/clan spawn\n"
                     + "&7/clan setspawn\n"

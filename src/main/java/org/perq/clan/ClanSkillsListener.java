@@ -134,13 +134,11 @@ public class ClanSkillsListener implements Listener {
         ItemMeta meta = result.getItemMeta();
         if (meta == null) return;
         ConfigManager cm = plugin.getConfigManager();
-        String displayName = null;
+        // Prefer component display names to preserve anvil colors; fallback to legacy names when absent.
         Component displayComponent = meta.displayName();
-        if (displayComponent != null) {
-            displayName = LegacyComponentSerializer.legacySection().serialize(displayComponent);
-        } else if (meta.hasDisplayName()) {
-            displayName = meta.getDisplayName();
-        }
+        String displayName = displayComponent != null
+                ? LegacyComponentSerializer.legacySection().serialize(displayComponent)
+                : (meta.hasDisplayName() ? meta.getDisplayName() : null);
         if (displayName == null) return;
         String newTag = cm.normalizeTag(displayName.trim());
         if (newTag.isEmpty()) return;
