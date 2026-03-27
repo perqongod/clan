@@ -1940,111 +1940,125 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         return plugin.getFileManager().loadClan(p.getClanTag());
     }
 
-    // --- Tab completion ---
+// --- Tab completion ---
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!(sender instanceof Player)) return null;
-        Player player = (Player) sender;
-        UUID playerUUID = player.getUniqueId();
+@Override
+public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    if (!(sender instanceof Player)) return null;
+    Player player = (Player) sender;
+    UUID playerUUID = player.getUniqueId();
 
-        if (args.length == 1) {
-            ClanData clan = getPlayerClan(playerUUID);
-            List<String> subs = new ArrayList<>(Arrays.asList(
-                    "create", "delete", "invite", "accept", "deny", "leave",
-                    "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
-                    "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
-                    "logs", "skills", "quest", "settings", "rally"
-            ));
-            if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillPoints())) {
-                subs.remove("chest");
-            } else if (!clan.getLeader().equals(playerUUID)
-                    && clan.getChestPermission(playerUUID) == ClanChestPermission.DENY) {
-                subs.remove("chest");
-            }
-            if (clan != null && getEffectiveSkillsPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
-                subs.remove("skills");
-            }
-            if (clan == null || !ClanSkillProgress.hasSpawn(clan.getSkillPoints())
-                    || getEffectiveSpawnPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
-                subs.remove("spawn");
-                subs.remove("setspawn");
-                subs.remove("delspawn");
-            }
-            if (clan == null || !clan.getLeader().equals(playerUUID)
-                    || !ClanSkillProgress.hasRally(clan.getSkillPoints())) {
-                subs.remove("rally");
-            }
-            if (player.hasPermission("clan.admin")) {
-                subs.add("force");
-                subs.add("admin");
-                subs.add("reload");
-            }
-            if (player.isOp()) {
-                subs.add("points");
-                subs.add("configsafe");
-            }
-            String partial = args[0].toLowerCase();
-            subs.removeIf(s -> !s.startsWith(partial));
-            return subs;
+    if (args.length == 1) {
+        ClanData clan = getPlayerClan(playerUUID);
+
+        List<String> subs = new ArrayList<>(Arrays.asList(
+            "create", "delete", "invite", "accept", "deny", "leave",
+            "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
+            "ranking", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
+            "logs", "skills", "quest", "settings", "rally"
+        ));
+
+        if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillPoints())) {
+            subs.remove("chest");
+        } else if (!clan.getLeader().equals(playerUUID)
+                && clan.getChestPermission(playerUUID) == ClanChestPermission.DENY) {
+            subs.remove("chest");
         }
 
-        if (args.length == 2) {
-            String sub = args[0].toLowerCase();
-            ClanData clan = getPlayerClan(playerUUID);
-            switch (sub) {
-                case "kick":
-                case "promote":
-                case "demote":
-                case "leader": {
-                    if (clan != null) {
-                        List<String> names = new ArrayList<>();
-                        for (UUID mem : clan.getMembers()) {
-                            String name = Bukkit.getOfflinePlayer(mem).getName();
-                            if (name != null) names.add(name);
-                        }
-                        return names;
-                    }
-                    return null;
-                }
-                case "request": {
-                    Map<String, ClanData> clans = plugin.getFileManager().loadAllClans();
-                    if (clan == null) {
-                        return new ArrayList<>(clans.keySet());
-                    }
-                    String clanTag = clan.getTag();
-                    return clans.keySet().stream()
-                            .filter(tag -> !tag.equalsIgnoreCase(clanTag))
-                            .collect(Collectors.toList());
-                }
-                case "stats": {
-                    return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
-                }
-                case "force":
-                    return Arrays.asList("kick", "delete");
-                case "points":
-                    if (player.isOp()) {
-                        return Arrays.asList("add", "remove", "set");
-                    }
-                    return null;
-                default:
-                    return null;
-            }
+        if (clan != null && getEffectiveSkillsPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
+            subs.remove("skills");
         }
 
-        if (args.length == 3) {
-            String sub = args[0].toLowerCase();
-            String sub2 = args[1].toLowerCase();
-            if ("points".equals(sub) && player.isOp()
-                    && ("add".equals(sub2) || "remove".equals(sub2) || "set".equals(sub2))) {
-                List<String> onlineNames = new ArrayList<>();
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    onlineNames.add(p.getName());
-                }
-                return onlineNames;
-            }
+        if (clan == null || !ClanSkillProgress.hasSpawn(clan.getSkillPoints())
+                || getEffectiveSpawnPermission(clan, playerUUID) == ClanAccessPermission.DENY) {
+            subs.remove("spawn");
+            subs.remove("setspawn");
+            subs.remove("delspawn");
         }
 
-        return null;
+        if (clan == null || !clan.getLeader().equals(playerUUID)
+                || !ClanSkillProgress.hasRally(clan.getSkillPoints())) {
+            subs.remove("rally");
+        }
+
+        if (player.hasPermission("clan.admin")) {
+            subs.add("force");
+            subs.add("admin");
+            subs.add("reload");
+        }
+
+        if (player.isOp()) {
+            subs.add("points");
+            subs.add("configsafe");
+        }
+
+        String partial = args[0].toLowerCase();
+        subs.removeIf(s -> !s.startsWith(partial));
+        return subs;
     }
+
+    if (args.length == 2) {
+        String sub = args[0].toLowerCase();
+        ClanData clan = getPlayerClan(playerUUID);
+
+        switch (sub) {
+            case "kick":
+            case "promote":
+            case "demote":
+            case "leader": {
+                if (clan != null) {
+                    List<String> names = new ArrayList<>();
+                    for (UUID mem : clan.getMembers()) {
+                        String name = Bukkit.getOfflinePlayer(mem).getName();
+                        if (name != null) names.add(name);
+                    }
+                    return names;
+                }
+                return null;
+            }
+
+            case "request": {
+                Map<String, ClanData> clans = plugin.getFileManager().loadAllClans();
+                if (clan == null) {
+                    return new ArrayList<>(clans.keySet());
+                }
+                String clanTag = clan.getTag();
+                return clans.keySet().stream()
+                        .filter(tag -> !tag.equalsIgnoreCase(clanTag))
+                        .collect(Collectors.toList());
+            }
+
+            case "stats":
+                return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+
+            case "force":
+                return Arrays.asList("kick", "delete");
+
+            case "points":
+                if (player.isOp()) {
+                    return Arrays.asList("add", "remove", "set");
+                }
+                return null;
+
+            default:
+                return null;
+        }
+    }
+
+    if (args.length == 3) {
+        String sub = args[0].toLowerCase();
+        String sub2 = args[1].toLowerCase();
+
+        if ("points".equals(sub) && player.isOp()
+                && ("add".equals(sub2) || "remove".equals(sub2) || "set".equals(sub2))) {
+
+            List<String> onlineNames = new ArrayList<>();
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                onlineNames.add(p.getName());
+            }
+            return onlineNames;
+        }
+    }
+
+    return null;
 }
