@@ -86,7 +86,6 @@ messages:
   skills-locked-spawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-setspawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-rename: "%prefix%&cClan Rename ist gesperrt. Benötigt %required% Punkte."
-  skills-locked-rally: "%prefix%&cClan Rally ist gesperrt. Benötigt %required% Punkte."
   quest-info: "%prefix%click to redeem %quest_cost% points for %clan_reward% clan points."
   quest-redeem-not-enough: "%prefix%&cyou need %required% quest points to redeem. you have %available%."
   quest-redeem-disabled: "%prefix%&cquest point redemption is currently disabled."
@@ -100,9 +99,6 @@ messages:
   spawn-not-set: "%prefix%&cClan spawn is not set."
   spawn-teleporting: "%prefix%&aTeleportiere..."
   spawn-teleported: "%prefix%&aTeleportiert."
-  rally-cooldown: "%prefix%&cClan Rally ist auf Cooldown. Warte noch %minutes%m."
-  rally-teleported: "%prefix%&aDu wurdest zum Clan Leader %leader% teleportiert."
-  rally-triggered: "%prefix%&aDu hast %count% Clan-Mitglieder zu dir teleportiert."
   rename-too-soon: "%prefix%&cDu kannst deinen Clan erst in %hours%h erneut umbenennen. (Cooldown: %required%h)"
   clan-info-playtime: "%prefix%Gesamtspielzeit: %hours%h"
   leader-request-confirm: "%prefix%&cDo you really want to leave your clan to join another?"
@@ -111,10 +107,6 @@ messages:
   promote-only-mod: "%prefix%&cYou can only promote players up to MOD. Use /clan leader <player> to transfer leadership."
   leader-transferred: "%prefix%&aLeadership has been transferred to %player%."
   leader-received: "%prefix%&aYou are now the leader of clan %tag%."
-  settings-leader-chest: "%prefix%&cThe clan leader always has access to the clan chest."
-  settings-leader-friendly-fire: "%prefix%&cThe clan leader always has friendly fire enabled."
-  settings-leader-skills: "%prefix%&cThe clan leader always has access to clan skills."
-  settings-leader-spawn: "%prefix%&cThe clan leader always has access to the clan spawn."
   invite-cooldown: "%prefix%&cPlease wait %seconds% more seconds before sending another invite."
   invite-max-open: "%prefix%&cThis player already has an open invitation."
   target-in-clan-inviter: "%prefix%&c%player% is already in a clan [notification sent]"
@@ -125,8 +117,6 @@ messages:
   admin-points-remove: "%prefix%Du hast dem [%tag%] Clan %amount% Punkte entfernt. Neuer Stand: %total%."
   admin-points-set: "%prefix%Du hast die Punkte des [%tag%] Clans auf %amount% gesetzt."
   config-reloaded: "%prefix%&aClan config reloaded."
-  config-standard-saved: "%prefix%&aCurrent config saved as standard config."
-  config-standard-save-failed: "%prefix%&cFailed to save standard config."
 
 skills-gui:
   rows: 5
@@ -201,16 +191,6 @@ skills-gui:
       locked:
         lore:
           - "&7enderperle shield"
-    rally:
-      material: BEACON
-      name: "&6Clan Rally"
-      lore:
-        - "&7%reward%"
-      unlocked-lore:
-        - "&7Cooldown: &f30m"
-      locked:
-        lore:
-          - "&7use clan rally"
 
 stats-gui:
   rows: 3
@@ -305,122 +285,6 @@ quest-gui:
       - "&7reward: &f%reward% quest points"
       - "%status%"
 
-settings-gui:
-  titles:
-    main: "Clan Settings"
-    chest: "Clan Chest Settings"
-    friendly-fire: "Clan Friendly Fire Settings"
-    skills: "Clan Skills Settings"
-    spawn: "Clan Spawn Settings"
-  main:
-    rows: 3
-    filler:
-      material: ORANGE_STAINED_GLASS_PANE
-      name: " "
-      slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-    accent:
-      material: GRAY_STAINED_GLASS_PANE
-      name: " "
-      slots: [9, 10, 11, 12, 13, 14, 15, 16, 17]
-  items:
-    clan-chest:
-      slot: 11
-      material: CHEST
-      name: "&6Clan Chest"
-      lore:
-        - "&7Click to configure"
-        - "&7✅ &aFull access"
-        - "&7❌ &cNo access (view only)"
-      selected-lore:
-        - "&7Selected: &f%selected%"
-    friendly-fire:
-      slot: 12
-      material: IRON_SWORD
-      name: "&6Friendly Fire"
-      lore:
-        - "&7Click to configure"
-        - "&7✅ &aEnabled"
-        - "&7❌ &cDisabled"
-      selected-lore:
-        - "&7Selected: &f%selected%"
-    clan-skills:
-      slot: 13
-      material: NETHER_STAR
-      name: "&6Clan Skills"
-      lore:
-        - "&7Click to configure"
-        - "&7✅ &aFull access"
-        - "&7❌ &cNo access"
-      selected-lore:
-        - "&7Selected: &f%selected%"
-    clan-spawn:
-      slot: 14
-      material: ENDER_EYE
-      name: "&6Clan Spawn"
-      lore:
-        - "&7Click to configure"
-        - "&7✅ &aFull access"
-        - "&7👁 &eSee only"
-        - "&7❌ &cNo access"
-      selected-lore:
-        - "&7Selected: &f%selected%"
-    invitations:
-      slot: 10
-      material: BELL
-      name: "&6Invitations"
-      lore:
-        - "&7Click to toggle"
-        - "&7Status: %status%"
-  submenus:
-    chest:
-      rows: 6
-      header:
-        slot: 4
-      filler:
-        material: GRAY_STAINED_GLASS_PANE
-        name: " "
-        slots: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-      member-slots: []
-      empty-member:
-        material: BLACK_STAINED_GLASS_PANE
-        name: " "
-    friendly-fire:
-      rows: 6
-      header:
-        slot: 4
-      filler:
-        material: GRAY_STAINED_GLASS_PANE
-        name: " "
-        slots: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-      member-slots: []
-      empty-member:
-        material: BLACK_STAINED_GLASS_PANE
-        name: " "
-    skills:
-      rows: 6
-      header:
-        slot: 4
-      filler:
-        material: GRAY_STAINED_GLASS_PANE
-        name: " "
-        slots: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-      member-slots: []
-      empty-member:
-        material: BLACK_STAINED_GLASS_PANE
-        name: " "
-    spawn:
-      rows: 6
-      header:
-        slot: 4
-      filler:
-        material: GRAY_STAINED_GLASS_PANE
-        name: " "
-        slots: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-      member-slots: []
-      empty-member:
-        material: BLACK_STAINED_GLASS_PANE
-        name: " "
-
 ranks:
   Bronze: 0
   Silver: 5
@@ -452,7 +316,6 @@ help-book:
       &7/clan spawn
       &7/clan setspawn
       &7/clan delspawn
-      &7/clan settings
       &7/clan skills
       &7/clan quest
       &7/clan logs

@@ -11,7 +11,6 @@ public final class Clan extends JavaPlugin {
 
     private ConfigManager configManager;
     private FileManager fileManager;
-    private ClanSettingsListener clanSettingsListener;
     private ClanSkillsListener clanSkillsListener;
     private ClanStatsListener clanStatsListener;
     private ClanQuestListener clanQuestListener;
@@ -21,7 +20,6 @@ public final class Clan extends JavaPlugin {
         // Plugin startup logic
         configManager = new ConfigManager(this);
         fileManager = new FileManager(this);
-        clanSettingsListener = new ClanSettingsListener(this);
         clanSkillsListener = new ClanSkillsListener(this);
         clanStatsListener = new ClanStatsListener(this);
         clanQuestListener = new ClanQuestListener(this);
@@ -30,7 +28,6 @@ public final class Clan extends JavaPlugin {
         getCommand("clan").setExecutor(clanCommand);
         getCommand("clan").setTabCompleter(clanCommand);
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
-        getServer().getPluginManager().registerEvents(clanSettingsListener, this);
         getServer().getPluginManager().registerEvents(clanSkillsListener, this);
         getServer().getPluginManager().registerEvents(clanStatsListener, this);
         getServer().getPluginManager().registerEvents(clanQuestListener, this);
@@ -52,10 +49,6 @@ public final class Clan extends JavaPlugin {
 
     public FileManager getFileManager() {
         return fileManager;
-    }
-
-    public ClanSettingsListener getClanSettingsListener() {
-        return clanSettingsListener;
     }
 
     public ClanSkillsListener getClanSkillsListener() {
