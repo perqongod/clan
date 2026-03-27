@@ -1976,6 +1976,16 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
                 return null;
             }
 
+            case "invite": {
+                if (clan == null) return null;
+                if (!playerUUID.equals(clan.getLeader()) && !clan.getModerators().contains(playerUUID)) return null;
+                return Bukkit.getOnlinePlayers().stream()
+                        .filter(online -> !online.getUniqueId().equals(playerUUID))
+                        .filter(online -> !clan.getMembers().contains(online.getUniqueId()))
+                        .map(Player::getName)
+                        .collect(Collectors.toList());
+            }
+
             case "request": {
                 Map<String, ClanData> clans = plugin.getFileManager().loadAllClans();
                 if (clan == null) {
