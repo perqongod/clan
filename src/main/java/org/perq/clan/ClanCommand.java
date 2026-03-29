@@ -1934,12 +1934,12 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     }
 
     private List<String> getPendingRequestNames(ClanData clan) {
-        if (clan == null) return null;
+        if (clan == null) return Collections.emptyList();
         List<String> names = new ArrayList<>();
         for (UUID reqUUID : clan.getPendingRequests()) {
             String reqName = Bukkit.getOfflinePlayer(reqUUID).getName();
             if (reqName == null) {
-                reqName = reqUUID.toString().substring(0, 8);
+                reqName = reqUUID.toString();
             }
             names.add(reqName);
         }
@@ -2030,10 +2030,8 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
 
             case "accept":
             case "deny":
-            case "join": {
-                List<String> inviteTags = getInviteTags(playerUUID);
-                return inviteTags.isEmpty() ? null : inviteTags;
-            }
+            case "join":
+                return getInviteTags(playerUUID);
 
             case "accept-request":
             case "deny-request": {
