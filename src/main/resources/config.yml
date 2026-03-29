@@ -1,5 +1,5 @@
 prefix: "&6&lxyntrix &7| "
-clansystem-prefix: "&4[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7| "
+clansystem-prefix: "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7| "
 # Points awarded to a clan per kill (ranking/points)
 kill-points: 1
 online-save-interval: 60
@@ -18,7 +18,7 @@ clan-tag-settings:
     - "TEST"
     - "BANNED"
 
-max-members: 10
+max-members: 5
 min-points: 0
 max-points: 10000
 
@@ -86,6 +86,7 @@ messages:
   skills-locked-spawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-setspawn: "%prefix%&cClan Spawn ist gesperrt. Benötigt %required% Punkte."
   skills-locked-rename: "%prefix%&cClan Rename ist gesperrt. Benötigt %required% Punkte."
+  skills-locked-rally: "%prefix%&cClan Rally ist gesperrt. Benötigt %required% Punkte."
   quest-info: "%prefix%click to redeem %quest_cost% points for %clan_reward% clan points."
   quest-redeem-not-enough: "%prefix%&cyou need %required% quest points to redeem. you have %available%."
   quest-redeem-disabled: "%prefix%&cquest point redemption is currently disabled."
@@ -99,6 +100,9 @@ messages:
   spawn-not-set: "%prefix%&cClan spawn is not set."
   spawn-teleporting: "%prefix%&aTeleportiere..."
   spawn-teleported: "%prefix%&aTeleportiert."
+  rally-cooldown: "%prefix%&cClan Rally ist auf Cooldown. Warte noch %minutes%m."
+  rally-teleported: "%prefix%&aDu wurdest zum Clan Leader %leader% teleportiert."
+  rally-triggered: "%prefix%&aDu hast %count% Clan-Mitglieder zu dir teleportiert."
   rally-called: "%prefix%&e%player% hat ein Clan-Rally gestartet."
   rename-too-soon: "%prefix%&cDu kannst deinen Clan erst in %hours%h erneut umbenennen. (Cooldown: %required%h)"
   clan-info-playtime: "%prefix%Gesamtspielzeit: %hours%h"

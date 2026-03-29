@@ -38,7 +38,7 @@ public class ConfigManager {
     }
 
     public String getClanSystemPrefix() {
-        return translateColors(config.getString("clansystem-prefix", "&4[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7| "));
+        return translateColors(config.getString("clansystem-prefix", "&e[ᴄʟᴀɴꜱʏꜱᴛᴇᴍ] &7| "));
     }
 
     private static String translateHexColorCodes(String message) {
@@ -295,7 +295,7 @@ public class ConfigManager {
     }
 
     public int getMaxMembers() {
-        return config.getInt("max-members", 10);
+        return config.getInt("max-members", 5);
     }
 
     public String getMySQLHost() {
