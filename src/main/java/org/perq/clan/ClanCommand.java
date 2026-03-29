@@ -64,7 +64,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "join", "leave",
-            "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
+            "kick", "promote", "demote", "leader", "rename", "info", "help", "configsafe", "toggle", "stats",
             "ranking", "rally", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "accept-request", "deny-request", "logs", "skills", "quest", "war", "force", "admin",
             "points", "reload"
@@ -618,8 +618,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 PlayerData invTargetData = plugin.getFileManager().loadPlayer(invTarget.getUniqueId());
                 if (invTargetData == null) invTargetData = new PlayerData(invTarget.getName());
                 if (invTargetData.getClanTag() != null) {
-                    player.sendMessage(cm.getMessage("target-in-clan-inviter").replace("%player%", cm.formatPlain(invTarget.getName())));
-                    invTarget.sendMessage(cm.getMessage("target-in-clan-notify"));
+                    String targetClanTag = cm.translateColors(invTargetData.getClanTag());
+                    player.sendMessage(cm.getMessage("target-in-clan-inviter")
+                            .replace("%player%", cm.formatPlain(invTarget.getName()))
+                            .replace("%tag%", targetClanTag));
+                    invTarget.sendMessage(cm.getMessage("target-in-clan-notify")
+                            .replace("%inviter%", cm.formatPlain(player.getName()))
+                            .replace("%tag%", cm.translateColors(inviteClan.getTag()))
+                            .replace("%targetclan%", targetClanTag));
                     return true;
                 }
                 if (!invTargetData.isInvitesEnabled()) {
@@ -1107,11 +1113,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                     double time = md != null ? md.getOnlineTime() : 0.0;
                     player.sendMessage(cm.formatPlain(prefix + "  - " + memName + " (" + role + ") " + online + " (" + String.format("%.1f", time) + "h)"));
                 }
-                break;
-            }
-
-            case "help": {
-                openHelpBook(player, cm);
                 break;
             }
 
@@ -1951,6 +1952,19 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 .collect(Collectors.toList());
     }
 
+    private List<String> filterByPrefix(List<String> values, String partial) {
+        if (values == null) return null;
+        String lowerPartial = partial == null ? "" : partial.toLowerCase();
+        List<String> filtered = new ArrayList<>();
+        for (String value : values) {
+            if (value == null) continue;
+            if (lowerPartial.isEmpty() || value.toLowerCase().startsWith(lowerPartial)) {
+                filtered.add(value);
+            }
+        }
+        return filtered;
+    }
+
 // --- Tab completion ---
 
 @Override
@@ -1962,16 +1976,9 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
     if (args.length == 1) {
         ClanData clan = getPlayerClan(playerUUID);
 
-        if ("invite".equalsIgnoreCase(args[0])) {
-            List<String> inviteTargets = getInviteTargets(clan, playerUUID);
-            if (inviteTargets != null) {
-                return inviteTargets;
-            }
-        }
-
         List<String> subs = new ArrayList<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "leave",
-            "kick", "promote", "demote", "leader", "rename", "info", "help", "toggle", "stats",
+            "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
             "ranking", "rally", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "logs", "skills", "quest"
         ));
@@ -2024,24 +2031,24 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
                         String name = Bukkit.getOfflinePlayer(mem).getName();
                         if (name != null) names.add(name);
                     }
-                    return names;
+                    return filterByPrefix(names, args[1]);
                 }
                 return null;
             }
 
             case "invite": {
-                return getInviteTargets(clan, playerUUID);
+                return filterByPrefix(getInviteTargets(clan, playerUUID), args[1]);
             }
 
             case "accept":
             case "deny":
             case "join":
-                return getInviteTags(playerUUID);
+                return filterByPrefix(getInviteTags(playerUUID), args[1]);
 
             case "accept-request":
             case "deny-request": {
                 if (clan != null && clan.getLeader().equals(playerUUID)) {
-                    return getPendingRequestNames(clan);
+                    return filterByPrefix(getPendingRequestNames(clan), args[1]);
                 }
                 return Collections.emptyList();
             }
@@ -2055,14 +2062,16 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
             }
 
             case "stats":
-                return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                List<String> statTags = new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                statTags.sort(String.CASE_INSENSITIVE_ORDER);
+                return filterByPrefix(statTags, args[1]);
 
             case "force":
-                return Arrays.asList("kick", "delete");
+                return filterByPrefix(Arrays.asList("kick", "delete"), args[1]);
 
             case "points":
                 if (player.isOp()) {
-                    return Arrays.asList("add", "remove", "set");
+                    return filterByPrefix(Arrays.asList("add", "remove", "set"), args[1]);
                 }
                 break;
 
@@ -2078,17 +2087,19 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
 
         if ("force".equals(sub)) {
             if ("kick".equals(sub2) || "leave".equals(sub2)) {
-                return getOnlinePlayerNames();
+                return filterByPrefix(getOnlinePlayerNames(), args[2]);
             }
             if ("delete".equals(sub2)) {
-                return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                List<String> deleteTags = new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                deleteTags.sort(String.CASE_INSENSITIVE_ORDER);
+                return filterByPrefix(deleteTags, args[2]);
             }
         }
 
         if ("points".equals(sub) && player.isOp()
                 && ("add".equals(sub2) || "remove".equals(sub2) || "set".equals(sub2))) {
 
-            return getOnlinePlayerNames();
+            return filterByPrefix(getOnlinePlayerNames(), args[2]);
         }
     }
 
