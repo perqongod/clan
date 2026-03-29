@@ -2038,7 +2038,7 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
                 if (clan != null && clan.getLeader().equals(playerUUID)) {
                     return getPendingRequestNames(clan);
                 }
-                return null;
+                return Collections.emptyList();
             }
 
             case "request": {
