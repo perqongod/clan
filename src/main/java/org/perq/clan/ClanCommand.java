@@ -2049,7 +2049,7 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
             case "request": {
                 List<String> tags = new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
                 tags.sort(String.CASE_INSENSITIVE_ORDER);
-                String partial = args[1].toLowerCase();
+                String partial = args.length > 1 ? args[1].toLowerCase() : "";
                 tags.removeIf(tag -> !tag.toLowerCase().startsWith(partial));
                 return tags;
             }
