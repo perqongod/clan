@@ -51,8 +51,6 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
     private final Map<UUID, String> pendingLeaderTransfers = new HashMap<>();
     /** Inviter UUID -> last invite timestamp for 10-second cooldown. */
     private final Map<UUID, Long> inviteCooldowns = new HashMap<>();
-    /** Cached player names for tab completion lookups. */
-    private final Map<UUID, String> cachedPlayerNames = new HashMap<>();
     private static final long DELETE_CONFIRM_TIMEOUT_MS = 30_000L;
     private static final long INVITE_COOLDOWN_MS = 10_000L;
     private static final double RENAME_COOLDOWN_HOURS = 72.0;
@@ -1939,35 +1937,18 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         if (clan == null) return Collections.emptyList();
         List<String> names = new ArrayList<>();
         for (UUID reqUUID : clan.getPendingRequests()) {
-            names.add(resolveCachedPlayerName(reqUUID));
+            Player online = Bukkit.getPlayer(reqUUID);
+            if (online != null) {
+                names.add(online.getName());
+            }
         }
         return names;
     }
 
-    private String resolveCachedPlayerName(UUID playerUUID) {
-        String cached = cachedPlayerNames.get(playerUUID);
-        if (cached != null) {
-            return cached;
-        }
-        Player online = Bukkit.getPlayer(playerUUID);
-        if (online != null) {
-            cachedPlayerNames.put(playerUUID, online.getName());
-            return online.getName();
-        }
-        String offlineName = Bukkit.getOfflinePlayer(playerUUID).getName();
-        if (offlineName != null) {
-            cachedPlayerNames.put(playerUUID, offlineName);
-            return offlineName;
-        }
-        return playerUUID.toString();
-    }
-
     private List<String> getOnlinePlayerNames() {
-        List<String> onlineNames = new ArrayList<>();
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            onlineNames.add(p.getName());
-        }
-        return onlineNames;
+        return Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .collect(Collectors.toList());
     }
 
 // --- Tab completion ---
