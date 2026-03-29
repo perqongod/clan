@@ -2047,14 +2047,11 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
             }
 
             case "request": {
-                Map<String, ClanData> clans = plugin.getFileManager().loadAllClans();
-                if (clan == null) {
-                    return new ArrayList<>(clans.keySet());
-                }
-                String clanTag = clan.getTag();
-                return clans.keySet().stream()
-                        .filter(tag -> !tag.equalsIgnoreCase(clanTag))
-                        .collect(Collectors.toList());
+                List<String> tags = new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+                tags.sort(String.CASE_INSENSITIVE_ORDER);
+                String partial = args.length > 1 ? args[1].toLowerCase() : "";
+                tags.removeIf(tag -> !tag.toLowerCase().startsWith(partial));
+                return tags;
             }
 
             case "stats":
