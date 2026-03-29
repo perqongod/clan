@@ -1924,6 +1924,33 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 .collect(Collectors.toList());
     }
 
+    private List<String> getInviteTags(UUID playerUUID) {
+        List<InviteData> invites = plugin.getFileManager().loadAllInvites(playerUUID);
+        return invites.stream()
+                .map(InviteData::getFromClan)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private List<String> getPendingRequestNames(ClanData clan) {
+        if (clan == null) return Collections.emptyList();
+        List<String> names = new ArrayList<>();
+        for (UUID reqUUID : clan.getPendingRequests()) {
+            Player online = Bukkit.getPlayer(reqUUID);
+            if (online != null) {
+                names.add(online.getName());
+            }
+        }
+        return names;
+    }
+
+    private List<String> getOnlinePlayerNames() {
+        return Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .collect(Collectors.toList());
+    }
+
 // --- Tab completion ---
 
 @Override
@@ -2006,6 +2033,19 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
                 return getInviteTargets(clan, playerUUID);
             }
 
+            case "accept":
+            case "deny":
+            case "join":
+                return getInviteTags(playerUUID);
+
+            case "accept-request":
+            case "deny-request": {
+                if (clan != null && clan.getLeader().equals(playerUUID)) {
+                    return getPendingRequestNames(clan);
+                }
+                return Collections.emptyList();
+            }
+
             case "request": {
                 Map<String, ClanData> clans = plugin.getFileManager().loadAllClans();
                 if (clan == null) {
@@ -2039,14 +2079,19 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
         String sub = args[0].toLowerCase();
         String sub2 = args[1].toLowerCase();
 
+        if ("force".equals(sub)) {
+            if ("kick".equals(sub2) || "leave".equals(sub2)) {
+                return getOnlinePlayerNames();
+            }
+            if ("delete".equals(sub2)) {
+                return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
+            }
+        }
+
         if ("points".equals(sub) && player.isOp()
                 && ("add".equals(sub2) || "remove".equals(sub2) || "set".equals(sub2))) {
 
-            List<String> onlineNames = new ArrayList<>();
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                onlineNames.add(p.getName());
-            }
-            return onlineNames;
+            return getOnlinePlayerNames();
         }
     }
 
