@@ -1946,6 +1946,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         return names;
     }
 
+    private List<String> getOnlinePlayerNames() {
+        List<String> onlineNames = new ArrayList<>();
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            onlineNames.add(p.getName());
+        }
+        return onlineNames;
+    }
+
 // --- Tab completion ---
 
 @Override
@@ -2076,11 +2084,7 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
 
         if ("force".equals(sub)) {
             if ("kick".equals(sub2) || "leave".equals(sub2)) {
-                List<String> onlineNames = new ArrayList<>();
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    onlineNames.add(p.getName());
-                }
-                return onlineNames;
+                return getOnlinePlayerNames();
             }
             if ("delete".equals(sub2)) {
                 return new ArrayList<>(plugin.getFileManager().loadAllClans().keySet());
@@ -2090,11 +2094,7 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
         if ("points".equals(sub) && player.isOp()
                 && ("add".equals(sub2) || "remove".equals(sub2) || "set".equals(sub2))) {
 
-            List<String> onlineNames = new ArrayList<>();
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                onlineNames.add(p.getName());
-            }
-            return onlineNames;
+            return getOnlinePlayerNames();
         }
     }
 
