@@ -64,10 +64,13 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
 
     private static final Set<String> SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "create", "delete", "invite", "accept", "deny", "join", "leave",
-            "kick", "promote", "demote", "leader", "rename", "info", "help", "configsafe", "toggle", "stats",
+            "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
             "ranking", "rally", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "accept-request", "deny-request", "logs", "skills", "quest", "war", "force", "admin",
             "points", "reload"
+    ));
+    private static final Set<String> RESERVED_SUBCOMMANDS = new HashSet<>(Arrays.asList(
+            "help", "configsafe"
     ));
 
     public ClanCommand(Clan plugin) {
@@ -91,7 +94,9 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         }
 
         // Clan-chat routing: unknown sub-arg treated as chat message
-        if (args.length > 0 && !SUBCOMMANDS.contains(args[0].toLowerCase())) {
+        if (args.length > 0
+                && !SUBCOMMANDS.contains(args[0].toLowerCase())
+                && !RESERVED_SUBCOMMANDS.contains(args[0].toLowerCase())) {
             ClanData chatClan = getPlayerClan(playerUUID);
             if (chatClan == null) {
                 player.sendMessage(cm.getMessage("no-clan"));
