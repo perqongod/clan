@@ -67,7 +67,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
             "ranking", "rally", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
             "accept-request", "deny-request", "logs", "skills", "quest", "war", "force", "admin",
-            "points", "reload"
+            "points", "reload", "help"
     ));
     private static final Set<String> RESERVED_SUBCOMMANDS = new HashSet<>(Arrays.asList(
             "help", "configsafe"
@@ -121,6 +121,11 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase();
 
         switch (sub) {
+
+            case "help": {
+                openHelpBook(player, cm);
+                break;
+            }
 
             case "create": {
                 if (args.length < 2) {
@@ -1744,7 +1749,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             }
 
             default: {
-                player.sendMessage(cm.formatPlain(cm.getPrefix() + "Unknown subcommand. Use /clan for help."));
+                player.sendMessage(cm.formatPlain(cm.getPrefix() + "Unknown subcommand. Use /clan or /clan help for help."));
                 break;
             }
         }
@@ -1985,7 +1990,7 @@ public List<String> onTabComplete(CommandSender sender, Command command, String 
             "create", "delete", "invite", "accept", "deny", "leave",
             "kick", "promote", "demote", "leader", "rename", "info", "toggle", "stats",
             "ranking", "rally", "chest", "spawn", "setspawn", "delspawn", "request", "requests",
-            "logs", "skills", "quest"
+            "logs", "skills", "quest", "help"
         ));
 
         if (clan == null || !ClanSkillProgress.hasChest(clan.getSkillPoints())) {

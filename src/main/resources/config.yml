@@ -129,6 +129,7 @@ messages:
 # %leader%, %chest%, %spawn%, %skills%, %admin% lines only show when permitted.
 # %spawn_unlock% resolves to the spawn unlock point threshold.
 help-lines:
+  - "%prefix%/clan help &7- Öffnet das Hilfebuch für neue Spieler"
   - "%prefix%/clan create <tag> &7- Create a clan"
   - "%prefix%/clan delete &7- Disband your clan"
   - "%prefix%/clan invite <player> &7- Invite a player"
@@ -336,24 +337,29 @@ help-book:
   pages:
     - |-
       &6&lClan Hilfe
-      &7Schritt 1: /clan create <tag>
-      &7Schritt 2: /clan request <tag>
-      &7Schritt 3: /clan invite <spieler>
-      &7Schritt 4: /clan join <tag>
-      &7Schritt 5: /clan info
-      &7Schritt 6: /clan leave
-      &7Schritt 7: /clan requests
+      &7Clans sind Gruppen,
+      &7die zusammen spielen.
+      &7Sammle Punkte durch
+      &7Kills & Quests, steige
+      &7im Ranking & schalte
+      &7Skills frei.
+      &7Mehr Punkte = Chest,
+      &7Spawn & extra Slots.
     - |-
-      &6&lVerwaltung
-      &7/clan kick <spieler>
-      &7/clan promote <spieler>
-      &7/clan demote [spieler]
-      &7/clan leader <spieler>
-      &7/clan rename <tag>
-      &7/clan chest (set)
-      &7/clan spawn
-      &7/clan setspawn
-      &7/clan delspawn
-      &7/clan skills
-      &7/clan quest
-      &7/clan logs
+      &6&lErste Schritte
+      &7Clan erstellen:
+      &f/clan create <tag>
+      &7Clan beitreten:
+      &f/clan request <tag>
+      &7oder Einladung:
+      &f/clan accept <tag>
+      &7Leader: /clan invite <spieler>
+      &7Verlassen: /clan leave
+    - |-
+      &6&lFeatures
+      &7Clan-Chat: /clan <text>
+      &7Clan Chest: /clan chest
+      &7Clan Spawn: /clan spawn
+      &7Skills: /clan skills
+      &7Quests: /clan quest
+      &7Logs/Info: /clan logs
