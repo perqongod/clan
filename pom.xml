@@ -52,12 +52,8 @@
 
     <repositories>
         <repository>
-            <id>papermc-repo</id>
-            <url>https://repo.papermc.io/repository/maven-public/</url>
-        </repository>
-        <repository>
-            <id>placeholderapi-repo</id>
-            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+            <id>local-bukkit-stubs</id>
+            <url>file://${project.basedir}/lib/m2</url>
         </repository>
     </repositories>
 
@@ -65,16 +61,14 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.8-R0.1-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/bukkit-stubs.jar</systemPath>
+            <version>1.21.8-R0.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/bukkit-stubs.jar</systemPath>
+            <version>1.21-R0.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -85,8 +79,7 @@
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
             <version>2.11.6</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/bukkit-stubs.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

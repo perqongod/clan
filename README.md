@@ -9,8 +9,9 @@ Minecraft clan plugin.
 
 ## Build
 
-This repository uses the bundled `lib/bukkit-stubs.jar` for the Bukkit/Paper/PlaceholderAPI
-compile-time APIs so the project can be built without external Maven repositories.
+This repository uses the bundled `lib/bukkit-stubs.jar` along with a small local Maven
+repository in `lib/m2` for the Bukkit/Paper/PlaceholderAPI compile-time APIs, so the
+project can be built without downloading those APIs from external Maven repositories.
 
 If `mvn` is not recognized on your system, use the Maven Wrapper instead:
 
