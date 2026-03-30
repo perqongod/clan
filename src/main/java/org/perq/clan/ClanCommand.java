@@ -70,7 +70,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
             "points", "reload", "help"
     ));
     private static final Set<String> RESERVED_SUBCOMMANDS = new HashSet<>(Arrays.asList(
-            "help", "configsafe"
+            "configsafe"
     ));
 
     public ClanCommand(Clan plugin) {
