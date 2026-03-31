@@ -133,11 +133,14 @@ final class GuiConfigHelper {
             String key = entry.getKey();
             if (key == null) continue;
             String value = entry.getValue();
-            if (key.indexOf('%') >= 0) {
-                result = result.replace(key, value);
-            } else {
-                result = result.replace("%" + key + "%", value);
+            String placeholder = key;
+            if (!placeholder.startsWith("%")) {
+                placeholder = "%" + placeholder;
             }
+            if (!placeholder.endsWith("%")) {
+                placeholder = placeholder + "%";
+            }
+            result = result.replace(placeholder, value);
         }
         return result;
     }
