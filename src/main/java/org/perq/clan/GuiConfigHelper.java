@@ -136,13 +136,9 @@ final class GuiConfigHelper {
             if (value == null) {
                 value = "";
             }
-            String placeholder = key;
-            if (!placeholder.startsWith("%")) {
-                placeholder = "%" + placeholder;
-            }
-            if (!placeholder.endsWith("%")) {
-                placeholder = placeholder + "%";
-            }
+            String placeholderKey = key.replace("%", "");
+            if (placeholderKey.isEmpty()) continue;
+            String placeholder = "%" + placeholderKey + "%";
             result = result.replace(placeholder, value);
         }
         return result;
