@@ -133,6 +133,9 @@ final class GuiConfigHelper {
             String key = entry.getKey();
             if (key == null) continue;
             String value = entry.getValue();
+            if (value == null) {
+                value = "";
+            }
             String placeholder = key;
             if (!placeholder.startsWith("%")) {
                 placeholder = "%" + placeholder;
