@@ -130,7 +130,20 @@ final class GuiConfigHelper {
         }
         String result = text;
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-            result = result.replace(entry.getKey(), entry.getValue());
+            String key = entry.getKey();
+            if (key == null) continue;
+            String value = entry.getValue();
+            if (value == null) {
+                value = "";
+            }
+            String placeholder = key;
+            if (!placeholder.startsWith("%")) {
+                placeholder = "%" + placeholder;
+            }
+            if (!placeholder.endsWith("%")) {
+                placeholder = placeholder + "%";
+            }
+            result = result.replace(placeholder, value);
         }
         return result;
     }
