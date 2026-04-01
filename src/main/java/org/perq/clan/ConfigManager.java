@@ -236,27 +236,30 @@ public class ConfigManager {
         if (pages == null || pages.isEmpty()) {
             pages = new ArrayList<>();
             pages.add("&6&lClan Hilfe\n"
-                    + "&7Schritt 1: /clan create <tag>\n"
-                    + "&7Schritt 2: /clan request <tag>\n"
-                    + "&7Schritt 3: /clan invite <spieler>\n"
-                    + "&7Schritt 4: /clan join <tag>\n"
-                    + "&7Schritt 5: /clan info\n"
-                    + "&7Schritt 6: /clan leave\n"
-                    + "&7Schritt 7: /clan requests");
-            pages.add("&6&lVerwaltung\n"
-                    + "&7/clan kick <spieler>\n"
-                    + "&7/clan promote <spieler>\n"
-                    + "&7/clan demote <spieler>\n"
-                    + "&7/clan leader <spieler>\n"
-                    + "&7/clan rename <tag>\n"
-                    + "&7/clan chest\n"
-                    + "&7/clan chest set\n"
-                    + "&7/clan spawn\n"
-                    + "&7/clan setspawn\n"
-                    + "&7/clan delspawn\n"
-                    + "&7/clan skills\n"
-                    + "&7/clan quest\n"
-                    + "&7/clan logs");
+                    + "&7Clans sind Gruppen,\n"
+                    + "&7die zusammen spielen.\n"
+                    + "&7Sammle Punkte durch\n"
+                    + "&7Kills & Quests, steige\n"
+                    + "&7im Ranking & schalte\n"
+                    + "&7Skills frei.\n"
+                    + "&7Mehr Punkte = Chest,\n"
+                    + "&7Spawn & extra Slots.");
+            pages.add("&6&lErste Schritte\n"
+                    + "&7Clan erstellen:\n"
+                    + "&f/clan create <tag>\n"
+                    + "&7Clan beitreten:\n"
+                    + "&f/clan request <tag>\n"
+                    + "&7oder Einladung:\n"
+                    + "&f/clan accept <tag>\n"
+                    + "&7Leader: /clan invite <spieler>\n"
+                    + "&7Verlassen: /clan leave");
+            pages.add("&6&lFeatures\n"
+                    + "&7Clan-Chat: /clan <text>\n"
+                    + "&7Clan Chest: /clan chest\n"
+                    + "&7Clan Spawn: /clan spawn\n"
+                    + "&7Skills: /clan skills\n"
+                    + "&7Quests: /clan quest\n"
+                    + "&7Logs/Info: /clan logs");
         }
         return new ArrayList<>(pages);
     }
